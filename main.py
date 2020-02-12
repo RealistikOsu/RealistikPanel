@@ -13,9 +13,24 @@ def home():
 
 @app.route("/dash/")
 def dash():
-    Data = DashData()
-    return render_template("dash.html", title="Dashboard", session=session, data=Data)
+    if session["LoggedIn"]:
+        Data = DashData()
+        return render_template("dash.html", title="Dashboard", session=session, data=Data)
+    else:
+        return redirect(url_for("login"))
 
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
 
+#error handlers
+@app.errorhandler(404)
+def NotFoundError(error):
+    return render_template("404.html")
+
+@app.errorhandler(500)
+def BadCodeError(error):
+    return render_template("500.html")
 
 app.run(host= '0.0.0.0', port=UserConfig["Port"])
