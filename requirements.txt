@@ -1,3 +1,4 @@
 flask
 mysql-connector
 colorama
+redis
