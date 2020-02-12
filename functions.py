@@ -3,6 +3,7 @@ from config import *
 import mysql.connector
 from colorama import init, Fore
 import redis
+import bcrypt
 
 init() #initialises colorama for colours
 
@@ -43,10 +44,30 @@ def DashData():
 
 def LoginHandler(username, password):
     """Checks the passwords and handles the sessions"""
-    mycursor.execute(f"SELECT username, password_md5, ban_datetime FROM users WHERE username_safe = {username.lower()}")
+    mycursor.execute(f"SELECT username, password_md5, ban_datetime FROM users WHERE username_safe = '{username.lower()}'")
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
-        return False
+        return [False, "Not Found"]
     else:
-        print(User)
+        User = User[0]
+        #Stores grabbed data in variables for easier access
+        Username = User[0]
+        PassHash = User[1]
+        IsBanned = User[2]
+        
+        #Converts IsBanned to bool
+        if IsBanned == "0":
+            IsBanned = False
+        else:
+            IsBanned = True
+        
+        #shouldve been done during conversion but eh
+        if IsBanned:
+            return [False, "You are banned... Awkward..."]
+        else:
+            #nice
+            if bcrypt.checkpw(password, PassHash):
+                return [True, "You have been logged in!"]
+            else:
+                return [False, "Incorect password."]
