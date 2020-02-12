@@ -71,3 +71,38 @@ def LoginHandler(username, password):
                 return [True, "You have been logged in!"]
             else:
                 return [False, "Incorect password."]
+
+def RecentPlays():
+    """Returns recent plays"""
+    #this is probably really bad
+    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.id DESC LIMIT 10")
+    plays = mycursor.fetchall()
+    PlaysArray = []
+    #converting into lists as theyre cooler (and easier to work with)
+    for x in plays:
+        PlaysArray.append(list(x))
+
+    #converting the data into something readable
+    ReadableArray = []
+    for x in PlaysArray:
+        #yes im doing this
+        #lets get the song name
+        BeatmapMD5 = x[0]
+        mycursor.execute(f"SELECT song_name FROM beatmaps WHERE beatmap_md5 = '{BeatmapMD5}'")
+        SongFetch = mycursor.fetchall()
+        if len(SongFetch) == 0:
+            #checking if none found
+            SongName = "Invalid..."
+        else:
+            SongName = list(SongFetch[0])[0]
+        #make and populate a readable dict
+        Dicti = {}
+        Dicti["Player"] = x[1]
+        Dicti["PlayerId"] = x[2]
+        Dicti["SongName"] = SongName
+        Dicti["Score"] = x[4]
+        Dicti["pp"] = x[5]
+        Dicti["Time"] = x[3]
+        ReadableArray.append(Dicti)
+    
+    return ReadableArray
