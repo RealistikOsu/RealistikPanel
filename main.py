@@ -24,6 +24,12 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
+@app.route("/logout")
+def logout():
+    #clears session
+    session = ServSession
+    return redirect(url_for("home"))
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):
