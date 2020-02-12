@@ -30,7 +30,7 @@ mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 def DashData():
     """Grabs all the values for the dashboard"""
     mycursor.execute("SELECT * FROM system_settings")
-    Alert = mycursor.fetchall()[1][1] #Not the best way but it's fast!!
+    Alert = mycursor.fetchall()[2][2] #Not the best way but it's fast!!
     if Alert == "":
         Alert = False
     response = {
