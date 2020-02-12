@@ -28,10 +28,11 @@ mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
 def DashData():
+    #note to self: add data caching so data isnt grabbed every time the dash is accessed
     """Grabs all the values for the dashboard"""
     mycursor.execute("SELECT * FROM system_settings")
     Alert = mycursor.fetchall()[2][3] #Not the best way but it's fast!!
-    if Alert == "":
+    if Alert == "": #checks if no aler
         Alert = False
     response = {
         "RegisteredUsers" : r.get("ripple:registered_users").decode("utf-8") ,
@@ -39,3 +40,13 @@ def DashData():
         "Alert" : Alert
     }
     return response
+
+def LoginHandler(username, password):
+    """Checks the passwords and handles the sessions"""
+    mycursor.execute(f"SELECT username, password_md5, ban_datetime FROM users WHERE username_safe = {username.lower()}")
+    User = mycursor.fetchall()
+    if len(User) == 0:
+        #when user not found
+        return False
+    else:
+        print(User)

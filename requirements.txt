@@ -2,3 +2,4 @@ flask
 mysql-connector
 colorama
 redis
+bcrypt

@@ -1,5 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, request
 from defaults import *
 from functions import *
 from config import *
