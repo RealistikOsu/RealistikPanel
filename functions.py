@@ -24,10 +24,18 @@ except Exception as e:
     print(f"{Fore.RED} Failed connecting to Redis! Abandoning!\n Error: {e}{Fore.RESET}")
     exit()
 
+mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
+mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
+
 def DashData():
     """Grabs all the values for the dashboard"""
+    mycursor.execute("SELECT * FROM system_settings")
+    Alert = mycursor.fetchall()[1][1] #Not the best way but it's fast!!
+    if Alert == "":
+        Alert = False
     response = {
-        "RegisteredUsers" : r.get("ripple:registered_users"),
-        "OnlineUsers" : r.get("ripple:online_users"),
+        "RegisteredUsers" : str(r.get("ripple:registered_users")),
+        "OnlineUsers" : str(r.get("ripple:online_users")),
+        "Alert" : Alert
     }
     return response

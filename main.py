@@ -13,7 +13,8 @@ def home():
 
 @app.route("/dash/")
 def dash():
-    return render_template("dash.html", title="Dashboard", session=session)
+    Data = DashData()
+    return render_template("dash.html", title="Dashboard", session=session, data=Data)
 
 
 

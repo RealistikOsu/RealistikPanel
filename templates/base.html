@@ -32,14 +32,15 @@
             </div>  
             <div class="main-content" style="min-height: 810px;">
                 <section class="section">
-                    <!-- Put this in an if statement when you have mysql setup -->   
+                    {{% if data["Alert"] %}}  
                     <div class="alert alert-dark alert-has-icon">
                         <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
                         <div class="alert-body">
                         <div class="alert-title">Alert!</div>
-                            Alert! Alert! There is no need for alert! Continue!
+                            {{ data["Alert"] }}
                         </div>
                     </div>
+                    {{% endif %}}
                     {% block content %}{% endblock %}   
                 </section>
             </div>
