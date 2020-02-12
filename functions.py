@@ -67,7 +67,7 @@ def LoginHandler(username, password):
             return [False, "You are banned... Awkward..."]
         else:
             #nice
-            if bcrypt.checkpw(password, PassHash):
+            if bcrypt.checkpw(password.encode('utf-8'), PassHash.encode('utf-8')):
                 return [True, "You have been logged in!"]
             else:
                 return [False, "Incorect password."]
