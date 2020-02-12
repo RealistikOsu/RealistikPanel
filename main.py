@@ -17,4 +17,4 @@ def dash():
 
 
 
-app.run(port=UserConfig["Port"])
+app.run(host= '0.0.0.0', port=UserConfig["Port"])
