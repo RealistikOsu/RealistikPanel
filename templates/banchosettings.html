@@ -12,8 +12,13 @@
             <div class="form-group">
                 <label>Bancho Maintenance Mode</label>
                 <select class="form-control" id="bmm">
-                    <option>On</option>
+                    {% if bsdata["BanchoMan"] %}
+                    <option selected>On</option>
                     <option>Off</option>
+                    {% else %}
+                    <option>On</option>
+                    <option selected>Off</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group">
