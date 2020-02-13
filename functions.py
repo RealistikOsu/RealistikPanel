@@ -76,7 +76,7 @@ def LoginHandler(username, password):
 def TimestampConverter(timestamp):
     """Converts timestamps into readable time"""
     date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
-    return str(datetime.datetime.strptime(date, "%H:%M"))
+    return f"{date.hour}:{date.minute}"
 
 def RecentPlays():
     """Returns recent plays"""
