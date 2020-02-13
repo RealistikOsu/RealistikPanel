@@ -121,7 +121,13 @@ def RecentPlays():
     return ReadableArray
 
 def FetchBSData():
-    return
+    mycursor.execute("SELECT name, value_stirng, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'")
+    Query = list(mycursor.fetchall())
+    BanchoMaintenence = Query[0]
+    MenuIcon = Query[1]
+    LoginNotification = Query[2]
+    print(f"Banchoman = {BanchoMaintenence}\nMenuIcon = {MenuIcon}\nLoginNot = {LoginNotification}")
+    return "a"
 
 def BSPostHandler(post):
     pass
