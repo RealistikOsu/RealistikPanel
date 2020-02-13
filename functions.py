@@ -100,7 +100,7 @@ def RecentPlays():
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
         Dicti["SongName"] = SongName
-        Dicti["Score"] = x[4]
+        Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = x[5]
         Dicti["Time"] = x[3]
         ReadableArray.append(Dicti)
