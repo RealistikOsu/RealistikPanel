@@ -35,8 +35,7 @@ def BanchoSettings():
     if session["LoggedIn"]:
         #no bypassing it.
         if request.method == "GET":
-            Defaults = FetchBSData()
-            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData())
+            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData())
         if request.method == "POST":
             BSPostHandler(request.get_json())
             #return redirect(url_for("BanchoSettings")) #reloads page disabled for testing
