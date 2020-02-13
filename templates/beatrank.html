@@ -6,13 +6,13 @@
         <div class="article-image" data-background="assets/img/news/img08.jpg" style="background-image: url(&quot;{{ beatdata['Cover'] }}&quot;);">
         </div>
         <div class="article-title">
-            <h2><a href="https://ussr.pl/b/{{ beatdata['BeatmapId'] }}">{{ beatdata["SongName"] }}</a></h2>
+            <h2><a href="https://ussr.pl/b/{{ beatdata['BeatmapId'] }}">{{ beatdata["SongName"] }} {{ beatdata["Difficulty"] }}☆</a></h2>
         </div>
     </div>
     <div class="article-details">
-        <p>{{ beatdata["Difficulty"] }}*</p>
+        <p>Change the ranking status for this song!</p>
         <div class="article-cta">
-            <a href="#" class="btn btn-primary">Read More</a>
+            <a href="#" class="btn btn-success">Apply!</a>
         </div>
     </div>
 </article>
