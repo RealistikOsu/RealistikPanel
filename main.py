@@ -43,7 +43,7 @@ def BanchoSettings():
     else:
         return redirect(url_for("login"))
 
-@app.route("/rank/{id}")
+@app.route("/rank/<id>")
 def RankMap(id):
     if session["LoggedIn"]:
         print(GetBmapInfo(id))
