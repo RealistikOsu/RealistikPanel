@@ -155,7 +155,7 @@ def GetBmapInfo(id):
         return {
             "SongName" : Data[0],
             "Ar" : str(Data[1]),
-            "Difficulty" : str(Data[2]),
+            "Difficulty" : str(round(Data[2], 2)),
             "BeatmapsetId" : str(Data[3]),
             "BeatmapId" : id,
             "Cover" : f"https://assets.ppy.sh/beatmaps/{Data[3]}/covers/cover.jpg"
