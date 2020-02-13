@@ -136,3 +136,25 @@ def FetchBSData():
 
 def BSPostHandler(post):
     pass
+
+def GetBmapInfo(id):
+    """Gets beatmap info"""
+    mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id FROM beatmaps WHERE beatmap_id = '{id}'")
+    Data = mycursor.fetchall()
+    if len(Data) == 0:
+        return {
+            "SongName" : "Not Found",
+            "Ar" : "0",
+            "Difficulty" : "0",
+            "BeatmapsetId" : "",
+            "Cover" : "https://a.ussr.pl/" #why this? idk
+        }
+    else:
+        Data = Data[0]
+        return {
+            "SongName" : Data[0],
+            "Ar" : str(Data[1]),
+            "Difficulty" : str(Data[2]),
+            "BeatmapsetId" : str(Data[3]),
+            "Cover" : f"https://assets.ppy.sh/beatmaps/{Data[3]}/covers/cover.jpg"
+        }
