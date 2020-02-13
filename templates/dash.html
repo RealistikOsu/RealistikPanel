@@ -28,4 +28,27 @@
         RealistikDash
     </div>
 </div>
+<div class="section-title">Recent Plays</div>
+<table class="table table-striped table-dark">
+    <thead>
+        <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Player</th>
+            <th scope="col">Song</th>
+            <th scope="col">Score</th>
+            <th scope="col">PP</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for play in plays %}
+        <tr>
+            <td>{{ play["Time"] }}</td>
+            <td><a href="https://ussr.pl/u/{{ play['PlayerId'] }}">{{ play["Player"] }}</a></td>
+            <td>{{ play["SongName"] }}</td>
+            <td>{{ play["Score"] }}</td>
+            <td>{{ play["pp"] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

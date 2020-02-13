@@ -15,7 +15,8 @@ def home():
 def dash():
     if session["LoggedIn"]:
         Data = DashData()
-        return render_template("dash.html", title="Dashboard", session=session, data=Data)
+        Plays = RecentPlays()
+        return render_template("dash.html", title="Dashboard", session=session, data=Data, plays=Plays)
     else:
         return redirect(url_for("login"))
 
