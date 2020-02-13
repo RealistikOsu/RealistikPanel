@@ -79,8 +79,8 @@ def TimestampConverter(timestamp):
     #so we avoid things like 21:6
     hour = str(date.hour)
     minute = str(date.minute)
-    if len(hour) == 1:
-        hour = "0" + hour
+    #if len(hour) == 1:
+        #hour = "0" + hour
     if len(minute) == 1:
         minute = "0" + minute
     return f"{hour}:{minute}"
