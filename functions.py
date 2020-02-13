@@ -147,6 +147,7 @@ def GetBmapInfo(id):
             "Ar" : "0",
             "Difficulty" : "0",
             "BeatmapsetId" : "",
+            "BeatmapId" : 0,
             "Cover" : "https://a.ussr.pl/" #why this? idk
         }
     else:
@@ -156,5 +157,6 @@ def GetBmapInfo(id):
             "Ar" : str(Data[1]),
             "Difficulty" : str(Data[2]),
             "BeatmapsetId" : str(Data[3]),
+            "BeatmapId" : id,
             "Cover" : f"https://assets.ppy.sh/beatmaps/{Data[3]}/covers/cover.jpg"
         }

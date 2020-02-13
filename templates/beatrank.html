@@ -1,4 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+<article class="article">
+    <div class="article-header">
+        <div class="article-image" data-background="assets/img/news/img08.jpg" style="background-image: url(&quot;{{ beatdata['Cover'] }}&quot;);">
+        </div>
+        <div class="article-title">
+            <h2><a href="https://ussr.pl/b/{{ beatdata['BeatmapId'] }}">{{ beatdata["SongName"] }}</a></h2>
+        </div>
+    </div>
+    <div class="article-details">
+        <p>{{ beatdata["Difficulty"] }}*</p>
+        <div class="article-cta">
+            <a href="#" class="btn btn-primary">Read More</a>
+        </div>
+    </div>
+</article>
 {% endblock %}

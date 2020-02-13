@@ -46,8 +46,9 @@ def BanchoSettings():
 @app.route("/rank/<id>")
 def RankMap(id):
     if session["LoggedIn"]:
-        print(GetBmapInfo(id))
         return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id))
+    else:
+        return redirect(url_for("login"))
 
 #error handlers
 @app.errorhandler(404)
