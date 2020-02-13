@@ -112,3 +112,9 @@ def RecentPlays():
         ReadableArray.append(Dicti)
     
     return ReadableArray
+
+def FetchBSData():
+    return
+
+def BSPostHandler(post):
+    pass

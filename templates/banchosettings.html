@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">Bancho Settings</h2>
+<p class="section-lead">Change the settings of your osu! server. This includes things such as login messeges, menu icons and more!</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Settings</h4>
+    </div>
+    <div class="card-body">
+        <form action="/bancho/settings">
+            <div class="form-group">
+                <label>Bancho Maintenance Mode</label>
+                <select class="form-control" id="bmm">
+                    <option>On</option>
+                    <option>Off</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Main Menu Icon</label>
+                <input type="text" class="form-control" id="mmi">
+            </div>
+            <div class="form-group">
+                <label>Login Notification</label>
+                <input type="text" class="form-control" id="ln">
+            </div>
+            <button class="btn btn-primary mr-1" type="submit">Submit</button>
+        </form>
+    </div>
+    <div class="card-footer text-right">
+        RealistikPanel!
+    </div>
+</div>
+{% endblock %}

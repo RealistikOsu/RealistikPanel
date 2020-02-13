@@ -1,5 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
-from flask import Flask, render_template, session, redirect, url_for, request
+from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from defaults import *
 from functions import *
 from config import *
@@ -14,9 +14,7 @@ def home():
 @app.route("/dash/")
 def dash():
     if session["LoggedIn"]:
-        Data = DashData()
-        Plays = RecentPlays()
-        return render_template("dash.html", title="Dashboard", session=session, data=Data, plays=Plays)
+        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays())
     else:
         return redirect(url_for("login"))
 
@@ -30,6 +28,20 @@ def logout():
     #clears session
     session = ServSession
     return redirect(url_for("home"))
+
+@app.route("/bancho/settings", methods = ["GET", "POST"])
+def BanchoSettings():
+    #note to self: add permission checking
+    if session["LoggedIn"]:
+        #no bypassing it.
+        return render_template("banchosettings.html", preset=FetchBSData())
+    else:
+        if request.method == "GET":
+            return redirect(url_for("login"))
+        if request.method == "POST":
+            BSPostHandler(request.get_json())
+            #return redirect(url_for("BanchoSettings")) #reloads page disabled for testing
+            return jsonify(request.get_json())
 
 #error handlers
 @app.errorhandler(404)
