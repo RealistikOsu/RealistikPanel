@@ -34,14 +34,15 @@ def BanchoSettings():
     #note to self: add permission checking
     if session["LoggedIn"]:
         #no bypassing it.
-        return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData())
-    else:
         if request.method == "GET":
-            return redirect(url_for("login"))
+            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData())
         if request.method == "POST":
             BSPostHandler(request.get_json())
             #return redirect(url_for("BanchoSettings")) #reloads page disabled for testing
             return jsonify(request.get_json())
+    else:
+        return redirect(url_for("login"))
+        
 
 #error handlers
 @app.errorhandler(404)
