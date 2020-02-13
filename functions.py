@@ -4,6 +4,7 @@ import mysql.connector
 from colorama import init, Fore
 import redis
 import bcrypt
+import datetime
 
 init() #initialises colorama for colours
 
@@ -72,6 +73,11 @@ def LoginHandler(username, password):
             else:
                 return [False, "Incorect password."]
 
+def TimestampConverter(timestamp):
+    """Converts timestamps into readable time"""
+    date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
+    return str(datetime.datetime.strptime(date, "%H:%M"))
+
 def RecentPlays():
     """Returns recent plays"""
     #this is probably really bad
@@ -102,7 +108,7 @@ def RecentPlays():
         Dicti["SongName"] = SongName
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = x[5]
-        Dicti["Time"] = x[3]
+        Dicti["Time"] = TimestampConverter(x[3])
         ReadableArray.append(Dicti)
     
     return ReadableArray
