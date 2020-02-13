@@ -44,8 +44,7 @@ transition: 0.25s;
 
 .box input[type = "text"]:focus,.box input[type = "password"]:focus{
     width: 280px;
-    /*previous color: border-color: #a454ff;*/
-    border-color: 6777ef;
+    border-color: #a454ff;
 }
 
 .box input[type = "submit"] {
