@@ -121,7 +121,7 @@ def RecentPlays():
     return ReadableArray
 
 def FetchBSData():
-    mycursor.execute("SELECT name, value_stirng, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'")
+    mycursor.execute("SELECT name, value_string, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'")
     Query = list(mycursor.fetchall())
     BanchoMaintenence = Query[0]
     MenuIcon = Query[1]
