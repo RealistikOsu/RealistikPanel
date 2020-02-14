@@ -67,7 +67,6 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            #nice
             if bcrypt.checkpw(password.encode('utf-8'), PassHash.encode('utf-8')):
                 return [True, "You have been logged in!"]
             else:
@@ -135,6 +134,7 @@ def FetchBSData():
     }
 
 def BSPostHandler(post):
+    print(post)
     pass
 
 def GetBmapInfo(id):

@@ -11,7 +11,7 @@
         <form action="/bancho/settings" method="post">
             <div class="form-group">
                 <label>Bancho Maintenance Mode</label>
-                <select class="form-control" name="bmm">
+                <select class="form-control" name="banchoman">
                     {% if bsdata["BanchoMan"] %}
                     <option selected>On</option>
                     <option>Off</option>
@@ -23,11 +23,11 @@
             </div>
             <div class="form-group">
                 <label>Main Menu Icon</label>
-                <input type="text" class="form-control" name="mmi" value="{{ bsdata['MenuIcon'] }}">
+                <input type="text" class="form-control" name="mainmemuicon" value="{{ bsdata['MenuIcon'] }}">
             </div>
             <div class="form-group">
                 <label>Login Notification</label>
-                <input type="text" class="form-control" name="ln" value="{{ bsdata['LoginNotif'] }}">
+                <input type="text" class="form-control" name="loginnotif" value="{{ bsdata['LoginNotif'] }}">
             </div>
             <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
         </form>
