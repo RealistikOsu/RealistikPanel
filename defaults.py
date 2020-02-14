@@ -1,6 +1,6 @@
 ServSession = {
     "LoggedIn" : False,
     "AccountId" : 1000,
-    "AccountName" : "RealistikDash"
+    "AccountName" : "RealistikDash",
     "Privilege" : "3145727"
 }
