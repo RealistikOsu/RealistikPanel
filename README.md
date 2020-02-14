@@ -1,7 +1,7 @@
 # RealistikPanel!
 The Ripple Admin Panel replacement made in Python. It's goal is to be a fully functional admin panel that is compatible with the Ripple stack.
 
-![Beta picture](https://i.imgur.com/e0u4AnU.png)
+![Beta picture](https://i.imgur.com/04itjNj.png)
 
 It uses libraries such as Flask for web.
 
