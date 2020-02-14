@@ -17,6 +17,8 @@ print(f"""{Fore.BLUE}  _____            _ _     _   _ _    _____                
  ---------------------------------------------------------------
 {Fore.RESET}""")
 
+Allowed = ["3145727", "918015", "1048575"] #Ill replace this later when i understand the privilege system
+
 try:
     mydb = mysql.connector.connect(
         host=UserConfig["SQLHost"],
@@ -54,7 +56,7 @@ def DashData():
 
 def LoginHandler(username, password):
     """Checks the passwords and handles the sessions"""
-    mycursor.execute(f"SELECT username, password_md5, ban_datetime FROM users WHERE username_safe = '{username.lower()}'")
+    mycursor.execute(f"SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = '{username.lower()}'")
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
@@ -65,6 +67,8 @@ def LoginHandler(username, password):
         Username = User[0]
         PassHash = User[1]
         IsBanned = User[2]
+        Privilege = User[3]
+        id = User = User[4]
         
         #Converts IsBanned to bool
         if IsBanned == "0":
@@ -76,8 +80,13 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if bcrypt.checkpw(password.encode('utf-8'), PassHash.encode('utf-8')):
-                return [True, "You have been logged in!"]
+            if Privilege in Allowed and bcrypt.checkpw(password.encode('utf-8'), PassHash.encode('utf-8')): #password checking doesnt work yet. sad.
+                return [True, "You have been logged in!", { #creating session
+                    "LoggedIn" : True,
+                    "AccountId" : id,
+                    "AccountName" : Username,
+                    "Privilege" : Privilege
+                }]
             else:
                 return [False, "Incorect password."]
 
@@ -199,7 +208,6 @@ def GetBmapInfo(id):
 
 def HasPrivilege(session):
     """Check if the person trying to access the page has perms to do it."""
-    Allowed = ["3145727", "918015", "1048575"] #Ill replace this later when i understand the privilege system
     if session["LoggedIn"] and session["Privilege"] in Allowed:
         return True
     else:

@@ -5,14 +5,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <link rel="stylesheet" href="/static/css/loginstyle.css">
-        <title>Document</title>
+        <title>RealistikPanel! - Login</title>
     </head>
     <body>
+        {% if alert %}
+        <div class="alert">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            {{ alert }}
+        </div>
+        {% endif %}
         <form class="box" action="index.html" method="post">
             <h1>RealistikPanel!</h1>
-            <div class="text1">Log in please!</div>
-            <input type="text" name="" placeholder="Username">
-            <input type="password" name="" placeholder="Password">
+            <div class="text1">Log in admin!</div>
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
             <input type="submit" name="" value="Login">
         </form>
     </body>

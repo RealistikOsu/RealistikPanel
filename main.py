@@ -23,6 +23,13 @@ def dash():
 def login():
     if request.method == "GET":
         return render_template("login.html")
+    if request.method == "POST":
+        LoginData = LoginHandler(request.form["username"], request.form["password"])
+        if not LoginData[0]:
+            return render_template("login.html", alert=LoginData[1])
+        if LoginData[0]:
+            session = LoginData[2]
+            return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
@@ -32,7 +39,6 @@ def logout():
 
 @app.route("/bancho/settings", methods = ["GET", "POST"])
 def BanchoSettings():
-    #note to self: add permission checking
     if HasPrivilege(session):
         #no bypassing it.
         if request.method == "GET":
