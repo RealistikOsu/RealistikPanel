@@ -60,7 +60,7 @@ def LoginHandler(username, password):
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
-        return [False, "Not Found"]
+        return [False, "User not found. Maybe a typo?"]
     else:
         User = User[0]
         #Stores grabbed data in variables for easier access
@@ -80,7 +80,7 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if Privilege in Allowed and bcrypt.checkpw(password.encode('utf-8'), PassHash.encode('utf-8')): #password checking doesnt work yet. sad.
+            if Privilege in Allowed and bcrypt.checkpw(str(password).encode('utf-8'), str(PassHash).encode('utf-8')): #password checking doesnt work yet. sad.
                 return [True, "You have been logged in!", { #creating session
                     "LoggedIn" : True,
                     "AccountId" : id,
