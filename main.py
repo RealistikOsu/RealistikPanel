@@ -3,6 +3,7 @@ from flask import Flask, render_template, session, redirect, url_for, request, j
 from defaults import *
 from config import *
 from functions import *
+from colorama import Fore, init
 
 app = Flask(__name__)
 session = ServSession
