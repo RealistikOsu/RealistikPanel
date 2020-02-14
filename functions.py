@@ -134,8 +134,35 @@ def FetchBSData():
     }
 
 def BSPostHandler(post):
-    print(post)
-    pass
+    BanchoMan = post[0]
+    MenuIcon = post[1]
+    LoginNotif = post[2]
+
+    #setting blanks to bools
+    if BanchoMan == "On":
+        BanchoMan = True
+    else:
+        BanchoMan = False
+    if MenuIcon == "":
+        MenuIcon = False
+    if LoginNotif == "":
+        LoginNotif = False
+
+    #SQL Queries
+    if MenuIcon != False: #this might be doable with just if not BanchoMan
+        mycursor.execute(f"UPDATE bancho_settings SET value_string = '{MenuIcon}', value_int = 1 WHERE name = 'menu_icon'")
+    else:
+        mycursor.execute("UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'menu_icon'")
+
+    if LoginNotif != False:
+        mycursor.execute(f"UPDATE bancho_settings SET value_string = '{LoginNotif}', value_int = 1 WHERE name = 'login_notification'")
+    else:
+        mycursor.execute("UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'login_notification'")
+
+    if BanchoMan:
+        mycursor.execute("UPDATE bancho_settings SET value_int = 1 WHERE name = 'bancho_maintenance'")
+    else:
+        mycursor.execute("UPDATE bancho_settings SET value_int = 0 WHERE name = 'bancho_maintenance'")
 
 def GetBmapInfo(id):
     """Gets beatmap info"""
@@ -152,7 +179,7 @@ def GetBmapInfo(id):
         }
     else:
         Data = Data[0]
-        return {
+        return { #note to self: later change this to list of all diffs in bmap set
             "SongName" : Data[0],
             "Ar" : str(Data[1]),
             "Difficulty" : str(round(Data[2], 2)),
