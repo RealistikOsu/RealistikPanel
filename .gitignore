@@ -1,2 +1,4 @@
 __pycache__/
 config.py
+config.json
+cache.json
