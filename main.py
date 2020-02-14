@@ -65,7 +65,8 @@ def RankFrom():
 
 @app.route("/users")
 def Users():
-    if HasPrivilege(session)
+    if HasPrivilege(session):
+        return
 
 #error handlers
 @app.errorhandler(404)
