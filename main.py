@@ -50,6 +50,19 @@ def RankMap(id):
     else:
         return redirect(url_for("login"))
 
+@app.route("/rank", methods = ["GET", "POST"])
+def RankFrom():
+    if request.method == "GET":
+        if session["LoggedIn"]:
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session)
+        else:
+            return redirect(url_for("login"))
+    else:
+        if not session["LoggedIn"]: #mixing things up eh
+            return redirect(url_for("login"))
+        else:
+            return redirect(f"/rank/{request.form['bmapid']}") #does this even work
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">Beatmap Ranking</h2>
+<p class="section-lead">Change the ranking of a beatmap! This can be ranked, loved or qualified.</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Rank a beatmap!</h4>
+    </div>
+    <div class="card-body">
+        <form action="/rank" method="post">
+            <div class="form-group">
+                <label>Beatmap ID</label>
+                <input type="text" class="form-control" name="bmapid">
+            </div>
+            <button class="btn btn-primary mr-1" type="submit" name="">Search</button>
+        </form>
+    </div>
+    <div class="card-footer">
+        RealistikPanel!
+    </div>
+</div>
+{% endblock %}
