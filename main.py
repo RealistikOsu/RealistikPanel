@@ -33,7 +33,7 @@ def logout():
 @app.route("/bancho/settings", methods = ["GET", "POST"])
 def BanchoSettings():
     #note to self: add permission checking
-    HasPrivilege(session):
+    if HasPrivilege(session):
         #no bypassing it.
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session)
