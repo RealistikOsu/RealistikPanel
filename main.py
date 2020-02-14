@@ -14,7 +14,7 @@ def home():
 
 @app.route("/dash/")
 def dash():
-    if session["LoggedIn"]:
+    if HasPrivilege(session):
         return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays())
     else:
         return redirect(url_for("login"))
@@ -33,7 +33,7 @@ def logout():
 @app.route("/bancho/settings", methods = ["GET", "POST"])
 def BanchoSettings():
     #note to self: add permission checking
-    if session["LoggedIn"]:
+    HasPrivilege(session):
         #no bypassing it.
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session)
@@ -45,7 +45,7 @@ def BanchoSettings():
 
 @app.route("/rank/<id>")
 def RankMap(id):
-    if session["LoggedIn"]:
+    if HasPrivilege(session):
         return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id))
     else:
         return redirect(url_for("login"))
@@ -53,15 +53,19 @@ def RankMap(id):
 @app.route("/rank", methods = ["GET", "POST"])
 def RankFrom():
     if request.method == "GET":
-        if session["LoggedIn"]:
+        if HasPrivilege(session):
             return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session)
         else:
             return redirect(url_for("login"))
     else:
-        if not session["LoggedIn"]: #mixing things up eh
+        if not HasPrivilege(session): #mixing things up eh
             return redirect(url_for("login"))
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
+
+@app.route("/users")
+def Users():
+    if HasPrivilege(session)
 
 #error handlers
 @app.errorhandler(404)

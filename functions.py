@@ -196,3 +196,11 @@ def GetBmapInfo(id):
             "BeatmapId" : id,
             "Cover" : f"https://assets.ppy.sh/beatmaps/{Data[3]}/covers/cover.jpg"
         }
+
+def HasPrivilege(session):
+    """Check if the person trying to access the page has perms to do it."""
+    Allowed = ["3145727", "918015", "1048575"] #Ill replace this later when i understand the privilege system
+    if session["LoggedIn"] and session["Privilege"] in Allowed:
+        return True
+    else:
+        return False
