@@ -1,8 +1,8 @@
 #This file is responsible for running the web server and (mostly nothing else)
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from defaults import *
-from functions import *
 from config import *
+from functions import *
 
 app = Flask(__name__)
 session = ServSession
@@ -37,7 +37,7 @@ def BanchoSettings():
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session)
         if request.method == "POST":
-            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]])
+            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]]) #handles all the changes
             return redirect(url_for("BanchoSettings")) #reloads page
     else:
         return redirect(url_for("login"))
