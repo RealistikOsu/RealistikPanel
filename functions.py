@@ -212,6 +212,11 @@ def GetBmapInfo(id):
             }
             BeatmapList.append(thing)
         BeatmapList =  sorted(BeatmapList, key = lambda i: i["Difficulty"])
+        #assigning each bmap a number to be later used
+        BMapNumber = 0
+        for beatmap in BeatmapList:
+            BMapNumber = BMapNumber + 1
+            beatmap["BmapNumber"] = BMapNumber
         return BeatmapList
 
 def HasPrivilege(session):
