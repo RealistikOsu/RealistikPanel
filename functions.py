@@ -211,6 +211,7 @@ def GetBmapInfo(id):
                 "Cover" : f"https://assets.ppy.sh/beatmaps/{beatmap[3]}/covers/cover.jpg"
             }
             BeatmapList.append(thing)
+        BeatmapList =  sorted(BeatmapList, key = lambda i: i["Difficulty"])
         return BeatmapList
 
 def HasPrivilege(session):
