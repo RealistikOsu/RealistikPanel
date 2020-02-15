@@ -17,7 +17,7 @@ print(f"""{Fore.BLUE}  _____            _ _     _   _ _    _____                
  ---------------------------------------------------------------
 {Fore.RESET}""")
 
-Allowed = ["3145727", "918015", "1048575"] #Ill replace this later when i understand the privilege system
+Allowed = [3145727, 918015, 1048575] #Ill replace this later when i understand the privilege system
 
 try:
     mydb = mysql.connector.connect(
@@ -80,7 +80,7 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if str(Privilege) in Allowed: #password checking doesnt work yet. sad.
+            if Privilege in Allowed: #password checking doesnt work yet. sad.
                 #and bcrypt.checkpw(str(password).encode('utf-8'), str(PassHash).encode('utf-8'))
                 return [True, "You have been logged in!", { #creating session
                     "LoggedIn" : True,
