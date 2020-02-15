@@ -30,13 +30,19 @@ def login():
         if not LoginData[0]:
             return render_template("login.html", alert=LoginData[1])
         if LoginData[0]:
-            session = LoginData[2]
+            SessionToApply = LoginData[2]
+            #modifying the session
+            for key in list(SessionToApply.keys()):
+                session[key] = SessionToApply[key]
             return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
     #clears session
-    session = ServSession
+    SessionToApply = ServSession
+    #modifying the session
+    for key in list(SessionToApply.keys()):
+        session[key] = SessionToApply[key]
     return redirect(url_for("home"))
 
 @app.route("/bancho/settings", methods = ["GET", "POST"])
