@@ -80,7 +80,7 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if Privilege in Allowed: #password checking doesnt work yet. sad.
+            if str(Privilege) in Allowed: #password checking doesnt work yet. sad.
                 #and bcrypt.checkpw(str(password).encode('utf-8'), str(PassHash).encode('utf-8'))
                 return [True, "You have been logged in!", { #creating session
                     "LoggedIn" : True,
