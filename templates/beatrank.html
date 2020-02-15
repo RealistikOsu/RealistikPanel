@@ -17,10 +17,21 @@
         <label>Status</label>
         <form action="" method="post">
             <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
-                <option>Unranked</option>
-                <option>Qualified</option>
-                <option>Loved</option>
-                <option>Ranked</option>
+                {% if beatmap["Ranked"] == 0 %}
+                    <option selected>Unranked</option>
+                {% else %}
+                    <option>Unranked</option>
+                {% endif %}
+                {% if beatmap["Ranked"] == 5 %}
+                    <option selected>Loved</option>
+                {% else %}
+                    <option>Loved</option>
+                {% endif %}
+                {% if beatmap["Ranked"] == 2 %}
+                    <option selected>Ranked</option>
+                {% else %}
+                    <option>Ranked</option>
+                {% endif %}
             </select>
             <p></p> <!--Seperator-->
             <div class="article-cta">
