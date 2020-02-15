@@ -13,7 +13,7 @@
     <div class="article-details">
         <p>Change the ranking status for this song!</p>
         <label>Beatmap ID</label>
-        <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" disabled>
+        <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' disabled>
         <label>Status</label>
         <form action="" method="post">
             <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
