@@ -198,7 +198,7 @@ def GetBmapInfo(id):
         }]
     else:
         BMSID = Data[0][0]
-        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id beatmap_id FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
+        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
         BMS_Data = mycursor.fetchall()
         BeatmapList = []
         for beatmap in BMS_Data:
