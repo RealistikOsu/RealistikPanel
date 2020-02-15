@@ -89,7 +89,7 @@ def LoginHandler(username, password):
                     "Privilege" : Privilege
                 }]
             else:
-                return [False, "Incorect password."]
+                return [False, "Missing privileges!"]
 
 def TimestampConverter(timestamp):
     """Converts timestamps into readable time"""
