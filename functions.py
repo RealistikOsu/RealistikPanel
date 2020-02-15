@@ -198,7 +198,7 @@ def GetBmapInfo(id):
         }]
     else:
         BMSID = Data[0][0]
-        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
+        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id beatmap_id FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
         BMS_Data = mycursor.fetchall()
         BeatmapList = []
         for beatmap in BMS_Data:
@@ -207,7 +207,7 @@ def GetBmapInfo(id):
                 "Ar" : str(beatmap[1]),
                 "Difficulty" : str(round(beatmap[2], 2)),
                 "BeatmapsetId" : str(beatmap[3]),
-                "BeatmapId" : id,
+                "BeatmapId" : str(beatmap[4]),
                 "Cover" : f"https://assets.ppy.sh/beatmaps/{beatmap[3]}/covers/cover.jpg"
             }
             BeatmapList.append(thing)
