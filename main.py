@@ -82,6 +82,13 @@ def Users():
     if HasPrivilege(session):
         return
 
+@app.route("index.php")
+def LegacyIndex():
+    """For implementing RAP funcions"""
+    if request.args.get("p") == "124":
+        #ranking page
+        return redirect(f"/rank/{request.args.get('bsid')}")
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):
