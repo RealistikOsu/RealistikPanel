@@ -185,27 +185,33 @@ def BSPostHandler(post):
 
 def GetBmapInfo(id):
     """Gets beatmap info"""
-    mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id FROM beatmaps WHERE beatmap_id = '{id}'")
+    mycursor.execute(f"SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = '{id}'")
     Data = mycursor.fetchall()
     if len(Data) == 0:
-        return {
+        return [{
             "SongName" : "Not Found",
             "Ar" : "0",
             "Difficulty" : "0",
             "BeatmapsetId" : "",
             "BeatmapId" : 0,
             "Cover" : "https://a.ussr.pl/" #why this? idk
-        }
+        }]
     else:
-        Data = Data[0]
-        return { #note to self: later change this to list of all diffs in bmap set
-            "SongName" : Data[0],
-            "Ar" : str(Data[1]),
-            "Difficulty" : str(round(Data[2], 2)),
-            "BeatmapsetId" : str(Data[3]),
-            "BeatmapId" : id,
-            "Cover" : f"https://assets.ppy.sh/beatmaps/{Data[3]}/covers/cover.jpg"
-        }
+        BMSID = Data[0][0]
+        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
+        BMS_Data = mycursor.fetchall()
+        BeatmapList = []
+        for beatmap in BMS_Data:
+            thing = { 
+                "SongName" : beatmap[0],
+                "Ar" : str(beatmap[1]),
+                "Difficulty" : str(round(beatmap[2], 2)),
+                "BeatmapsetId" : str(beatmap[3]),
+                "BeatmapId" : id,
+                "Cover" : f"https://assets.ppy.sh/beatmaps/{beatmap[3]}/covers/cover.jpg"
+            }
+            BeatmapList.append(thing)
+        return BeatmapList
 
 def HasPrivilege(session):
     """Check if the person trying to access the page has perms to do it."""

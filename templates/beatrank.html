@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% for beatmap in beatdata %}
 <article class="article">
     <div class="article-header">
-        <div class="article-image" data-background="assets/img/news/img08.jpg" style="background-image: url(&quot;{{ beatdata['Cover'] }}&quot;);">
+        <div class="article-image" data-background="assets/img/news/img08.jpg" style="background-image: url(&quot;{{ beatmap['Cover'] }}&quot;);">
         </div>
         <div class="article-title">
-            <h2><a href="https://ussr.pl/b/{{ beatdata['BeatmapId'] }}">{{ beatdata["SongName"] }} {{ beatdata["Difficulty"] }}☆</a></h2>
+            <h2><a href="https://ussr.pl/b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
         </div>
     </div>
     <div class="article-details">
@@ -16,4 +17,5 @@
         </div>
     </div>
 </article>
+{% endfor %}
 {% endblock %}
