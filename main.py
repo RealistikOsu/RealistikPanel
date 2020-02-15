@@ -4,8 +4,10 @@ from defaults import *
 from config import *
 from functions import *
 from colorama import Fore, init
+import os
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24) #encrypts the session cookie
 session = ServSession
 
 @app.route("/")
