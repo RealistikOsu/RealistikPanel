@@ -188,37 +188,42 @@ def GetBmapInfo(id):
     mycursor.execute(f"SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = '{id}'")
     Data = mycursor.fetchall()
     if len(Data) == 0:
-        return [{
-            "SongName" : "Not Found",
-            "Ar" : "0",
-            "Difficulty" : "0",
-            "BeatmapsetId" : "",
-            "BeatmapId" : 0,
-            "Cover" : "https://a.ussr.pl/" #why this? idk
-        }]
+        #it might be a beatmap set then
+        mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = '{id}'")
+        BMS_Data = mycursor.fetchall()
+        if len(BMS_Data) == 0: #if still havent found anything
+
+            return [{
+                "SongName" : "Not Found",
+                "Ar" : "0",
+                "Difficulty" : "0",
+                "BeatmapsetId" : "",
+                "BeatmapId" : 0,
+                "Cover" : "https://a.ussr.pl/" #why this? idk
+            }]
     else:
         BMSID = Data[0][0]
         mycursor.execute(f"SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = '{BMSID}'")
         BMS_Data = mycursor.fetchall()
-        BeatmapList = []
-        for beatmap in BMS_Data:
-            thing = { 
-                "SongName" : beatmap[0],
-                "Ar" : str(beatmap[1]),
-                "Difficulty" : str(round(beatmap[2], 2)),
-                "BeatmapsetId" : str(beatmap[3]),
-                "BeatmapId" : str(beatmap[4]),
-                "Ranked" : beatmap[5],
-                "Cover" : f"https://assets.ppy.sh/beatmaps/{beatmap[3]}/covers/cover.jpg"
-            }
-            BeatmapList.append(thing)
-        BeatmapList =  sorted(BeatmapList, key = lambda i: i["Difficulty"])
-        #assigning each bmap a number to be later used
-        BMapNumber = 0
-        for beatmap in BeatmapList:
-            BMapNumber = BMapNumber + 1
-            beatmap["BmapNumber"] = BMapNumber
-        return BeatmapList
+    BeatmapList = []
+    for beatmap in BMS_Data:
+        thing = { 
+            "SongName" : beatmap[0],
+            "Ar" : str(beatmap[1]),
+            "Difficulty" : str(round(beatmap[2], 2)),
+            "BeatmapsetId" : str(beatmap[3]),
+            "BeatmapId" : str(beatmap[4]),
+            "Ranked" : beatmap[5],
+            "Cover" : f"https://assets.ppy.sh/beatmaps/{beatmap[3]}/covers/cover.jpg"
+        }
+        BeatmapList.append(thing)
+    BeatmapList =  sorted(BeatmapList, key = lambda i: i["Difficulty"])
+    #assigning each bmap a number to be later used
+    BMapNumber = 0
+    for beatmap in BeatmapList:
+        BMapNumber = BMapNumber + 1
+        beatmap["BmapNumber"] = BMapNumber
+    return BeatmapList
 
 def HasPrivilege(session):
     """Check if the person trying to access the page has perms to do it."""
