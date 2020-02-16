@@ -93,8 +93,8 @@ def LegacyIndex():
 def Rank():
     if HasPrivilege(session):
         BeatmapNumber = request.form["beatmapnumber"]
-        RankBeatmap(BeatmapNumber, request.form[f"bmapid"], ActionName = request.form[f"rankstatus}"])
-        return redirect(f"/rank/{request.form[f'bmapid']}")
+        RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"])
+        return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}'']}")
     else:
         return redirect(url_for("login"))
 

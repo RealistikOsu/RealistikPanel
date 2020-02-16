@@ -14,9 +14,9 @@
         <p>Change the ranking status for this song!</p>
         <form action="/rank/action" method="post">
             <label>Beatmap ID</label>
-            <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid' disabled>
+            <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' disabled>
             <label>Status</label>
-            <select class="form-control" name='rankstatus'>
+            <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
                 {% if beatmap["Ranked"] == 0 %}
                     <option selected>Unranked</option>
                 {% else %}
@@ -33,9 +33,7 @@
                     <option>Ranked</option>
                 {% endif %}
             </select>
-            <!--
             <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
-            -->
             <p></p> <!--Seperator-->
             <div class="article-cta">
                 <button class="btn btn-success" type="submit" name="">Apply!</button>
