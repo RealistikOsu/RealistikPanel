@@ -16,7 +16,8 @@ DefaultConfig = {
     "RedisDb" : 0,
     #Server Settings
     "ServerURL" : "https://ussr.pl/",
-    "HasRelax" : True
+    "HasRelax" : True,
+    "Webhook" : "" #Discord webhook for posting newly ranked maps
 }
 
 class JsonFile:

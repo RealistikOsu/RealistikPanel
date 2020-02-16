@@ -5,6 +5,7 @@ from colorama import init, Fore
 import redis
 import bcrypt
 import datetime
+import requests
 
 init() #initialises colourama for colours
 
@@ -249,7 +250,7 @@ def HasPrivilege(session):
     else:
         return False
 
-def RankBeatmap(BeatmapNumber, BeatmapId, ActionName):
+def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     """Ranks a beatmap"""
     #converts actions to numbers
     if ActionName == "Loved":
@@ -265,7 +266,35 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName):
         mycursor.execute(f"UPDATE beatmaps SET ranked = {ActionName}, ranked_status_freezed = 1 WHERE beatmap_id = {BeatmapId} LIMIT 1")
         mycursor.execute(f"UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = {BeatmapId} LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3")
         mydb.commit()
+        Webhook(BeatmapId, ActionName, session)
         return True
     except Exception as e:
         print(" An error occured while ranking!\n " + str(e))
         return False
+
+def Webhook(BeatmapId, ActionName, session):
+    """Beatmap rank webhook"""
+    URL = UserConfig["Webhook"]
+    if URL == "":
+        #if no webhook is set, dont do anything
+        return
+    headers = {'Content-Type': 'application/json'}
+    mycursor.execute(f"SELECT song_name, beatmapset_id WHERE beatmap_id = {BeatmapId}")
+    mapa = mycursor.fetchall()
+    mapa = mapa[0]
+    if ActionName == 0:
+        TitleText = "unranked :("
+    if ActionName == 2:
+        TitleText = "ranked!"
+    if ActionName == 5:
+        TitleText = "loved!"
+    EmbedJson = { #json to be sent to webhook
+        "image" : f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg",
+        "author" : {
+            "icon_url" : f"https://a.ussr.pl/{session['AccountId']}",
+            "url" : f"https://ussr.pl/b/{BeatmapId}",
+            "name" : f"{mapa[0]} was just {TitleText}"
+        },
+        "description" : f"Ranked by {session['AccountName']}"
+    }
+    requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
