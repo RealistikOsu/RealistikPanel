@@ -7,6 +7,7 @@ import bcrypt
 import datetime
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
+import time
 
 init() #initialises colourama for colours
 
@@ -169,7 +170,7 @@ def FetchBSData():
         "LoginNotif" : Query[2][1]
     }
 
-def BSPostHandler(post):
+def BSPostHandler(post, session):
     BanchoMan = post[0]
     MenuIcon = post[1]
     LoginNotif = post[2]
@@ -201,6 +202,7 @@ def BSPostHandler(post):
         mycursor.execute("UPDATE bancho_settings SET value_int = 0 WHERE name = 'bancho_maintenance'")
     
     mydb.commit()
+    RAPLog(session["AccountId"], "modified the bancho settings")
 
 def GetBmapInfo(id):
     """Gets beatmap info"""
@@ -311,4 +313,11 @@ def Webhook(BeatmapId, ActionName, session):
     webhook.add_embed(embed)
     print(" * Posting webhook!")
     webhook.execute()
-    
+    RAPLog(session["AccountId"], f"ranked/unranked the beatmap {mapa[0]} ({BeatmapId})")
+
+def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
+    """Logs to the RAP log"""
+    Timestamp = round(time.time())
+    #now we putting that in oh yea
+    mycursor.execute(f"INSERT INTO rap_logs (userid, text, datetime, through) VALUES ({UserID}, '{Text}', {Timestamp}, 'RealistikPanel!')")
+    mydb.commit()

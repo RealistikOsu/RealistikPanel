@@ -52,7 +52,7 @@ def BanchoSettings():
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session)
         if request.method == "POST":
-            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]]) #handles all the changes
+            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
             return redirect(url_for("BanchoSettings")) #reloads page
     else:
         return redirect(url_for("login"))
