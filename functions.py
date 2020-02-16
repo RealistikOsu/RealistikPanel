@@ -182,6 +182,8 @@ def BSPostHandler(post):
         mycursor.execute("UPDATE bancho_settings SET value_int = 1 WHERE name = 'bancho_maintenance'")
     else:
         mycursor.execute("UPDATE bancho_settings SET value_int = 0 WHERE name = 'bancho_maintenance'")
+    
+    mydb.commit()
 
 def GetBmapInfo(id):
     """Gets beatmap info"""
@@ -247,7 +249,8 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName):
     try:
         mycursor.execute(f"UPDATE beatmaps SET ranked = {ActionName}, ranked_status_freezed = 1 WHERE beatmap_id = {BeatmapId} LIMIT 1")
         mycursor.execute(f"UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = {BeatmapId} LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3")
+        mydb.commit()
         return True
     except Exception as e:
-        print(" An error occured while ranking!\n " +str(e))
+        print(" An error occured while ranking!\n " + str(e))
         return False
