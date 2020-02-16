@@ -275,6 +275,7 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
 
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook"""
+    URL = UserConfig["Webhook"]
     if URL == "":
         #if no webhook is set, dont do anything
         return
@@ -288,7 +289,7 @@ def Webhook(BeatmapId, ActionName, session):
         TitleText = "ranked!"
     if ActionName == 5:
         TitleText = "loved!"
-    webhook = DiscordWebhook(url=UserConfig["Webhook"]) #creates webhook
+    webhook = DiscordWebhook(url=URL) #creates webhook
     # me trying to learn the webhook
     #EmbedJson = { #json to be sent to webhook
     #    "image" : f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg",
