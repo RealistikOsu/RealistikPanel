@@ -12,10 +12,10 @@
     </div>
     <div class="article-details">
         <p>Change the ranking status for this song!</p>
-        <label>Beatmap ID</label>
-        <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' disabled>
-        <label>Status</label>
         <form action="/rank/action" method="post">
+            <label>Beatmap ID</label>
+            <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' disabled>
+            <label>Status</label>
             <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
                 {% if beatmap["Ranked"] == 0 %}
                     <option selected>Unranked</option>
@@ -36,7 +36,7 @@
             <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
             <p></p> <!--Seperator-->
             <div class="article-cta">
-                <a href="#" class="btn btn-success" name="">Apply!</a>
+                <button class="btn btn-success" type="submit" name="">Apply!</button>
             </div>
         </form>
     </div>
