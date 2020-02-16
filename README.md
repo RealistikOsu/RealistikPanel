@@ -20,6 +20,7 @@ Since this is a new project, it is not fully ready for replacement of RAP (yet).
 - Logging in (kinda, no password checking yet as i couldn't get that to work)
 - Bancho Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
+- Discord Webhook (sends an embed whenever a map is ranked)
 
 # Screenshots
 Dashboard
