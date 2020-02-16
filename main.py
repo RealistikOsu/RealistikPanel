@@ -94,7 +94,7 @@ def Rank():
     if HasPrivilege(session):
         BeatmapNumber = request.form["beatmapnumber"]
         RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"])
-        return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}'']}")
+        return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}']}")
     else:
         return redirect(url_for("login"))
 
