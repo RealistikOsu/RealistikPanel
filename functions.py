@@ -6,6 +6,7 @@ import redis
 import bcrypt
 import datetime
 import requests
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 init() #initialises colourama for colours
 
@@ -274,7 +275,6 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
 
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook"""
-    URL = UserConfig["Webhook"]
     if URL == "":
         #if no webhook is set, dont do anything
         return
@@ -288,13 +288,26 @@ def Webhook(BeatmapId, ActionName, session):
         TitleText = "ranked!"
     if ActionName == 5:
         TitleText = "loved!"
-    EmbedJson = { #json to be sent to webhook
-        "image" : f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg",
-        "author" : {
-            "icon_url" : f"https://a.ussr.pl/{session['AccountId']}",
-            "url" : f"https://ussr.pl/b/{BeatmapId}",
-            "name" : f"{mapa[0]} was just {TitleText}"
-        },
-        "description" : f"Ranked by {session['AccountName']}"
-    }
-    requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
+    webhook = DiscordWebhook(url=UserConfig["Webhook"]) #creates webhook
+    # me trying to learn the webhook
+    #EmbedJson = { #json to be sent to webhook
+    #    "image" : f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg",
+    #    "author" : {
+    #        "icon_url" : f"https://a.ussr.pl/{session['AccountId']}",
+    #        "url" : f"https://ussr.pl/b/{BeatmapId}",
+    #        "name" : f"{mapa[0]} was just {TitleText}"
+    #    },
+    #    "description" : f"Ranked by {session['AccountName']}",
+    #    "footer" : {
+    #        "text" : "via RealistikPanel!"
+    #    }
+    #}
+    #requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
+    embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
+    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"https://ussr.pl/b/{BeatmapId}", icon_url=f"https://a.ussr.pl/{session['AccountId']}")
+    embed.set_footer(text="via RealistikPanel!")
+    embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
+    webhook.add_embed(embed)
+    print(" * Posting webhook!")
+    webhook.execute()
+    
