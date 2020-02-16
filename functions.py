@@ -114,6 +114,8 @@ def RecentPlays():
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
+            plays_rx = list(plays_rx)
+            plays_rx.append("RX")
             plays.append(plays_rx)
     PlaysArray = []
     #converting into lists as theyre cooler (and easier to work with)
@@ -137,7 +139,11 @@ def RecentPlays():
         Dicti = {}
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
-        Dicti["SongName"] = SongName
+        #if rx
+        if x[-1] == "RX":
+            Dicti["SongName"] = SongName + " <b>Relax</b>"
+        else:
+            Dicti["SongName"] = SongName
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
         Dicti["Time"] = TimestampConverter(x[3])
