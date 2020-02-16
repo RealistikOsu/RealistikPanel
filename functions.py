@@ -141,7 +141,7 @@ def RecentPlays():
         Dicti["PlayerId"] = x[2]
         #if rx
         if x[-1] == "RX":
-            Dicti["SongName"] = SongName + " <b>Relax</b>"
+            Dicti["SongName"] = SongName + " +Relax"
         else:
             Dicti["SongName"] = SongName
         Dicti["Score"] = f'{x[4]:,}'
