@@ -82,7 +82,7 @@ def Users():
     if HasPrivilege(session):
         return
 
-@app.route("index.php")
+@app.route("/index.php")
 def LegacyIndex():
     """For implementing RAP funcions"""
     if request.args.get("p") == "124":
