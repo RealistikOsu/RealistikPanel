@@ -13,7 +13,10 @@ DefaultConfig = {
     #Redis Info
     "RedisHost" : "localhost",
     "RedisPort" : 6379,
-    "RedisDb" : 0
+    "RedisDb" : 0,
+    #Server Settings
+    "ServerURL" : "https://ussr.pl/",
+    "HasRelax" : True
 }
 
 class JsonFile:

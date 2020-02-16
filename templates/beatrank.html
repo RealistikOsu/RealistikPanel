@@ -15,7 +15,7 @@
         <label>Beatmap ID</label>
         <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' disabled>
         <label>Status</label>
-        <form action="" method="post">
+        <form action="/rank/action" method="post">
             <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
                 {% if beatmap["Ranked"] == 0 %}
                     <option selected>Unranked</option>
@@ -33,6 +33,7 @@
                     <option>Ranked</option>
                 {% endif %}
             </select>
+            <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
             <p></p> <!--Seperator-->
             <div class="article-cta">
                 <a href="#" class="btn btn-success" name="">Apply!</a>

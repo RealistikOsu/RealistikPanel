@@ -89,6 +89,14 @@ def LegacyIndex():
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
 
+@app.route("/rank/action", methods=["POST"])
+def Rank():
+    if HasPrivilege(session):
+        BeatmapNumber = request.form["beatmapnumber"]
+        RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], ActionName = request.form[f"rankstatus-{BeatmapNumber}"])
+    else:
+        return redirect(url_for("login"))
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):

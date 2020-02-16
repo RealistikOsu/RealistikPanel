@@ -231,3 +231,21 @@ def HasPrivilege(session):
         return True
     else:
         return False
+
+def RankBeatmap(BeatmapNumber, BeatmapId, ActionName):
+    """Ranks a beatmap"""
+    #converts actions to numbers
+    if ActionName == "Loved":
+        ActionName = 5
+    elif ActionName == "Ranked":
+        ActionName = 2
+    elif ActionName == "Unranked":
+        ActionName = 0
+    else:
+        print("Received alien input from rank. what?")
+        return
+    try:
+        mycursor.execute(f"UPDATE beatmaps SET ranked = {ActionName}, ranked_status_freezed = 1 WHERE beatmap_id = {BeatmapId} LIMIT 1")
+        return True
+    except Exception:
+        return False
