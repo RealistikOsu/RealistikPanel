@@ -242,10 +242,12 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName):
     elif ActionName == "Unranked":
         ActionName = 0
     else:
-        print("Received alien input from rank. what?")
+        print(" Received alien input from rank. what?")
         return
     try:
         mycursor.execute(f"UPDATE beatmaps SET ranked = {ActionName}, ranked_status_freezed = 1 WHERE beatmap_id = {BeatmapId} LIMIT 1")
+        mycursor.execute(f"UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = {BeatmapId} LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3")
         return True
-    except Exception:
+    except Exception as e:
+        print(" An error occured while ranking!\n " +str(e))
         return False
