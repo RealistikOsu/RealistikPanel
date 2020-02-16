@@ -110,7 +110,7 @@ def RecentPlays():
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores.id DESC LIMIT 10")
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.id DESC LIMIT 10")
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -143,7 +143,8 @@ def RecentPlays():
         Dicti["Time"] = TimestampConverter(x[3])
         ReadableArray.append(Dicti)
     
-    ReadableArray = reverse(sorted(ReadableArray, key=lambda k: k["Time"])) #sorting by time
+    ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
+    ReadableArray.reverse()
     return ReadableArray
 
 def FetchBSData():
