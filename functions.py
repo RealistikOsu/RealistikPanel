@@ -279,7 +279,7 @@ def Webhook(BeatmapId, ActionName, session):
         #if no webhook is set, dont do anything
         return
     headers = {'Content-Type': 'application/json'}
-    mycursor.execute(f"SELECT song_name, beatmapset_id WHERE beatmap_id = {BeatmapId}")
+    mycursor.execute(f"SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = {BeatmapId}")
     mapa = mycursor.fetchall()
     mapa = mapa[0]
     if ActionName == 0:
