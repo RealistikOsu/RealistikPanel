@@ -8,6 +8,7 @@ import datetime
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import time
+import hashlib 
 
 init() #initialises colourama for colours
 
@@ -321,3 +322,15 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     #now we putting that in oh yea
     mycursor.execute(f"INSERT INTO rap_logs (userid, text, datetime, through) VALUES ({UserID}, '{Text}', {Timestamp}, 'RealistikPanel!')")
     mydb.commit()
+def checkpw(dbpassword, painpassword):
+    """
+    By: kotypey
+    password checking...
+    """
+
+    result = hashlib.md5(painpassword.encode()).hexdigest().encode('utf-8')
+    print(result)
+    dbpassword = dbpassword.encode('utf-8')
+    check = bcrypt.checkpw(result, dbpassword)
+
+    return check
