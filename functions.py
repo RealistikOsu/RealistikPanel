@@ -329,7 +329,6 @@ def checkpw(dbpassword, painpassword):
     """
 
     result = hashlib.md5(painpassword.encode()).hexdigest().encode('utf-8')
-    print(result)
     dbpassword = dbpassword.encode('utf-8')
     check = bcrypt.checkpw(result, dbpassword)
 
