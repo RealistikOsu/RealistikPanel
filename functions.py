@@ -92,7 +92,7 @@ def LoginHandler(username, password):
                         "AccountName" : Username,
                         "Privilege" : Privilege
                     }]
-                 else:
+                else:
                      return [False, "Incorrect password"]
             else:
                 return [False, "Missing privileges!"]
