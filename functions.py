@@ -85,13 +85,15 @@ def LoginHandler(username, password):
             return [False, "You are banned... Awkward..."]
         else:
             if Privilege in Allowed: #password checking doesnt work yet. sad.
-                #and bcrypt.checkpw(str(password).encode('utf-8'), str(PassHash).encode('utf-8'))
-                return [True, "You have been logged in!", { #creating session
-                    "LoggedIn" : True,
-                    "AccountId" : id,
-                    "AccountName" : Username,
-                    "Privilege" : Privilege
-                }]
+                if checkpw(PassHash, password):
+                    return [True, "You have been logged in!", { #creating session
+                        "LoggedIn" : True,
+                        "AccountId" : id,
+                        "AccountName" : Username,
+                        "Privilege" : Privilege
+                    }]
+                 else:
+                     return [False, "Incorrect password"]
             else:
                 return [False, "Missing privileges!"]
 
