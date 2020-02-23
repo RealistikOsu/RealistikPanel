@@ -17,7 +17,7 @@ This may be reflected in the quality of the code. I will try to fix up or replac
 Since this is a new project, it is not fully ready for replacement of RAP (yet).
 - Recent Plays
 - Online and Registered players display
-- Logging in (kinda, no password checking yet as i couldn't get that to work)
+- Logging in (thanks kotypey)
 - Bancho Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
 - Discord Webhook (sends an embed whenever a map is ranked)
