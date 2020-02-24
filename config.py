@@ -18,9 +18,10 @@ DefaultConfig = {
     "ServerURL" : "https://ussr.pl/",
     "HasRelax" : True,
     "Webhook" : "", #Discord webhook for posting newly ranked maps
-    #Recaptcha for the login page
+    #Recaptcha v2 for the login page
     "UseRecaptcha" : False,
-    "RecaptchaSecret" : ""
+    "RecaptchaSecret" : "",
+    "RecaptchaSiteKey" : ""
 }
 
 class JsonFile:

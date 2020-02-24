@@ -19,6 +19,9 @@
             <div class="text1">Log in admin!</div>
             <input type="text" name="username" placeholder="Username">
             <input type="password" name="password" placeholder="Password">
+            {% if conf["UseRecaptcha"] %}
+            {{ recaptcha }}
+            {% endif %}
             <input type="submit" name="" value="Login">
         </form>
     </body>

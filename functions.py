@@ -44,6 +44,12 @@ except Exception as e:
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
+if UserConfig["UseRecaptcha"]:
+    #recaptcha config
+    RECAPTCHA_THEME = "dark"
+    RECAPTCHA_SITE_KEY = UserConfig["RecaptchaSiteKey"]
+    RECAPTCHA_SECRET_KEY = UserConfig["RecaptchaSecret"]
+
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
     """Grabs all the values for the dashboard"""
@@ -324,6 +330,7 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     #now we putting that in oh yea
     mycursor.execute(f"INSERT INTO rap_logs (userid, text, datetime, through) VALUES ({UserID}, '{Text}', {Timestamp}, 'RealistikPanel!')")
     mydb.commit()
+
 def checkpw(dbpassword, painpassword):
     """
     By: kotypey

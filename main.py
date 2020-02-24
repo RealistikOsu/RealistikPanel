@@ -1,5 +1,6 @@
 #This file is responsible for running the web server and (mostly nothing else)
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
+from flask_recaptcha import ReCaptcha
 from defaults import *
 from config import *
 from functions import *
@@ -7,6 +8,7 @@ from colorama import Fore, init
 import os
 
 app = Flask(__name__)
+recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
 session = ServSession
 
@@ -24,17 +26,20 @@ def dash():
 @app.route("/login", methods = ["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("login.html", conf = UserConfig)
     if request.method == "POST":
-        LoginData = LoginHandler(request.form["username"], request.form["password"])
-        if not LoginData[0]:
-            return render_template("login.html", alert=LoginData[1])
-        if LoginData[0]:
-            SessionToApply = LoginData[2]
-            #modifying the session
-            for key in list(SessionToApply.keys()):
-                session[key] = SessionToApply[key]
-            return redirect(url_for("home"))
+        if recaptcha.verify():
+            LoginData = LoginHandler(request.form["username"], request.form["password"])
+            if not LoginData[0]:
+                return render_template("login.html", alert=LoginData[1], conf = UserConfig)
+            if LoginData[0]:
+                SessionToApply = LoginData[2]
+                #modifying the session
+                for key in list(SessionToApply.keys()):
+                    session[key] = SessionToApply[key]
+                return redirect(url_for("home"))
+        else:
+            return render_template("login.html", alert="ReCaptcha Failed!", conf=UserConfig)
 
 @app.route("/logout")
 def logout():

@@ -4,3 +4,4 @@ colorama
 redis
 bcrypt
 discord-webhook
+flask-recaptcha
