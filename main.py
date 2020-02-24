@@ -12,6 +12,16 @@ recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
 session = ServSession
 
+#recaptcha setup
+if UserConfig["UseRecaptcha"]:
+    #recaptcha config
+    app.config.update({
+        "RECAPTCHA_THEME" : "dark",
+        "RECAPTCHA_SITE_KEY" : UserConfig["RecaptchaSiteKey"],
+        "RECAPTCHA_SECRET_KEY" : UserConfig["RecaptchaSecret"],
+        "RECAPTCHA_ENABLED" : True
+    })
+
 @app.route("/")
 def home():
     return redirect(url_for("dash"))

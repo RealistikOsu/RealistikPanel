@@ -44,11 +44,6 @@ except Exception as e:
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
-if UserConfig["UseRecaptcha"]:
-    #recaptcha config
-    RECAPTCHA_THEME = "dark"
-    RECAPTCHA_SITE_KEY = UserConfig["RecaptchaSiteKey"]
-    RECAPTCHA_SECRET_KEY = UserConfig["RecaptchaSecret"]
 
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
