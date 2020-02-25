@@ -15,12 +15,15 @@
             <h4>Quick Actions</h4>
         </div>
         <div class="card-body">
-            <a href="http://storage.ripple.moe/d/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
-            <p></p> <!--Uhh I don't know how to html...-->
-            <audio controls>
-                <source src="https://b.ppy.sh/preview/{{ beatmap['BeatmapsetId'] }}.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-            </audio>
+            <div class="buttons">
+                <a href="http://storage.ripple.moe/d/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
+                <a onclick="Play()" class="btn btn-primary">Play</a>
+                <a onclick="Pause()" class="btn btn-primary">Pause</a>
+                <audio id="BeatmapAudio">
+                    <source src="https://b.ppy.sh/preview/{{ beatmap['BeatmapsetId'] }}.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+                </audio>
+            </div>
         </div>
         <div class="card-footer">
             RealistikPanel
@@ -57,5 +60,16 @@
         </form>
     </div>
 </article>
+<script>
+    //for playing and stopping bmap music
+    var audio = document.getElementById("BeatmapAudio"); 
+    function Play() { 
+        audio.play(); 
+    } 
+
+    function Pause() { 
+        audio.pause(); 
+    } 
+</script>
 {% endfor %}
 {% endblock %}
