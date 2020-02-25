@@ -1,5 +1,5 @@
 #This file is responsible for all the functionality
-from config import *
+from config import UserConfig
 import mysql.connector
 from colorama import init, Fore
 import redis
@@ -47,7 +47,7 @@ mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
-    """Grabs all the values for the dashboard"""
+    """Grabs all the values for the dashboard."""
     mycursor.execute("SELECT value_string FROM system_settings WHERE name = 'website_global_alert'")
     Alert = mycursor.fetchall()[0][0] #Not the best way but it's fast!!
     if Alert == "": #checks if no aler
@@ -60,7 +60,7 @@ def DashData():
     return response
 
 def LoginHandler(username, password):
-    """Checks the passwords and handles the sessions"""
+    """Checks the passwords and handles the sessions."""
     mycursor.execute(f"SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = '{username.lower()}'")
     User = mycursor.fetchall()
     if len(User) == 0:
@@ -99,7 +99,7 @@ def LoginHandler(username, password):
                 return [False, "Missing privileges!"]
 
 def TimestampConverter(timestamp):
-    """Converts timestamps into readable time"""
+    """Converts timestamps into readable time."""
     date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
     #so we avoid things like 21:6
     hour = str(date.hour)
@@ -111,7 +111,7 @@ def TimestampConverter(timestamp):
     return f"{hour}:{minute}"
 
 def RecentPlays():
-    """Returns recent plays"""
+    """Returns recent plays."""
     #this is probably really bad
     mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.id DESC LIMIT 10")
     plays = mycursor.fetchall()
@@ -161,6 +161,7 @@ def RecentPlays():
     return ReadableArray
 
 def FetchBSData():
+    """Fetches Bancho Settings."""
     mycursor.execute("SELECT name, value_string, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'")
     Query = list(mycursor.fetchall())
     #bancho maintenence
@@ -209,7 +210,7 @@ def BSPostHandler(post, session):
     RAPLog(session["AccountId"], "modified the bancho settings")
 
 def GetBmapInfo(id):
-    """Gets beatmap info"""
+    """Gets beatmap info."""
     mycursor.execute(f"SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = '{id}'")
     Data = mycursor.fetchall()
     if len(Data) == 0:
@@ -280,7 +281,7 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
         return False
 
 def Webhook(BeatmapId, ActionName, session):
-    """Beatmap rank webhook"""
+    """Beatmap rank webhook."""
     URL = UserConfig["Webhook"]
     if URL == "":
         #if no webhook is set, dont do anything
@@ -320,7 +321,7 @@ def Webhook(BeatmapId, ActionName, session):
     RAPLog(session["AccountId"], f"ranked/unranked the beatmap {mapa[0]} ({BeatmapId})")
 
 def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
-    """Logs to the RAP log"""
+    """Logs to the RAP log."""
     Timestamp = round(time.time())
     #now we putting that in oh yea
     mycursor.execute(f"INSERT INTO rap_logs (userid, text, datetime, through) VALUES ({UserID}, '{Text}', {Timestamp}, 'RealistikPanel!')")

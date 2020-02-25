@@ -2,7 +2,7 @@
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from flask_recaptcha import ReCaptcha
 from defaults import *
-from config import *
+from config import UserConfig
 from functions import *
 from colorama import Fore, init
 import os
@@ -99,7 +99,7 @@ def Users():
 
 @app.route("/index.php")
 def LegacyIndex():
-    """For implementing RAP funcions"""
+    """For implementing RAP funcions."""
     if request.args.get("p") == "124":
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
