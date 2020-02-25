@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">System Settings</h2>
+<p class="section-lead">Change the settings of your osu! server stack.</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Settings</h4>
+    </div>
+    <div class="card-body">
+        <form action="/bancho/settings" method="post">
+            <div class="form-group">
+                <label>Maintenance Mode (website)</label>
+                <select class="form-control" name="webman">
+                    <option>On</option>
+                    <option>Off</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Maintenance Mode (in-game)</label>
+                <select class="form-control" name="gameman">
+                    <option>On</option>
+                    <option>Off</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Registration</label>
+                <select class="form-control" name="register">
+                    <option>On</option>
+                    <option>Off</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Global Alert (visible on all pages)</label>
+                <input type="text" class="form-control" name="mainmemuicon" value="">
+            </div>
+            <div class="form-group">
+                <label>Home Alert (visible only on the home page)</label>
+                <input type="text" class="form-control" name="loginnotif" value="">
+            </div>
+            <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
+        </form>
+    </div>
+    <div class="card-footer">
+        RealistikPanel!
+    </div>
+</div>
+{% endblock %}
