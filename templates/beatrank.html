@@ -10,6 +10,22 @@
             <h2><a href="https://ussr.pl/b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
         </div>
     </div>
+    <div class="card">
+        <div class="card-header">
+            <h4>Quick Actions</h4>
+        </div>
+        <div class="card-body">
+            <a href="http://storage.ripple.moe/b/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
+            <p></p> <!--Uhh I don't know how to html...-->
+            <audio controls>
+                <source src="https://b.ppy.sh/preview/{{ beatmap['BeatmapsetId'] }}.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+            </audio>
+        </div>
+        <div class="card-footer">
+            RealistikPanel
+        </div>
+    </div>
     <div class="article-details">
         <p>Change the ranking status for this song!</p>
         <form action="/rank/action" method="post">
