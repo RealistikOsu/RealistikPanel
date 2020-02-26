@@ -12,31 +12,46 @@
             <div class="form-group">
                 <label>Maintenance Mode (website)</label>
                 <select class="form-control" name="webman">
-                    <option>On</option>
+                    {% if SysData['webman'] %}
+                    <option selected>On</option>
                     <option>Off</option>
+                    {% else %}
+                    <option>On</option>
+                    <option selected>Off</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Maintenance Mode (in-game)</label>
                 <select class="form-control" name="gameman">
-                    <option>On</option>
+                    {% if SysData['gameman'] %}
+                    <option selected>On</option>
                     <option>Off</option>
+                    {% else %}
+                    <option>On</option>
+                    <option selected>Off</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Registration</label>
                 <select class="form-control" name="register">
-                    <option>On</option>
+                    {% if SysData['register'] %}
+                    <option selected>On</option>
                     <option>Off</option>
+                    {% else %}
+                    <option>On</option>
+                    <option selected>Off</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Global Alert (visible on all pages)</label>
-                <input type="text" class="form-control" name="mainmemuicon" value="">
+                <input type="text" class="form-control" name="globalalert" value="{{ SysData['globalalert'] }}">
             </div>
             <div class="form-group">
                 <label>Home Alert (visible only on the home page)</label>
-                <input type="text" class="form-control" name="loginnotif" value="">
+                <input type="text" class="form-control" name="homealert" value="{{ SysData['homealert'] }}">
             </div>
             <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
         </form>

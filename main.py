@@ -113,6 +113,12 @@ def Rank():
     else:
         return redirect(url_for("login"))
 
+@app.route("/system/settings", methods = ["GET", "POST"])
+def SystemSettings():
+    if request.method == "GET":
+        if HasPrivilege(session):
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):
