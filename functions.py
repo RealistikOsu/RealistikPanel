@@ -341,12 +341,12 @@ def checkpw(dbpassword, painpassword):
 
 def SystemSettingsValues():
     """Fetches the system settings data."""
-    mycursor.execute("SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'website_home_alert'")
+    mycursor.execute("SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'")
     SqlData = mycursor.fetchall()
     return {
         "webman": bool(SqlData[0][0]),
         "gameman" : bool(SqlData[1][0]),
-        "register": bool(SqlData[2][0]),
-        "globalalert": SqlData[3][1],
-        "homealert": SqlData[4][1]
+        "register": bool(SqlData[4][0]),
+        "globalalert": SqlData[2][1],
+        "homealert": SqlData[3][1]
     }
