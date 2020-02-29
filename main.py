@@ -120,6 +120,7 @@ def SystemSettings():
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
         if request.method == "POST":
             ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
     else:
         return redirect(url_for("login"))
 
