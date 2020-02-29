@@ -115,9 +115,13 @@ def Rank():
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
-    if request.method == "GET":
-        if HasPrivilege(session):
+    if HasPrivilege(session):
+        if request.method == "GET":
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
+        if request.method == "POST":
+            ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
+    else:
+        return redirect(url_for("login"))
 
 #error handlers
 @app.errorhandler(404)

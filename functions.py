@@ -350,3 +350,42 @@ def SystemSettingsValues():
         "globalalert": SqlData[2][1],
         "homealert": SqlData[3][1]
     }
+
+def ApplySystemSettings(DataArray, Session):
+    """Does a thing."""
+    WebMan = DataArray[0]
+    GameMan =DataArray[1]
+    Register = DataArray[2]
+    GlobalAlert = DataArray[3]
+    HomeAlert = DataArray[4]
+
+    #i dont feel like this is the right way to do this but eh
+    if WebMan == "On":
+        WebMan = 1
+    else:
+        WebMan = 0
+    if GameMan == "On":
+        GameMan = 1
+    else:
+        GameMan = 0
+    if Register == "On":
+        Register = 1
+    else:
+        Register = 0
+    
+    #SQL Queries
+    mycursor.execute(f"UPDATE system_settings SET value_int = {WebMan} WHERE name = 'website_maintenance'")
+    mycursor.execute(f"UPDATE system_settings SET value_int = {GameMan} WHERE name = 'game_maintenance'")
+    mycursor.execute(f"UPDATE system_settings SET value_int = {Register} WHERE name = 'registrations_enabled'")
+
+    #if empty, disable
+    if GlobalAlert != "":
+        mycursor.execute(f"UPDATE system_settings SET value_int = 1, value_string = '{GlobalAlert}' WHERE name = 'website_global_alert'")
+    else:
+        mycursor.execute("UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_global_alert'")
+    if HomeAlert != "":
+        mycursor.execute(f"UPDATE system_settings SET value_int = 1, value_string = '{HomeAlert}' WHERE name = 'website_home_alert'")
+    else:
+        mycursor.execute("UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_home_alert'")
+    
+    mydb.commit() #applies the changes
