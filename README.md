@@ -1,7 +1,7 @@
 # RealistikPanel!
 The modern Ripple Admin Panel replacement made in Python. It's goal is to be a modern, fast and functional admin panel for osu! private servers.
 
-![Beta picture](https://i.imgur.com/slyL9Q0.png)
+![Beta picture](https://i.imgur.com/dmu0bpv.png)
 
 It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
 
@@ -19,13 +19,17 @@ Since this is a new project, it is not fully ready for replacement of RAP (yet).
 - Online and Registered players display
 - Logging in (thanks kotypey)
 - Bancho Settings (viewing and editing)
+- System Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
 - Discord Webhook (sends an embed whenever a map is ranked)
+- RAP Log (currently only logging)
 
 # Screenshots
 Dashboard
-![Beta picture](https://i.imgur.com/slyL9Q0.png)
+![Beta picture](https://i.imgur.com/dmu0bpv.png)
 Beatmap Ranking
-![Beatmap Ranking](https://i.imgur.com/e8HNce6.png)
+![Beatmap Ranking](https://i.imgur.com/f2eNzDK.png)
 Bancho Settings
-![Bancho Settings](https://i.imgur.com/VPwRmY5.png)
+![Bancho Settings](https://i.imgur.com/k4t1wPH.png)
+System Settings
+![System Settings](https://i.imgur.com/X2XUlQ4.png)
