@@ -55,6 +55,7 @@ def DashData():
     response = {
         "RegisteredUsers" : r.get("ripple:registered_users").decode("utf-8") ,
         "OnlineUsers" : r.get("ripple:online_users").decode("utf-8") ,
+        "TotalPP" : r.get("ripple:total_pp").decode("utf-8") ,
         "Alert" : Alert
     }
     return response
