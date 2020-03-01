@@ -250,9 +250,9 @@ def GetBmapInfo(id):
         beatmap["BmapNumber"] = BMapNumber
     return BeatmapList
 
-def HasPrivilege(session, ReqPriv = 2):
+def HasPrivilege(UserID, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
-    #0 = no privilege required
+    #0 = no verification
     #1 = Only registration required
     #2 = RAP Access Required
     #3 = Manage beatmaps required
@@ -271,12 +271,12 @@ def HasPrivilege(session, ReqPriv = 2):
     ManageSettings = 2 << 9
     ManageBetaKeys = 2 << 10
 
-    if ReqPriv == 0 and session["LoggedIn"]:
+    if ReqPriv == 0: #dont use this like at all
         return True
 
     #gets users privilege
     try:
-        mycursor.execute(f"SELECT privileges FROME users WHERE id = {session['AccountId']}")
+        mycursor.execute(f"SELECT privileges FROME users WHERE id = {UserID}")
         Privilege = mycursor.fetchall()[0]
     except Exception:
         Privilege = 0

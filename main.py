@@ -28,7 +28,7 @@ def home():
 
 @app.route("/dash/")
 def dash():
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"]):
         return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig)
     else:
         return redirect(url_for("login"))
@@ -62,7 +62,7 @@ def logout():
 
 @app.route("/bancho/settings", methods = ["GET", "POST"])
 def BanchoSettings():
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"], 4):
         #no bypassing it.
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig)
@@ -74,7 +74,7 @@ def BanchoSettings():
 
 @app.route("/rank/<id>")
 def RankMap(id):
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"], 3):
         return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id), config=UserConfig)
     else:
         return redirect(url_for("login"))
@@ -82,19 +82,19 @@ def RankMap(id):
 @app.route("/rank", methods = ["GET", "POST"])
 def RankFrom():
     if request.method == "GET":
-        if HasPrivilege(session):
+        if HasPrivilege(session["AccountId"], 3):
             return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session, config=UserConfig)
         else:
             return redirect(url_for("login"))
     else:
-        if not HasPrivilege(session): #mixing things up eh
+        if not HasPrivilege(session["AccountId"]): #mixing things up eh
             return redirect(url_for("login"))
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
 
 @app.route("/users")
 def Users():
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"]):
         return
 
 @app.route("/index.php")
@@ -106,7 +106,7 @@ def LegacyIndex():
 
 @app.route("/rank/action", methods=["POST"])
 def Rank():
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"], 3):
         BeatmapNumber = request.form["beatmapnumber"]
         RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
         return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}']}")
@@ -115,7 +115,7 @@ def Rank():
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
-    if HasPrivilege(session):
+    if HasPrivilege(session["AccountId"], 4):
         if request.method == "GET":
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
