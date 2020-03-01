@@ -58,7 +58,7 @@ def DashData():
     }
     return response
 
-def LoginHandler(username, password):
+def LoginHandler(username, password, session):
     """Checks the passwords and handles the sessions."""
     mycursor.execute(f"SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = '{username.lower()}'")
     User = mycursor.fetchall()
