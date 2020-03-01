@@ -39,7 +39,7 @@ def login():
         return render_template("login.html", conf = UserConfig)
     if request.method == "POST":
         if recaptcha.verify():
-            LoginData = LoginHandler(request.form["username"], request.form["password"], session)
+            LoginData = LoginHandler(request.form["username"], request.form["password"])
             if not LoginData[0]:
                 return render_template("login.html", alert=LoginData[1], conf = UserConfig)
             if LoginData[0]:

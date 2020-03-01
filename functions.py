@@ -58,7 +58,7 @@ def DashData():
     }
     return response
 
-def LoginHandler(username, password, session):
+def LoginHandler(username, password):
     """Checks the passwords and handles the sessions."""
     mycursor.execute(f"SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = '{username.lower()}'")
     User = mycursor.fetchall()
@@ -84,7 +84,7 @@ def LoginHandler(username, password, session):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if HasPrivilege(session):
+            if HasPrivilege(id):
                 if checkpw(PassHash, password):
                     return [True, "You have been logged in!", { #creating session
                         "LoggedIn" : True,
