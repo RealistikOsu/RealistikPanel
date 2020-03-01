@@ -276,8 +276,8 @@ def HasPrivilege(UserID, ReqPriv = 2):
 
     #gets users privilege
     try:
-        mycursor.execute(f"SELECT privileges FROME users WHERE id = {UserID}")
-        Privilege = mycursor.fetchall()[0]
+        mycursor.execute(f"SELECT privileges FROM users WHERE id = {UserID}")
+        Privilege = mycursor.fetchall()[0][0]
     except Exception:
         Privilege = 0
 
