@@ -1,5 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
-from flask import Flask, render_template, session, redirect, url_for, request, jsonify
+from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory
 from flask_recaptcha import ReCaptcha
 from defaults import *
 from config import UserConfig
@@ -123,6 +123,11 @@ def SystemSettings():
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
     else:
         return redirect(url_for("login"))
+
+@app.route("/favicon.ico")
+def Favicon():
+    """I think thats how you do it"""
+    return send_from_directory("/static/img/rosu.ico")
 
 #error handlers
 @app.errorhandler(404)
