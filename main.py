@@ -124,11 +124,6 @@ def SystemSettings():
     else:
         return redirect(url_for("login"))
 
-@app.route("/favicon.ico")
-def Favicon():
-    """I think thats how you do it"""
-    return send_from_directory("/static/img/rosu.ico")
-
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):
