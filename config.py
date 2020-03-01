@@ -49,5 +49,22 @@ if UserConfig == {}:
     print(Fore.WHITE+" Config created! It is named config.json. Edit it accordingly and start RealistikPanel again!")
     exit()
 else:
-    #insert config check here
-    print(Fore.GREEN+" Configuration loaded successfully! Loading..." + Fore.RESET)
+    #config check and updater
+    AllGood = True
+    NeedSet = []
+    for key in list(DefaultConfig.keys()):
+        if key not in list(UserConfig.keys()):
+            AllGood = False
+            NeedSet.append(key)
+
+    if AllGood:
+        print(Fore.GREEN+" Configuration loaded successfully! Loading..." + Fore.RESET)
+    else:
+        #fixes config
+        print(Fore.BLUE+" Updating config..." + Fore.RESET)
+        for Key in NeedSet:
+            UserConfig[key] = DefaultConfig[key]
+            print(Fore.BLUE+f" Option {key} added to config. Set default to {DefaultConfig[key]}." + Fore.RESET)
+        print(Fore.GREEN+" Config updated! Please edit the new values to your liking." + Fore.RESET)
+        exit()
+        
