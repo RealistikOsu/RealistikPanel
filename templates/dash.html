@@ -46,7 +46,7 @@
         {% for play in plays %}
         <tr>
             <td>{{ play["Time"] }}</td>
-            <td><a href="https://ussr.pl/u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
+            <td><a href="{{ config['ServerURL'] }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
             <td>{{ play["SongName"] }}</td>
             <td>{{ play["Score"] }}</td>
             <td>{{ play["pp"] }}</td>

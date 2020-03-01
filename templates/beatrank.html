@@ -7,7 +7,7 @@
         <div class="article-image" data-background="assets/img/news/img08.jpg" style="background-image: url(&quot;{{ beatmap['Cover'] }}&quot;);">
         </div>
         <div class="article-title">
-            <h2><a href="https://ussr.pl/b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
+            <h2><a href="{{ config['ServerURL'] }}b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
         </div>
     </div>
     <div class="card">
@@ -16,7 +16,7 @@
         </div>
         <div class="card-body">
             <div class="buttons">
-                <a href="http://storage.ripple.moe/d/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
+                <a href="{{ config['BeatmapMirror'] }}d/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
                 <a onclick="Play()" class="btn btn-primary" style="color: white;">Play</a>
                 <a onclick="Pause()" class="btn btn-primary" style="color: white;">Pause</a>
                 <audio id="BeatmapAudio">

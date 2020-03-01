@@ -29,7 +29,7 @@ def home():
 @app.route("/dash/")
 def dash():
     if HasPrivilege(session):
-        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays())
+        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig)
     else:
         return redirect(url_for("login"))
 
@@ -65,7 +65,7 @@ def BanchoSettings():
     if HasPrivilege(session):
         #no bypassing it.
         if request.method == "GET":
-            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session)
+            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig)
         if request.method == "POST":
             BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
             return redirect(url_for("BanchoSettings")) #reloads page
@@ -75,7 +75,7 @@ def BanchoSettings():
 @app.route("/rank/<id>")
 def RankMap(id):
     if HasPrivilege(session):
-        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id))
+        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id), config=UserConfig)
     else:
         return redirect(url_for("login"))
 
@@ -83,7 +83,7 @@ def RankMap(id):
 def RankFrom():
     if request.method == "GET":
         if HasPrivilege(session):
-            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session)
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session, config=UserConfig)
         else:
             return redirect(url_for("login"))
     else:
@@ -117,10 +117,10 @@ def Rank():
 def SystemSettings():
     if HasPrivilege(session):
         if request.method == "GET":
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
             ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues())
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
     else:
         return redirect(url_for("login"))
 

@@ -15,7 +15,11 @@ DefaultConfig = {
     "RedisPort" : 6379,
     "RedisDb" : 0,
     #Server Settings
+    "ServerName" : "RealistikOsu!",
     "ServerURL" : "https://ussr.pl/",
+    "LetsAPI" : "http://127.0.0.1:5002/letsapi",
+    "AvatarServer" : "https://a.ussr.pl/",
+    "BeatmapMirror" : "http://storage.ripple.moe/",
     "HasRelax" : True,
     "Webhook" : "", #Discord webhook for posting newly ranked maps
     #Recaptcha v2 for the login page
@@ -64,7 +68,7 @@ else:
         print(Fore.BLUE+" Updating config..." + Fore.RESET)
         for Key in NeedSet:
             UserConfig[key] = DefaultConfig[key]
-            print(Fore.BLUE+f" Option {key} added to config. Set default to {DefaultConfig[key]}." + Fore.RESET)
+            print(Fore.BLUE+f" Option {key} added to config. Set default to '{DefaultConfig[key]}'." + Fore.RESET)
         print(Fore.GREEN+" Config updated! Please edit the new values to your liking." + Fore.RESET)
         exit()
         

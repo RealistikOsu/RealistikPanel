@@ -16,16 +16,16 @@
         <div class="main-wrapper main-wrapper-1">
             {% if session["LoggedIn"] %}
             <nav class="navbar bg-primary">
-                <a class="navbar-brand" href="#">Realistik</a>
+                <a class="navbar-brand" href="#">{{ config['ServerName'] }}</a>
                 <ul class="navbar-nav navbar-right">
                     <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
-                        <img alt="image" src="https://a.ussr.pl/{{ session['AccountId'] }}" class="rounded-circle mr-1">
+                        <img alt="image" src="{{ config['ServerURL'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
                         <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div></a>
                 </ul>
             </nav>
             <div class="dropdown-menu dropdown-menu-right show">
                 <div class="dropdown-title">RealistikPanel!</div>
-                <a href="https://ussr.pl/{{ session['AccountId'] }}" class="dropdown-item has-icon">
+                <a href="{{ config['ServerURL'] }}{{ session['AccountId'] }}" class="dropdown-item has-icon">
                     <i class="far fa-user"></i> Profile
                 </a>
                 <div class="dropdown-divider"></div>
