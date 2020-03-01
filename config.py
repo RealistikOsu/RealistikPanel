@@ -30,18 +30,18 @@ DefaultConfig = {
 
 class JsonFile:
     @classmethod
-    def SaveDict(self, Dict, File):
+    def SaveDict(self, Dict, File="config.json"):
         """Saves a dict as a file"""
         with open(File, 'w') as json_file:
             json.dump(Dict, json_file, indent=4)
 
     @classmethod
-    def GetDict(self, file):
+    def GetDict(self, File="config.json"):
         """Returns a dict from file name"""
-        if not path.exists(file):
+        if not path.exists(File):
             return {}
         else:
-            with open(file) as f:
+            with open(File) as f:
                 data = json.load(f)
             return data
 
@@ -70,5 +70,6 @@ else:
             UserConfig[key] = DefaultConfig[key]
             print(Fore.BLUE+f" Option {key} added to config. Set default to '{DefaultConfig[key]}'." + Fore.RESET)
         print(Fore.GREEN+" Config updated! Please edit the new values to your liking." + Fore.RESET)
+        JsonFile.SaveDict(UserConfig, "config.json")
         exit()
         
