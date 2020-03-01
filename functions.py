@@ -275,8 +275,11 @@ def HasPrivilege(session, ReqPriv = 2):
         return True
 
     #gets users privilege
-    mycursor.execute(f"SELECT privileges FROME users WHERE id = {session['AccountId']}")
-    Privilege = mycursor.fetchall()[0]
+    try:
+        mycursor.execute(f"SELECT privileges FROME users WHERE id = {session['AccountId']}")
+        Privilege = mycursor.fetchall()[0]
+    except Exception:
+        Privilege = 0
 
     if ReqPriv == 1:
         result = Privilege & UserNormal
