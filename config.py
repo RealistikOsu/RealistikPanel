@@ -67,8 +67,8 @@ else:
         #fixes config
         print(Fore.BLUE+" Updating config..." + Fore.RESET)
         for Key in NeedSet:
-            UserConfig[key] = DefaultConfig[key]
-            print(Fore.BLUE+f" Option {key} added to config. Set default to '{DefaultConfig[key]}'." + Fore.RESET)
+            UserConfig[Key] = DefaultConfig[Key]
+            print(Fore.BLUE+f" Option {Key} added to config. Set default to '{DefaultConfig[Key]}'." + Fore.RESET)
         print(Fore.GREEN+" Config updated! Please edit the new values to your liking." + Fore.RESET)
         JsonFile.SaveDict(UserConfig, "config.json")
         exit()
