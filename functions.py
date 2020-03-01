@@ -21,8 +21,6 @@ print(f"""{Fore.BLUE}  _____            _ _     _   _ _    _____                
  ---------------------------------------------------------------
 {Fore.RESET}""")
 
-Allowed = [3145727, 918015, 1048575] #Ill replace this later when i understand the privilege system
-
 try:
     mydb = mysql.connector.connect(
         host=UserConfig["SQLHost"],
@@ -86,7 +84,7 @@ def LoginHandler(username, password):
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if Privilege in Allowed: #password checking doesnt work yet. sad.
+            if HasPrivilege(session):
                 if checkpw(PassHash, password):
                     return [True, "You have been logged in!", { #creating session
                         "LoggedIn" : True,
@@ -252,12 +250,50 @@ def GetBmapInfo(id):
         beatmap["BmapNumber"] = BMapNumber
     return BeatmapList
 
-def HasPrivilege(session):
+def HasPrivilege(session, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
-    if session["LoggedIn"] and session["Privilege"] in Allowed:
+    #0 = no privilege required
+    #1 = Only registration required
+    #2 = RAP Access Required
+    #3 = Manage beatmaps required
+    #4 = manage settings required
+    #5 = Ban users required
+    #THIS TOOK ME SO LONG TO FIGURE OUT WTF
+    NoPriv = 0
+    UserNormal = 2 << 0
+    AccessRAP = 2 << 2
+    ManageUsers = 2 << 3
+    BanUsers = 2 << 4
+    SilenceUsers = 2 << 5
+    WipeUsers = 2 << 6
+    ManageBeatmaps = 2 << 7
+    ManageServers = 2 << 8
+    ManageSettings = 2 << 9
+    ManageBetaKeys = 2 << 10
+
+    if ReqPriv == 0 and session["LoggedIn"]:
+        return True
+
+    #gets users privilege
+    mycursor.execute(f"SELECT privileges FROME users WHERE id = {session['AccountId']}")
+    Privilege = mycursor.fetchall()[0]
+
+    if ReqPriv == 1:
+        result = Privilege & UserNormal
+    elif ReqPriv == 2:
+        result = Privilege & AccessRAP
+    elif ReqPriv == 3:
+        result = Privilege & ManageBeatmaps
+    elif ReqPriv == 4:
+        result = Privilege & ManageSettings
+    elif ReqPriv == 5:
+        result = Privilege & BanUsers
+    
+    if result > 1:
         return True
     else:
         return False
+    
 
 def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     """Ranks a beatmap"""

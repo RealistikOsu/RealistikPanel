@@ -23,6 +23,7 @@ Since this is a new project, it is not fully ready for replacement of RAP (yet).
 - Beatmap Ranking (unranking, loving and ranking)
 - Discord Webhook (sends an embed whenever a map is ranked)
 - RAP Log (currently only logging)
+- Privileges (checking if user has privilege)
 
 # Screenshots
 Dashboard
