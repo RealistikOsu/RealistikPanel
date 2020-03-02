@@ -476,11 +476,19 @@ def FetchUsers(page = 0):
     #gets all priv info
     for Priv in UniquePrivileges:
         mycursor.execute(f"SELECT name, color FROM privileges_groups WHERE privileges = {Priv} LIMIT 1")
-        info = mycursor.fetchall()[0]
-        PrivilegeDict[str(Priv)] = {}
-        PrivilegeDict[str(Priv)]["Name"] = info[0]
-        PrivilegeDict[str(Priv)]["Privileges"] = Priv
-        PrivilegeDict[str(Priv)]["Colour"] = info[1]
+        info = mycursor.fetchall()
+        if len(info) == 0:
+            PrivilegeDict[str(Priv)] = {
+                "Name" : "Unknown",
+                "Privileges" : Priv,
+                "Colour" : "danger"
+            }
+        else:
+            info = info[0]
+            PrivilegeDict[str(Priv)] = {}
+            PrivilegeDict[str(Priv)]["Name"] = info[0]
+            PrivilegeDict[str(Priv)]["Privileges"] = Priv
+            PrivilegeDict[str(Priv)]["Colour"] = info[1]
 
     #Convierting user data into cool dicts
     #Structure
