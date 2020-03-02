@@ -29,9 +29,9 @@
             <td><a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a></td>
             <td>{{ user["Privilege"]["Name"] }}</td>
             {% if user["Allowed"] %}
-            <a class="btn btn-success">Yes</a>
+            <td><a class="btn btn-success">Yes</a></td>
             {% else %}
-            <a class="btn btn-danger">No</a>
+            <td><a class="btn btn-danger">No</a></td>
             {% endif %}
             <td></td> <!--Will add buttons later when forms are done-->
         </tr>
