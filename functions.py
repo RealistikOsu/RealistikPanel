@@ -438,4 +438,4 @@ def IsOnline(AccountId):
 def CalcPP(BmapID):
     """Sends request to letsapi to calc PP for beatmap id."""
     reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
-    return reqjson["pp"][0]
+    return round(reqjson["pp"][0], 2)
