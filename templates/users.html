@@ -1,5 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="card">
+    <div class="card-header">
+        <h4>Users</h4>
+    </div>
+    <div class="card-body">
+        This is the users panel. It lists all registered users and provides links to actions that can be quickly done to the users.
+    </div>
+    <div class="card-footer">
+        RealistikDash
+    </div>
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Privilege</th>
+            <th scope="col">Allowed</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in UserData %}
+        <tr>
+            <td>{{ user["Id"] }}</td>
+            <td><a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a></td>
+            <td>{{ user["Privilege"]["Name"] }}</td>
+            {% if user["Allowed"] %}
+            <a class="btn btn-success">Yes</a>
+            {% else %}
+            <a class="btn btn-danger">No</a>
+            {% endif %}
+            <td></td> <!--Will add buttons later when forms are done-->
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
