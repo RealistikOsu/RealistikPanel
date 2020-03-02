@@ -128,7 +128,7 @@ def SystemSettings():
 @app.route("/api/js/pp/<id>")
 def PPApi(id):
     return jsonify({
-        "pp" : round(CalcPP(id), 2)
+        "pp" : str(round(CalcPP(id), 2))
     })
 
 #error handlers
