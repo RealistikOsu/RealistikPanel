@@ -1,5 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
-from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory
+from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory, jsonify
 from flask_recaptcha import ReCaptcha
 from defaults import *
 from config import UserConfig
@@ -123,6 +123,13 @@ def SystemSettings():
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
     else:
         return redirect(url_for("login"))
+
+#API for js
+@app.route("/api/js/pp/<id>")
+def PPApi(id):
+    return jsonify({
+        "pp" : round(CalcPP(id), 2)
+    })
 
 #error handlers
 @app.errorhandler(404)

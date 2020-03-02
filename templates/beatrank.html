@@ -54,6 +54,9 @@
             </select>
             <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
             <p></p> <!--Seperator-->
+            <div id="pp-{{ beatmap['BmapNumber'] }}">
+                <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
+            </div>
             <div class="article-cta">
                 <button class="btn btn-success" type="submit" name="">Apply!</button>
             </div>
@@ -71,5 +74,20 @@
     function Pause() { 
         audio.pause(); 
     } 
+
+    function CalcPP(BeatmapNr, BeatmapID) {
+        //json getting from url
+        let url = "{{ config['LetsAPI'] }}v1/pp?b="+BeatmapID;
+
+        fetch(url)
+        .then(res => res.json())
+        .then((out) => {
+        console.log("Got json hopefully ", out);
+        })
+        .catch(err => { throw err });
+
+        // doing things
+        document.getElementById("pp-"+BeatmapNr).innerHTML = out["pp"]
+    }
 </script>
 {% endblock %}
