@@ -434,3 +434,8 @@ def ApplySystemSettings(DataArray, Session):
 def IsOnline(AccountId):
     """Checks if given user is online."""
     return requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()["result"]
+
+def CalcPP(BmapID):
+    """Sends request to letsapi to calc PP for beatmap id."""
+    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
+    return reqjson["pp"][0]

@@ -17,7 +17,7 @@ DefaultConfig = {
     #Server Settings
     "ServerName" : "RealistikOsu!",
     "ServerURL" : "https://ussr.pl/",
-    "LetsAPI" : "http://127.0.0.1:5002/letsapi",
+    "LetsAPI" : "https://old.ussr.pl/letsapi/",
     "AvatarServer" : "https://a.ussr.pl/",
     "BanchoURL" : "https://c.ussr.pl/",
     "BeatmapMirror" : "http://storage.ripple.moe/",
