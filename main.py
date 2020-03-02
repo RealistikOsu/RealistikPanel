@@ -94,8 +94,8 @@ def RankFrom():
 
 @app.route("/users")
 def Users():
-    if HasPrivilege(session["AccountId"]):
-        return
+    if HasPrivilege(session["AccountId"], 6):
+        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig)
 
 @app.route("/index.php")
 def LegacyIndex():

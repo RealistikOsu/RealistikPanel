@@ -259,6 +259,7 @@ def HasPrivilege(UserID, ReqPriv = 2):
     #3 = Manage beatmaps required
     #4 = manage settings required
     #5 = Ban users required
+    #6 = Manage users required
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -292,6 +293,8 @@ def HasPrivilege(UserID, ReqPriv = 2):
         result = Privilege & ManageSettings
     elif ReqPriv == 5:
         result = Privilege & BanUsers
+    elif ReqPriv == 6:
+        result = Privilege & ManageUsers
     
     if result > 1:
         return True
@@ -439,3 +442,66 @@ def CalcPP(BmapID):
     """Sends request to letsapi to calc PP for beatmap id."""
     reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
+
+def Unique(Alist):
+    """Returns list of unique elements of list."""
+    Uniques = []
+    for x in Alist:
+        if x not in Uniques:
+            Uniques.append(x)
+    return Uniques
+
+def FetchUsers(page = 0):
+    """Fetches users for the users page."""
+    #This is going to need a lot of patching up i can feel it
+    Offset = 50 * page #for the page system to work
+    mycursor.execute(f"SELECT id, username, privileges, allowed FROM users LIMIT 50 OFFSET {Offset}")
+    People = mycursor.fetchall()
+
+    #gets list of all different privileges so an sql select call isnt ran per person
+    AllPrivileges = []
+    for person in People:
+        AllPrivileges.append(person[2])
+    UniquePrivileges = Unique(AllPrivileges)
+
+    #How the privilege data will look
+    #PrivilegeDict = {
+    #    "234543": {
+    #        "Name" : "Owner",
+    #        "Privileges" : 234543,
+    #        "Colour" : "success"
+    #    }
+    #}
+    PrivilegeDict = {}
+    #gets all priv info
+    for Priv in UniquePrivileges:
+        mycursor.execute(f"SELECT name, color FROM privileges_groups WHERE privileges = {Priv} LIMIT 1")
+        info = mycursor.fetchall()[0]
+        PrivilegeDict[str(Priv)] = {}
+        PrivilegeDict[str(Priv)]["Name"] = info[0]
+        PrivilegeDict[str(Priv)]["Privileges"] = Priv
+        PrivilegeDict[str(Priv)]["Colour"] = info[1]
+
+    #Convierting user data into cool dicts
+    #Structure
+    #[
+    #    {
+    #        "Id" : 999,
+    #        "Name" : "RealistikDash",
+    #        "Privilege" : PrivilegeDict["234543"],
+    #        "Allowed" : True
+    #    }
+    #]
+    Users = []
+    for user in People:
+        Dict = {
+            "Id" : user[0],
+            "Name" : user[1],
+            "Privilege" : PrivilegeDict[str(user[2])]
+        }
+        if user[3] == 1:
+            Dict["Allowed"] = True
+        else:
+            Dict["Allowed"] = False
+    
+    return Users
