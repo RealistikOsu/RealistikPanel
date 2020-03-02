@@ -19,6 +19,7 @@ DefaultConfig = {
     "ServerURL" : "https://ussr.pl/",
     "LetsAPI" : "http://127.0.0.1:5002/letsapi",
     "AvatarServer" : "https://a.ussr.pl/",
+    "BanchoURL" : "https://c.ussr.pl/",
     "BeatmapMirror" : "http://storage.ripple.moe/",
     "HasRelax" : True,
     "Webhook" : "", #Discord webhook for posting newly ranked maps

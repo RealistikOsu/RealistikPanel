@@ -9,6 +9,7 @@ import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import time
 import hashlib 
+import json
 
 init() #initialises colourama for colours
 
@@ -429,3 +430,7 @@ def ApplySystemSettings(DataArray, Session):
         mycursor.execute("UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_home_alert'")
     
     mydb.commit() #applies the changes
+
+def IsOnline(AccountId):
+    """Checks if given user is online."""
+    return requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()["result"]
