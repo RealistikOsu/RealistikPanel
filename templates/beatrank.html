@@ -77,17 +77,18 @@
 
     function CalcPP(BeatmapNr, BeatmapID) {
         //json getting from url
-        let url = "{{ config['LetsAPI'] }}v1/pp?b="+BeatmapID;
+        let url = "http://"+ window.location.host +"/api/js/pp/"+BeatmapID;
 
         fetch(url)
         .then(res => res.json())
         .then((out) => {
         console.log("Got json hopefully ", out);
+        // doing things
+        document.getElementById("pp-"+BeatmapNr).innerHTML = out["pp"]
         })
         .catch(err => { throw err });
 
-        // doing things
-        document.getElementById("pp-"+BeatmapNr).innerHTML = out["pp"]
+        
     }
 </script>
 {% endblock %}
