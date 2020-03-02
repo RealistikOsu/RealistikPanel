@@ -31,7 +31,7 @@ def dash():
     if HasPrivilege(session["AccountId"]):
         return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig)
     else:
-        return redirect(url_for("login"))
+        return render_template("403.html")
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
@@ -70,14 +70,14 @@ def BanchoSettings():
             BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
             return redirect(url_for("BanchoSettings")) #reloads page
     else:
-        return redirect(url_for("login"))
+        return render_template("403.html")
 
 @app.route("/rank/<id>")
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
         return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id), config=UserConfig)
     else:
-        return redirect(url_for("login"))
+        return render_template("403.html")
 
 @app.route("/rank", methods = ["GET", "POST"])
 def RankFrom():
@@ -85,17 +85,17 @@ def RankFrom():
         if HasPrivilege(session["AccountId"], 3):
             return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session, config=UserConfig)
         else:
-            return redirect(url_for("login"))
+            return render_template("403.html")
     else:
         if not HasPrivilege(session["AccountId"]): #mixing things up eh
-            return redirect(url_for("login"))
+            return render_template("403.html")
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
 
-@app.route("/users")
-def Users():
+@app.route("/users/<page>")
+def Users(page = 1):
     if HasPrivilege(session["AccountId"], 6):
-        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig)
+        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig, UserData = FetchUsers(page-1))
 
 @app.route("/index.php")
 def LegacyIndex():
@@ -111,7 +111,7 @@ def Rank():
         RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
         return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}']}")
     else:
-        return redirect(url_for("login"))
+        return render_template("403.html")
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
@@ -122,7 +122,7 @@ def SystemSettings():
             ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
             return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
     else:
-        return redirect(url_for("login"))
+        return render_template("403.html")
 
 #API for js
 @app.route("/api/js/pp/<id>")
