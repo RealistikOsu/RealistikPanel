@@ -7,11 +7,11 @@
     </div>
     <div class="card-body">
         <div class="buttons">
-            <a href="{{ config['BeatmapMirror'] }}d/{{ beatmap['BeatmapsetId'] }}" class="btn btn-success">Download</a>
+            <a href="{{ config['BeatmapMirror'] }}d/{{ beatdata[0]['BeatmapsetId'] }}" class="btn btn-success">Download</a>
             <a onclick="Play()" class="btn btn-primary" style="color: white;">Play</a>
             <a onclick="Pause()" class="btn btn-primary" style="color: white;">Pause</a>
             <audio id="BeatmapAudio">
-                <source src="https://b.ppy.sh/preview/{{ beatmap['BeatmapsetId'] }}.mp3" type="audio/mpeg">
+                <source src="https://b.ppy.sh/preview/{{ beatdata[0]['BeatmapsetId'] }}.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
             </audio>
         </div>
