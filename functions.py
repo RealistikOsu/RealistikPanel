@@ -511,5 +511,6 @@ def FetchUsers(page = 0):
             Dict["Allowed"] = True
         else:
             Dict["Allowed"] = False
+        Users.append(Dict)
     
     return Users
