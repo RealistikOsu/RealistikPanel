@@ -514,3 +514,37 @@ def FetchUsers(page = 0):
         Users.append(Dict)
     
     return Users
+
+def GetUser(id):
+    """Gets data for user. (universal)"""
+    mycursor.execute(f"SELECT id, username, pp_std, country FROM users_stats WHERE id = {id} LIMIT 1")
+    User = mycursor.fetchall()[0]
+    return {
+        "Id" : User[0],
+        "Username" : User[1],
+        "pp" : User[2],
+        "IsOnline" : IsOnline(id),
+        "Country" : User[3]
+    }
+
+def UserData(id):
+    """Gets data for user. (specialised for user edit page)"""
+    Data = GetUser(id)
+    mycursor.execute(f"SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = {id} LIMIT 1")# Req 1
+    Data1 = mycursor.fetchall()[0]
+    mycursor.execute(f"SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = {id} LIMIT 1")
+    Data2 = mycursor.fetchall()[0]
+    #adds new info to dict
+    #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
+    Data["UserpageContent"] = Data1[0]
+    Data["UserColour"] = Data1[1]
+    Data["Aka"] = Data1[2]
+    Data["Email"] = Data2[0]
+    Data["RegisterTime"] = Data2[1]
+    Data["Privileges"] = Data2[2]
+    Data["Notes"] = Data2[3]
+    Data["DonorExpire"] = Data2[4]
+    Data["SilenceEnd"] = Data[5]
+    Data["SilenceReason"] = Data[6]
+    Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
+    return Data

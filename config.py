@@ -3,7 +3,7 @@ import json
 from os import path
 from colorama import init, Fore
 init() #Colorama thing
-DefaultConfig = {
+DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "Port" : 1337,
     #SQL Info
     "SQLHost" : "localhost",
@@ -21,7 +21,9 @@ DefaultConfig = {
     "AvatarServer" : "https://a.ussr.pl/",
     "BanchoURL" : "https://c.ussr.pl/",
     "BeatmapMirror" : "http://storage.ripple.moe/",
+    "IpLookup" : "http://ip.zxq.co/",
     "HasRelax" : True,
+    "AvatarDir" : "/home/RIPPLE/avatarserver/av/",
     "Webhook" : "", #Discord webhook for posting newly ranked maps
     #Recaptcha v2 for the login page
     "UseRecaptcha" : False,

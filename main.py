@@ -129,6 +129,13 @@ def SystemSettings():
     else:
         return render_template("403.html")
 
+@app.route("/user/edit/<id>")
+def EditUser(id):
+    if HasPrivilege(session["AccountId"], 6):
+        return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id))
+    else:
+        return render_template("403.html")
+
 #API for js
 @app.route("/api/js/pp/<id>")
 def PPApi(id):
