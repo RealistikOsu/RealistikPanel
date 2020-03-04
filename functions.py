@@ -580,9 +580,9 @@ def RAPFetch(page = 1):
 
     #Gets list of all users
     Users = []
-    for x in Data:
-        if x[1] not in Users:
-            Data.append(x[1])
+    for dat in Data:
+        if dat[1] not in Users:
+            Users.append(dat[1])
     #gets all unique users so a ton of lookups arent made
     UniqueUsers = Unique(Users)
 

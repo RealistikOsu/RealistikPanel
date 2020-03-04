@@ -136,7 +136,7 @@ def EditUser(id):
     else:
         return render_template("403.html")
 
-@app.route("/log/<page>")
+@app.route("/logs/<page>")
 def Logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page))
