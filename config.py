@@ -28,7 +28,9 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     #Recaptcha v2 for the login page
     "UseRecaptcha" : False,
     "RecaptchaSecret" : "",
-    "RecaptchaSiteKey" : ""
+    "RecaptchaSiteKey" : "",
+    #RealistikPanel Settings
+    "PageSize" : 50 #number of elements per page
 }
 
 class JsonFile:

@@ -454,8 +454,8 @@ def Unique(Alist):
 def FetchUsers(page = 0):
     """Fetches users for the users page."""
     #This is going to need a lot of patching up i can feel it
-    Offset = 50 * page #for the page system to work
-    mycursor.execute(f"SELECT id, username, privileges, allowed FROM users LIMIT 50 OFFSET {Offset}")
+    Offset = UserConfig["PageSize"] * page #for the page system to work
+    mycursor.execute(f"SELECT id, username, privileges, allowed FROM users LIMIT {UserConfig['PageSize']} OFFSET {Offset}")
     People = mycursor.fetchall()
 
     #gets list of all different privileges so an sql select call isnt ran per person
