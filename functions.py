@@ -48,8 +48,16 @@ def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
     """Grabs all the values for the dashboard."""
     mycursor.execute("SELECT value_string FROM system_settings WHERE name = 'website_global_alert'")
-    Alert = mycursor.fetchall()[0][0] #Not the best way but it's fast!!
-    if Alert == "": #checks if no aler
+    Alert = mycursor.fetchall()
+    if len(Alert) == 0:
+        #some ps only have home alert
+        mycursor.execute("SELECT value_string FROM system_settings WHERE name = 'website_home_alert'")
+        #if also that doesnt exist
+        Alert = mycursor.fetchall()
+        if len(Alert) == 0:
+            Alert = [[]]
+    Alert = Alert[0][0]
+    if Alert == "": #checks if no alert
         Alert = False
     response = {
         "RegisteredUsers" : r.get("ripple:registered_users").decode("utf-8") ,
@@ -555,3 +563,49 @@ def UserData(id):
     Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
     Data["Ip"] = Ip
     return Data
+
+def RAPFetch(page = 1):
+    """Fetches RAP Logs."""
+    page = int(page) - 1 #makes sure is int and is in ok format
+    Offset = UserConfig["PageSize"] * page
+    mycursor.execute(f"SELECT * FROM rap_logs ORDER BY id DESC LIMIT {UserConfig['PageSize']} OFFSET {Offset}")
+    Data = mycursor.fetchall()
+
+    #Gets list of all users
+    Users = []
+    for x in Data:
+        if x[1] not in Users:
+            Data.append(x[1])
+    #gets all unique users so a ton of lookups arent made
+    UniqueUsers = Unique(Users)
+
+    #now we get basic data for each user
+    UserDict = {}
+    for user in UniqueUsers:
+        UserData = GetUser(user)
+        UserDict[str(id)] = UserData
+    
+    #log structure
+    #[
+    #    {
+    #        "LogId" : 1337,
+    #        "AccountData" : 1000,
+    #        "Text" : "did a thing",
+    #        "Via" : "RealistikPanel",
+    #        "Time" : 18932905234
+    #    }
+    #]
+    LogArray = []
+    for log in Data:
+        #we making it into cool dicts
+        #getting the acc data
+        LogUserData = UserDict[str(log[1])]
+        TheLog = {
+            "LogId" : log[0],
+            "AccountData" : LogUserData,
+            "Text" : log[2],
+            "Time" : TimestampConverter(log[3]),
+            "Via" : log[4]
+        }
+        LogArray.append(TheLog)
+    return LogArray
