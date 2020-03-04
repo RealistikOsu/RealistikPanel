@@ -17,11 +17,11 @@
 {% for log in Logs %}
 <div class="card">
     <div class="card-header">
-        <img alt="image" src="{{ config['AvatarServer'] }}{{ log['AccountData']['Id'] }}" class="rounded-circle mr-1"/>
+        <img alt="image" src="{{ config['AvatarServer'] }}{{ log['AccountData']['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
         <h4>{{ log["AccountData"]["Username"] }}</h4>
     </div>
     <div class="card-body">
-        {{ log['Text'] }}
+        <b>{{ log["AccountData"]["Username"] }}</b> {{ log['Text'] }}
     </div>
     <div class="card-footer">
         At {{ log["Time"] }} via {{ log["Via"] }}
