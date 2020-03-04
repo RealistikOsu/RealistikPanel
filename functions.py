@@ -76,7 +76,7 @@ def LoginHandler(username, password):
         id = User = User[4]
         
         #Converts IsBanned to bool
-        if IsBanned == "0":
+        if IsBanned == "0" or not IsBanned:
             IsBanned = False
         else:
             IsBanned = True
