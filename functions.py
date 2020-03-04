@@ -534,6 +534,12 @@ def UserData(id):
     Data1 = mycursor.fetchall()[0]
     mycursor.execute(f"SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = {id} LIMIT 1")
     Data2 = mycursor.fetchall()[0]
+    #Fetches the IP
+    mycursor.execute(f"SELECT ip FROM ip_user WHERE userid = {id} LIMIT 1")
+    try:
+        Ip = mycursor.fetchall()[0][0]
+    except Exception:
+        Ip = "0.0.0.0"
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
     Data["UserpageContent"] = Data1[0]
@@ -547,4 +553,5 @@ def UserData(id):
     Data["SilenceEnd"] = Data[5]
     Data["SilenceReason"] = Data[6]
     Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
+    Data["Ip"] = Ip
     return Data
