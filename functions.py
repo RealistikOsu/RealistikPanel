@@ -590,7 +590,7 @@ def RAPFetch(page = 1):
     UserDict = {}
     for user in UniqueUsers:
         UserData = GetUser(user)
-        UserDict[str(id)] = UserData
+        UserDict[str(user)] = UserData
     
     #log structure
     #[
