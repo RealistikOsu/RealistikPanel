@@ -268,6 +268,7 @@ def HasPrivilege(UserID, ReqPriv = 2):
     #4 = manage settings required
     #5 = Ban users required
     #6 = Manage users required
+    #7 = View logs
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -280,6 +281,10 @@ def HasPrivilege(UserID, ReqPriv = 2):
     ManageServers = 2 << 8
     ManageSettings = 2 << 9
     ManageBetaKeys = 2 << 10
+    ManageReports = 2 << 11
+    ManageDocs = 2 << 12
+    ManageBadges = 2 << 13
+    ViewRAPLogs	= 2 << 14
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -303,6 +308,8 @@ def HasPrivilege(UserID, ReqPriv = 2):
         result = Privilege & BanUsers
     elif ReqPriv == 6:
         result = Privilege & ManageUsers
+    elif ReqPriv == 7:
+        result = Privilege & ViewRAPLogs
     
     if result > 1:
         return True

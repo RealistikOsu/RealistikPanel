@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">Logs</h2>
+<p class="section-lead">See all the actions moderators have taken! Catch any traitors or abusers.</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Actions Log</h4>
+    </div>
+    <div class="card-body">
+        Here, you can view any administritive actions taken by administrators, as well as any Fokabot errors. This can be used to view any mistakes moderators have taken or catch any misbehaviour within the staff team.
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
+{% for log in Logs %}
+<div class="card">
+    <div class="card-header">
+        <img alt="image" src="{{ config['AvatarServer'] }}{{ log['AccountData']['Id'] }}" class="rounded-circle mr-1"/>
+        <h4>{{ log["AccountData"]["Username"] }}</h4>
+    </div>
+    <div class="card-body">
+        {{ log['Text'] }}
+    </div>
+    <div class="card-footer">
+        At {{ log["Time"] }} via {{ log["Via"] }}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

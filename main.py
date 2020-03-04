@@ -136,6 +136,13 @@ def EditUser(id):
     else:
         return render_template("403.html")
 
+@app.route("/log/<page>")
+def Logs(page):
+    if HasPrivilege(session["AccountId"], 7):
+        return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page))
+    else:
+        return render_template("403.html")
+
 #API for js
 @app.route("/api/js/pp/<id>")
 def PPApi(id):
