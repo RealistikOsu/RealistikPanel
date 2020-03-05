@@ -60,11 +60,14 @@ def DashData():
     if Alert == "": #checks if no alert
         Alert = False
     total_pp = r.get("ripple:total_pp")#.decode("utf-8")
-    if not total_pp: total_pp = 0 else: total_pp = total_pp.decode('utf-8')
+    if not total_pp: 
+        total_pp = 0 
+    else: 
+        total_pp = total_pp.decode('utf-8')
     response = {
         "RegisteredUsers" : r.get("ripple:registered_users").decode("utf-8") ,
         "OnlineUsers" : r.get("ripple:online_users").decode("utf-8") ,
-        "TotalPP" :  ,
+        "TotalPP" :  total_pp,
         "Alert" : Alert
     }
     return response
