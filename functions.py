@@ -408,7 +408,6 @@ def SystemSettingsValues():
     """Fetches the system settings data."""
     mycursor.execute("SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'")
     SqlData = mycursor.fetchall()
-    print(SqlData)
     webman = SqlData[0][0]
     gameman = SqlData[1][0]
     #remove index error
