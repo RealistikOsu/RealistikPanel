@@ -2,6 +2,7 @@
 import json
 from os import path, urandom
 from colorama import init, Fore
+from base64 import b64encode
 init() #Colorama thing
 DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "Port" : 1337,
@@ -31,7 +32,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "RecaptchaSiteKey" : "",
     #RealistikPanel Settings
     "PageSize" : 50, #number of elements per page
-    "SecretKey" : urandom(24) #generates random encryption key
+    "SecretKey" : b64encode(urandom(64)).decode('utf-8') #generates random encryption key
 }
 
 class JsonFile:
