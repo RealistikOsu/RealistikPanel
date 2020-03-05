@@ -410,16 +410,14 @@ def SystemSettingsValues():
     SqlData = mycursor.fetchall()
     webman = SqlData[0][0]
     gameman = SqlData[1][0]
-    registed = SqlData[4][0]
+    try:
+        registed = SqlData[4][0]
+    except:
+        registed = False
     globalalert = SqlData[2][1]
     homealert = SqlData[3][1]
 
     #Remove out of index error
-
-    if not webman:
-        webman = False
-    else:
-        webman = bool(webman)
     if not gameman:
         gameman = False
     else:
