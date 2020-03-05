@@ -105,7 +105,8 @@ def LoginHandler(username, password):
                         "LoggedIn" : True,
                         "AccountId" : id,
                         "AccountName" : Username,
-                        "Privilege" : Privilege
+                        "Privilege" : Privilege,
+                        "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=2) #so the token expires
                     }]
                 else:
                      return [False, "Incorrect password"]

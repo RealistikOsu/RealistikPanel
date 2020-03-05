@@ -6,11 +6,10 @@ from config import UserConfig
 from functions import *
 from colorama import Fore, init
 import os
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
-app.secret_key = os.urandom(24) #encrypts the session cookie
-session = ServSession
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:
@@ -24,15 +23,15 @@ if UserConfig["UseRecaptcha"]:
 
 @app.route("/")
 def home():
-    if session["LoggedIn"]:
+    if current_user["LoggedIn"]:
         return redirect(url_for("dash"))
     else:
         return redirect(url_for("login"))
 
 @app.route("/dash/")
 def dash():
-    if HasPrivilege(session["AccountId"]):
-        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig)
+    if HasPrivilege(current_user["AccountId"]):
+        return render_template("dash.html", title="Dashboard", session=current_user, data=DashData(), plays=RecentPlays(), config=UserConfig)
     else:
         return render_template("403.html")
 
@@ -46,59 +45,52 @@ def login():
             if not LoginData[0]:
                 return render_template("login.html", alert=LoginData[1], conf = UserConfig)
             if LoginData[0]:
-                SessionToApply = LoginData[2]
-                #modifying the session
-                for key in list(SessionToApply.keys()):
-                    session[key] = SessionToApply[key]
+                login_user(LoginData[2], remember=True) #note to self: later add remember me
                 return redirect(url_for("home"))
         else:
             return render_template("login.html", alert="ReCaptcha Failed!", conf=UserConfig)
 
 @app.route("/logout")
 def logout():
-    #clears session
-    SessionToApply = ServSession
-    #modifying the session
-    for key in list(SessionToApply.keys()):
-        session[key] = SessionToApply[key]
+    logout_user()
     return redirect(url_for("home"))
 
 @app.route("/bancho/settings", methods = ["GET", "POST"])
 def BanchoSettings():
-    if HasPrivilege(session["AccountId"], 4):
+    if HasPrivilege(current_user["AccountId"], 4):
         #no bypassing it.
         if request.method == "GET":
-            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig)
+            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=current_user, config=UserConfig)
         if request.method == "POST":
-            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
+            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], current_user) #handles all the changes
             return redirect(url_for("BanchoSettings")) #reloads page
     else:
         return render_template("403.html")
 
 @app.route("/rank/<id>")
 def RankMap(id):
-    if HasPrivilege(session["AccountId"], 3):
-        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id), config=UserConfig)
+    if HasPrivilege(current_user["AccountId"], 3):
+        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=current_user, beatdata=GetBmapInfo(id), config=UserConfig)
     else:
         return render_template("403.html")
 
 @app.route("/rank", methods = ["GET", "POST"])
 def RankFrom():
     if request.method == "GET":
-        if HasPrivilege(session["AccountId"], 3):
-            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session, config=UserConfig)
+        if HasPrivilege(current_user["AccountId"], 3):
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=current_user, config=UserConfig)
         else:
             return render_template("403.html")
     else:
-        if not HasPrivilege(session["AccountId"]): #mixing things up eh
+        if not HasPrivilege(current_user["AccountId"]): #mixing things up eh
             return render_template("403.html")
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
 
 @app.route("/users/<page>")
 def Users(page = 1):
-    if HasPrivilege(session["AccountId"], 6):
-        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig, UserData = FetchUsers(int(page)-1))
+    if HasPrivilege(current_user["AccountId"], 6):
+        return render_template("users.html", title="Users", data=DashData(),  session=current_user, config=UserConfig, UserData = FetchUsers(int(page)-1))
     else:
         return render_template("403.html")
 
@@ -111,35 +103,35 @@ def LegacyIndex():
 
 @app.route("/rank/action", methods=["POST"])
 def Rank():
-    if HasPrivilege(session["AccountId"], 3):
+    if HasPrivilege(current_user["AccountId"], 3):
         BeatmapNumber = request.form["beatmapnumber"]
-        RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
+        RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], current_user)
         return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}']}")
     else:
         return render_template("403.html")
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
-    if HasPrivilege(session["AccountId"], 4):
+    if HasPrivilege(current_user["AccountId"], 4):
         if request.method == "GET":
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+            return render_template("syssettings.html", data=DashData(),  session=current_user, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
-            ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+            ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], current_user) #why didnt i just pass request
+            return render_template("syssettings.html", data=DashData(),  session=current_user, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
     else:
         return render_template("403.html")
 
 @app.route("/user/edit/<id>")
 def EditUser(id):
-    if HasPrivilege(session["AccountId"], 6):
-        return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id))
+    if HasPrivilege(current_user["AccountId"], 6):
+        return render_template("edituser.html", data=DashData(),  session=current_user, title="Edit User", config=UserConfig, UserData=UserData(id))
     else:
         return render_template("403.html")
 
 @app.route("/logs/<page>")
 def Logs(page):
-    if HasPrivilege(session["AccountId"], 7):
-        return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page))
+    if HasPrivilege(current_user["AccountId"], 7):
+        return render_template("raplogs.html", data=DashData(),  session=current_user, title="Logs", config=UserConfig, Logs = RAPFetch(page))
     else:
         return render_template("403.html")
 

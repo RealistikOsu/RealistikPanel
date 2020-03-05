@@ -1,6 +1,6 @@
 #the purpose of this file has changed to be a quick config fetcher
 import json
-from os import path
+from os import path, urandom
 from colorama import init, Fore
 init() #Colorama thing
 DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
@@ -30,7 +30,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "RecaptchaSecret" : "",
     "RecaptchaSiteKey" : "",
     #RealistikPanel Settings
-    "PageSize" : 50 #number of elements per page
+    "PageSize" : 50, #number of elements per page
+    "SecretKey" : urandom(24) #generates random encryption key
 }
 
 class JsonFile:
