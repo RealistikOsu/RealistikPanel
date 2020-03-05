@@ -23,10 +23,7 @@ if UserConfig["UseRecaptcha"]:
 
 @app.route("/")
 def home():
-    if current_user["LoggedIn"]:
-        return redirect(url_for("dash"))
-    else:
-        return redirect(url_for("login"))
+    return redirect(url_for("login")) #later replace with home page yeah
 
 @app.route("/dash/")
 def dash():
