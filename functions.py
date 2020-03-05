@@ -60,6 +60,7 @@ def DashData():
     if Alert == "": #checks if no alert
         Alert = False
     total_pp = r.get("ripple:total_pp")#.decode("utf-8")
+    
     if not total_pp or total_pp == 'nil': 
         total_pp = 0 
     else: 
@@ -407,12 +408,36 @@ def SystemSettingsValues():
     """Fetches the system settings data."""
     mycursor.execute("SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'")
     SqlData = mycursor.fetchall()
+    webman = SqlData[0][0]
+    gameman = SqlData[1][0]
+    registed = SqlData[4][0]
+    globalalert = SqlData[2][1]
+    homealert = SqlData[3][1]
+
+    #Remove out of index error
+
+    if not webman:
+        webman = False
+    else:
+        webman = bool(webman)
+    if not gameman:
+        gameman = False
+    else:
+        gameman = bool(gameman)
+    if not registed:
+        registed = False
+    else:
+        registed = bool(registed)
+    if not globalalert:
+        globalalert = ''
+    if not homealert:
+        homealert = ''
     return {
-        "webman": bool(SqlData[0][0]),
-        "gameman" : bool(SqlData[1][0]),
-        "register": bool(SqlData[4][0]),
-        "globalalert": SqlData[2][1],
-        "homealert": SqlData[3][1]
+        "webman": webman
+        "gameman" : gameman,
+        "register": registed,
+        "globalalert": globalalert,
+        "homealert": homealert
     }
 
 def ApplySystemSettings(DataArray, Session):
