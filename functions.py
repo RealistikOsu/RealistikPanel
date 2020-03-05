@@ -408,8 +408,10 @@ def SystemSettingsValues():
     """Fetches the system settings data."""
     mycursor.execute("SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'")
     SqlData = mycursor.fetchall()
+    print(SqlData)
     webman = SqlData[0][0]
     gameman = SqlData[1][0]
+    #remove index error
     try:
         registed = SqlData[4][0]
     except:
@@ -417,23 +419,10 @@ def SystemSettingsValues():
     globalalert = SqlData[2][1]
     homealert = SqlData[3][1]
 
-    #Remove out of index error
-    if not gameman:
-        gameman = False
-    else:
-        gameman = bool(gameman)
-    if not registed:
-        registed = False
-    else:
-        registed = bool(registed)
-    if not globalalert:
-        globalalert = ''
-    if not homealert:
-        homealert = ''
     return {
-        "webman": webman,
-        "gameman" : gameman,
-        "register": registed,
+        "webman": bool(webman),
+        "gameman" : bool(gameman),
+        "register": bool(registed),
         "globalalert": globalalert,
         "homealert": homealert
     }
