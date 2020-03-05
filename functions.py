@@ -433,7 +433,7 @@ def SystemSettingsValues():
     if not homealert:
         homealert = ''
     return {
-        "webman": webman
+        "webman": webman,
         "gameman" : gameman,
         "register": registed,
         "globalalert": globalalert,
