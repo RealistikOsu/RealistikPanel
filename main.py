@@ -161,7 +161,8 @@ def BadCodeError(error):
 #we make sure session exists
 @app.before_request
 def BeforeRequest(): 
-    for x in list(ServSession.keys()):
-        session[x] = ServSession[x]
+    if "LoggedIn" not in list(dict(session).keys()): #we checking if the session doesnt already exist
+        for x in list(ServSession.keys()):
+            session[x] = ServSession[x]
 
 app.run(host= '0.0.0.0', port=UserConfig["Port"])
