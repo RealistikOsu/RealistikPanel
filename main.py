@@ -10,7 +10,9 @@ import os
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
-session = ServSession
+#we fill out the default session
+for x in list(ServSession.keys()):
+    session[x] = ServSession[x]
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:
