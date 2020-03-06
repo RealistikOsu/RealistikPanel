@@ -32,8 +32,8 @@
 <!--The page buttons-->
 <center>
     {% if not page <= 1 %}
-    <a href="/logs/{{ page-1 }}"><- Previous Page</a>
+    <a href="/logs/{{ page-1 }}" style="margin: 1rem;"><- Previous Page</a>
     {% endif %}
-    <a href="/logs/{{ page+1 }}">Next Page -></a>
+    <a href="/logs/{{ page+1 }}" style="margin: 1rem;">Next Page -></a>
 </center>
 {% endblock %}
