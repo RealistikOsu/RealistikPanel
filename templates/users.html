@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <p></p>
 <div class="card">
     <div class="card-header">
@@ -34,9 +32,10 @@
             {% else %}
             <td><a class="btn btn-danger">No</a></td>
             {% endif %}
-            <td></td> <!--Will add buttons later when forms are done-->
+            <td></td>
+            <!--Will add buttons later when forms are done-->
         </tr>
         {% endfor %}
     </tbody>
-  </table>
+</table>
 {% endblock %}

@@ -532,7 +532,7 @@ def FetchUsers(page = 0):
         info = mycursor.fetchall()
         if len(info) == 0:
             PrivilegeDict[str(Priv)] = {
-                "Name" : "Unknown",
+                "Name" : f"Unknown ({Priv})",
                 "Privileges" : Priv,
                 "Colour" : "danger"
             }
