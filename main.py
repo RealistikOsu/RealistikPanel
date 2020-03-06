@@ -95,7 +95,7 @@ def RankFrom():
 @app.route("/users/<page>")
 def Users(page = 1):
     if HasPrivilege(session["AccountId"], 6):
-        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig, UserData = FetchUsers(int(page)-1))
+        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
     else:
         return render_template("403.html")
 
@@ -136,7 +136,7 @@ def EditUser(id):
 @app.route("/logs/<page>")
 def Logs(page):
     if HasPrivilege(session["AccountId"], 7):
-        return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page))
+        return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page))
     else:
         return render_template("403.html")
 

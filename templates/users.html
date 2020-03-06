@@ -38,4 +38,12 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!--The page buttons-->
+<center>
+    {% if not page <= 1 %}
+    <a href="/users/{{ page-1 }}"><- Previous Page</a>
+    {% endif %}
+    <a href="/users/{{ page+1 }}">Next Page -></a>
+</center>
 {% endblock %}

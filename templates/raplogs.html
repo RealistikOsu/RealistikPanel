@@ -28,4 +28,12 @@
     </div>
 </div>
 {% endfor %}
+
+<!--The page buttons-->
+<center>
+    {% if not page <= 1 %}
+    <a href="/logs/{{ page-1 }}"><- Previous Page</a>
+    {% endif %}
+    <a href="/logs/{{ page+1 }}">Next Page -></a>
+</center>
 {% endblock %}
