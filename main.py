@@ -55,11 +55,9 @@ def login():
 
 @app.route("/logout")
 def logout():
-    #clears session
-    SessionToApply = ServSession
     #modifying the session
-    for key in list(SessionToApply.keys()):
-        session[key] = SessionToApply[key]
+    for x in list(ServSession.keys()):
+        session[x] = ServSession[x]
     return redirect(url_for("home"))
 
 @app.route("/bancho/settings", methods = ["GET", "POST"])
