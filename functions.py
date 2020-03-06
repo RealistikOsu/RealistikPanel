@@ -262,14 +262,17 @@ def GetBmapInfo(id):
 
 def HasPrivilege(UserID, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
-    #0 = no verification
-    #1 = Only registration required
-    #2 = RAP Access Required
-    #3 = Manage beatmaps required
-    #4 = manage settings required
-    #5 = Ban users required
-    #6 = Manage users required
-    #7 = View logs
+    # 0 = no verification
+    # 1 = Only registration required
+    # 2 = RAP Access Required
+    # 3 = Manage beatmaps required
+    # 4 = manage settings required
+    # 5 = Ban users required
+    # 6 = Manage users required
+    # 7 = View logs
+    # 8 = RealistikPanel Nominate (feature not added yet)
+    # 9 = RealistikPanel Nomination Accept (feature not added yet)
+    # 10 = RealistikPanel Overwatch (feature not added yet)
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -286,6 +289,18 @@ def HasPrivilege(UserID, ReqPriv = 2):
     ManageDocs = 2 << 12
     ManageBadges = 2 << 13
     ViewRAPLogs	= 2 << 14
+    ManagePrivileges = 2 << 15
+    SendAlerts = 2 << 16
+    ChatMod	 = 2 << 17
+    KickUsers = 2 << 18
+    PendingVerification = 2 << 19
+    TournamentStaff  = 2 << 20
+    Caker = 2 << 21
+    ViewTopScores = 2 << 22
+    #RealistikPanel Specific Perms
+    RPNominate = 2 << 23
+    RPNominateAccept = 2 << 24
+    RPOverwatch = 2 << 25
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -311,6 +326,12 @@ def HasPrivilege(UserID, ReqPriv = 2):
         result = Privilege & ManageUsers
     elif ReqPriv == 7:
         result = Privilege & ViewRAPLogs
+    elif ReqPriv == 8:
+        result == Privilege & RPNominate
+    elif ReqPriv == 9:
+        result == Privilege & RPNominateAccept
+    elif ReqPriv == 10:
+        result == Privilege & RPOverwatch
     
     if result > 1:
         return True
