@@ -1,71 +1,74 @@
 <!DOCTYPE html>
-    <head>
-        <title>RealistikPanel! - {{ title }}</title>
-        <!--Icon kit things-->
-        <link rel="stylesheet" href="/static/css/uikit.min.css" />
-        <script src="/static/js/uikit.min.js"></script>
-        <script src="/static/js/uikit-icons.min.js"></script>
-        <!-- General CSS Files -->
-        <link rel="stylesheet" href="/static/modules/bootstrap/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/static/modules/fontawesome/css/all.min.css">
-        <link rel="stylesheet" href="/static/css/style.css">
-        <link rel="stylesheet" href="/static/css/components.css">
-        <link rel="stylesheet" href="/static/css/realistik.css">
-        <link rel="icon" type="image/png" href="/static/img/rosu.ico">
-    </head>
-    <body>
-        <div class="main-wrapper main-wrapper-1">
-            {% if session["LoggedIn"] %}
-            <nav class="navbar bg-primary">
-                <a class="navbar-brand" href="#">{{ config['ServerName'] }}</a>
-                <ul class="navbar-nav navbar-right">
-                    <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
-                        <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
-                        <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div></a>
-                </ul>
-            </nav>
-            <div class="dropdown-menu dropdown-menu-right show">
-                <div class="dropdown-title">RealistikPanel!</div>
-                <a href="{{ config['ServerURL'] }}{{ session['AccountId'] }}" class="dropdown-item has-icon">
-                    <i class="far fa-user"></i> Profile
+
+<head>
+    <title>RealistikPanel! - {{ title }}</title>
+    <!--Icon kit things-->
+    <link rel="stylesheet" href="/static/css/uikit.min.css" />
+    <script src="/static/js/uikit.min.js"></script>
+    <script src="/static/js/uikit-icons.min.js"></script>
+    <!-- General CSS Files -->
+    <link rel="stylesheet" href="/static/modules/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/modules/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/realistik.css">
+    <link rel="icon" type="image/png" href="/static/img/rosu.ico">
+</head>
+
+<body>
+    <div class="main-wrapper main-wrapper-1">
+        {% if session["LoggedIn"] %}
+        <nav class="navbar bg-primary">
+            <a class="navbar-brand" href="#">{{ config['ServerName'] }}</a>
+            <ul class="navbar-nav navbar-right">
+                <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
+                    <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
+                    <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
                 </a>
-                <div class="dropdown-divider"></div>
-                <a href="/logout" class="dropdown-item has-icon text-danger">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-              </div>
-            {% endif %}
-            <div class="main-sidebar sidebar-style-2" tabindex="1" style="overflow: hidden; outline: none;">
-                <aside id="sidebar-wrapper">
-                    <div class="sidebar-brand">
-                        <a href="/">RealistikPanel!</a>
-                    </div>
-                    <ul class="sidebar-menu">
-                        <li class="menu-header">Information</li>
-                        <a href="/dash" class="nav-link" ><span uk-icon="home"></span><span> Dashboard</span></a>
-                        <a href="/users/1" class="nav-link"><span uk-icon="user"></span><span> Users</span></a>
-                        <a href="/logs/1" class="nav-link"><span uk-icon="calendar"></span><span> Logs</span></a>
-                        <li class="menu-header">Actions</li>
-                        <a href="/rank" class="nav-link"><span uk-icon="star"></span><span> Beatmap Ranking</span></a>
-                        <a href="/bancho/settings" class="nav-link"><span uk-icon="cog"></span><span> Bancho Settings</span></a>
-                        <a href="/system/settings" class="nav-link"><span uk-icon="nut"></span><span> System Settings</span></a>
-                    </ul>
-                </aside>  
-            </div>  
-            <div class="main-content" style="min-height: 810px;">
-                <section class="section">
-                    {% if data["Alert"] %}  
-                    <div class="alert alert-dark alert-has-icon">
-                        <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
-                        <div class="alert-body">
-                        <div class="alert-title">Alert!</div>
-                            {{ data["Alert"] }}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% block content %}{% endblock %}   
-                </section>
-            </div>
+            </ul>
+        </nav>
+        <div class="dropdown-menu dropdown-menu-right show">
+            <div class="dropdown-title">RealistikPanel!</div>
+            <a href="{{ config['ServerURL'] }}/u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
+                <i class="far fa-user"></i> Profile
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/logout" class="dropdown-item has-icon text-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
         </div>
-    </body>
+        {% endif %}
+        <div class="main-sidebar sidebar-style-2" tabindex="1" style="overflow: hidden; outline: none;">
+            <aside id="sidebar-wrapper">
+                <div class="sidebar-brand">
+                    <a href="/">RealistikPanel!</a>
+                </div>
+                <ul class="sidebar-menu">
+                    <li class="menu-header">Information</li>
+                    <a href="/dash" class="nav-link"><span uk-icon="home"></span><span> Dashboard</span></a>
+                    <a href="/users/1" class="nav-link"><span uk-icon="user"></span><span> Users</span></a>
+                    <a href="/logs/1" class="nav-link"><span uk-icon="calendar"></span><span> Logs</span></a>
+                    <li class="menu-header">Actions</li>
+                    <a href="/rank" class="nav-link"><span uk-icon="star"></span><span> Beatmap Ranking</span></a>
+                    <a href="/bancho/settings" class="nav-link"><span uk-icon="cog"></span><span> Bancho Settings</span></a>
+                    <a href="/system/settings" class="nav-link"><span uk-icon="nut"></span><span> System Settings</span></a>
+                </ul>
+            </aside>
+        </div>
+        <div class="main-content" style="min-height: 810px;">
+            <section class="section">
+                {% if data["Alert"] %}
+                <div class="alert alert-dark alert-has-icon">
+                    <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
+                    <div class="alert-body">
+                        <div class="alert-title">Alert!</div>
+                        {{ data["Alert"] }}
+                    </div>
+                </div>
+                {% endif %} {% block content %}{% endblock %}
+            </section>
+        </div>
+    </div>
+</body>
+
 </html>
