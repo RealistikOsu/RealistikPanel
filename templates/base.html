@@ -21,22 +21,24 @@
         <nav class="navbar bg-primary">
             <a class="navbar-brand" href="#">{{ config['ServerName'] }}</a>
             <ul class="navbar-nav navbar-right">
-                <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
-                    <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
-                    <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
-                </a>
+                <li class="dropdown">
+                    <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
+                        <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
+                        <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-title">RealistikPanel!</div>
+                        <a href="{{ config['ServerURL'] }}/u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
+                            <i class="far fa-user"></i> Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/logout" class="dropdown-item has-icon text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </li>
             </ul>
         </nav>
-        <div class="dropdown-menu dropdown-menu-right show">
-            <div class="dropdown-title">RealistikPanel!</div>
-            <a href="{{ config['ServerURL'] }}/u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
-                <i class="far fa-user"></i> Profile
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="/logout" class="dropdown-item has-icon text-danger">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
         {% endif %}
         <div class="main-sidebar sidebar-style-2" tabindex="1" style="overflow: hidden; outline: none;">
             <aside id="sidebar-wrapper">
