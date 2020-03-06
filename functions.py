@@ -59,10 +59,26 @@ def DashData():
     Alert = Alert[0][0]
     if Alert == "": #checks if no alert
         Alert = False
+
+    totalPP = r.get("ripple:total_pp")#Not calculated by every server .decode("utf-8")
+    RegisteredUsers = r.get("ripple:registered_users")
+    OnlineUsers = r.get("ripple:online_users")
+
+
+    #If we dont have variable(variable is None) will set it and get it again
+    if not totalPP:
+        r.set('ripple:total_pp', 0)
+        totalPP = r.get("ripple:total_pp")
+    if not RegisteredUsers:
+        r.set('ripple:registered_users', 1)
+        RegisteredUsers = r.get("ripple:registered_users")
+    if not OnlineUsers:
+        r.set('ripple:online_users', 1)
+        RegisteredUsers = r.get("ripple:online_users")
     response = {
-        "RegisteredUsers" : r.get("ripple:registered_users").decode("utf-8") ,
-        "OnlineUsers" : r.get("ripple:online_users").decode("utf-8") ,
-        "TotalPP" : r.get("ripple:total_pp").decode("utf-8") ,
+        "RegisteredUsers" : totalPP.decode("utf-8") ,
+        "OnlineUsers" : OnlineUsers.decode("utf-8") ,
+        "TotalPP" :  totalPP.decode("utf-8"),
         "Alert" : Alert
     }
     return response
