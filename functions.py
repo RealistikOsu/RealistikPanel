@@ -78,7 +78,7 @@ def DashData():
     response = {
         "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
         "OnlineUsers" : OnlineUsers.decode("utf-8") ,
-        "TotalPP" : f'{totalPP.decode("utf-8"):,}', 
+        "TotalPP" : f'{int(totalPP.decode("utf-8")):,}', 
         "Alert" : Alert
     }
     return response
