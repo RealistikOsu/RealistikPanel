@@ -74,9 +74,9 @@ def DashData():
         RegisteredUsers = r.get("ripple:registered_users")
     if not OnlineUsers:
         r.set('ripple:online_users', 1)
-        RegisteredUsers = r.get("ripple:online_users")
+        OnlineUsers = r.get("ripple:online_users")
     response = {
-        "RegisteredUsers" : totalPP.decode("utf-8") ,
+        "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
         "OnlineUsers" : OnlineUsers.decode("utf-8") ,
         "TotalPP" :  totalPP.decode("utf-8"),
         "Alert" : Alert
