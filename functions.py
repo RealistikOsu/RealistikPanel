@@ -595,7 +595,7 @@ def UserData(id):
     except Exception:
         Ip = "0.0.0.0"
     #gets privilege name
-    mycursor.execute(f"SELECT name privileges_groups WHERE privileges = {Data2[2]} LIMIT 1")
+    mycursor.execute(f"SELECT name FROM privileges_groups WHERE privileges = {Data2[2]} LIMIT 1")
     PrivData = mycursor.fetchall()
     if len(PrivData) == 0:
         PrivData = [[f"Unknown ({Data2[2]})"]]
