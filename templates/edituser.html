@@ -74,4 +74,8 @@
         </form>
     </div>
 </div>
+<script>
+    //sets default country to one from UserData
+    document.getElementById("countryselect").value = "{{ UserData["Country"] }}";
+</script>
 {% endblock %}
