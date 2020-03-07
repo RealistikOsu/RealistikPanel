@@ -694,6 +694,6 @@ def ApplyUserEdit(form):
     SafeUsername = Username.lower()
     SafeUsername.replace(" ", "_")
     #SQL Queries
-    mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}', username = '{Username}' WHERE id = {UserId}")
-    mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}', username_aka = '{Aka}', username = '{Username} WHERE id = {UserId}")
+    mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}', username = '{Username}', username_safe = '{SafeUsername}' WHERE id = {UserId}")
+    mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}', username_aka = '{Aka}', username = '{Username}' WHERE id = {UserId}")
     mydb.commit()
