@@ -609,8 +609,8 @@ def UserData(id):
     Data["Privileges"] = Data2[2]
     Data["Notes"] = Data2[3]
     Data["DonorExpire"] = Data2[4]
-    Data["SilenceEnd"] = Data[5]
-    Data["SilenceReason"] = Data[6]
+    Data["SilenceEnd"] = Data2[5]
+    Data["SilenceReason"] = Data2[6]
     Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
