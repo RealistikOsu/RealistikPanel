@@ -10,6 +10,7 @@ from discord_webhook import DiscordWebhook, DiscordEmbed
 import time
 import hashlib 
 import json
+import pycountry
 
 init() #initialises colourama for colours
 
@@ -593,6 +594,11 @@ def UserData(id):
         Ip = mycursor.fetchall()[0][0]
     except Exception:
         Ip = "0.0.0.0"
+    #gets privilege name
+    mycursor.execute(f"SELECT name privileges_groups WHERE privileges = {Data2[2]} LIMIT 1")
+    PrivData = mycursor.fetchall()
+    if len(PrivData) == 0:
+        PrivData = [[f"Unknown ({Data2[2]})"]]
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
     Data["UserpageContent"] = Data1[0]
@@ -607,6 +613,8 @@ def UserData(id):
     Data["SilenceReason"] = Data[6]
     Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
     Data["Ip"] = Ip
+    Data["CountryFull"] = GetCFullName(Data["Country"])
+    Data["PrivName"] = PrivData[0][0]
     return Data
 
 def RAPFetch(page = 1):
@@ -654,3 +662,20 @@ def RAPFetch(page = 1):
         }
         LogArray.append(TheLog)
     return LogArray
+
+def GetCFullName(ISO3166):
+    """Gets the full name of the country provided."""
+    Country = pycountry.countries.get(alpha_2=ISO3166)
+    return Country.name
+
+def GetPrivileges():
+    """Gets list of privileges"""
+    mycursor.execute("SELECT name, privilages FROM privileges_groups")
+    priv = mycursor.fetchall()
+    Privs = {}
+    for x in priv:
+        Privs[str(x[1])] = {
+            "Name" : x[0],
+            "Priv" : str(x[1])
+        }
+    return Privs

@@ -6,3 +6,4 @@ bcrypt
 discord-webhook
 flask-recaptcha
 flask_login
+pycountry

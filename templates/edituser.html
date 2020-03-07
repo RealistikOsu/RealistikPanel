@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
+
+<div class="card">
+    <div class="card-header">
+        <img alt="image" src="{{ config['AvatarServer'] }}{{ UserData['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        <h4><b>{{ UserData['Username'] }}</b> | </h4>
+        {% if UserData["IsOnline"] %}
+        <span style="color: #32a852;">● Online</span>
+        {% else %}
+        <span style="color: #eb4034;">● Offline</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}.<br>
+        They are a {{ config["ServerName"] }} <b>{{ UserData["PrivName"] }}</b>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h4>Edit</h4>
+    </div>
+    <div class="card-body">
+        <form action="/user/edit/{{ UserData['Id'] }}" method="post">
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" class="form-control" name="userid" value="{{ UserData['Id'] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" name="username" value="{{ UserData['Username'] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Also known as</label>
+                <input type="text" class="form-control" name="aka" value="{{ UserData['Aka'] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="text" class="form-control" name="email" value="{{ UserData['Email'] }}">
+            </div>
+            <div class="form-group">
+                <label>Country</label>
+                {% include 'countryselect.html' %}
+            </div>
+            <div class="form-group">
+                <label>User Page</label>
+                <input type="text" class="form-control" name="userpage" value="{{ UserData['UserpageContent'] }}" style="height: 400px;">
+            </div>
+            <div class="form-group">
+                <label>Privilege</label>
+                <select name="privilege">
+                    {% for priv in list(Privs.keys()) %}
+                    {% if str(priv["Priv"]) == str(UserData["Privileges"]) %}
+                    <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
+                    {% else %}
+                    <option value="{{ priv['Priv'] }}">{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Admin Notes</label>
+                <input type="text" class="form-control" name="notes" value="{{ UserData['Notes'] }}" style="height: 200px;">
+            </div>
+            <div class="form-group">
+                <b>IP: </b>{{ UserData['Ip'] }}
+            </div>
+            <button class="btn btn-success" type="submit" name="">Apply!</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
