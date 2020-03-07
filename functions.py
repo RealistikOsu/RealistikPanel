@@ -691,6 +691,6 @@ def ApplyUserEdit(form):
     UserPage = form["userpage"]
     Notes = form["notes"]
     #SQL Queries
-    mycursor.execute(f"UPDATE users SET Aka = '{Aka}', email = '{Email}', notes = '{Notes}' WHERE id = {UserId}")
-    mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}'")
+    mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}' WHERE id = {UserId}")
+    mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}', username_aka = '{Aka}' WHERE id = {UserId}")
     mydb.commit()
