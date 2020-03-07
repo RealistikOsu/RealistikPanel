@@ -169,12 +169,12 @@ def RecentPlays():
             SongName = list(SongFetch[0])[0]
         #make and populate a readable dict
         Dicti = {}
+        Dicti["SongName"] = SongName + " +" + ModToText(x[7])
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
         Dicti["Time"] = TimestampConverter(x[3])
-        Dicti["Mods"] = ModToText(x[7])
         ReadableArray.append(Dicti)
     
     ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
