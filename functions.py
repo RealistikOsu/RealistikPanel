@@ -679,3 +679,18 @@ def GetPrivileges():
             "Priv" : str(x[1])
         })
     return Privs
+
+def ApplyUserEdit(form):
+    """Apples the user settings."""
+    #getting variables from form
+    UserId = form["userid"]
+    Username = form["username"]
+    Aka = form["aka"]
+    Email = form["email"]
+    Country = form["country"]
+    UserPage = form["userpage"]
+    Notes = form["notes"]
+    #SQL Queries
+    mycursor.execute(f"UPDATE users SET Aka = '{Aka}', email = '{Email}', notes = '{Notes}' WHERE id = {UserId}")
+    mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}'")
+    mydb.commit()

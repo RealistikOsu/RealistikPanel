@@ -118,21 +118,26 @@ def Rank():
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
     if request.method == "GET":
-        if HasPrivilege(session["AccountId"], 4):
-            if request.method == "GET":
-                return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
-            if request.method == "POST":
-                ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-                return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+        if request.method == "GET":
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+        if request.method == "POST":
+            ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
+            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         else:
             return render_template("403.html")
 
 @app.route("/user/edit/<id>", methods = ["GET", "POST"])
 def EditUser(id):
-    if HasPrivilege(session["AccountId"], 6):
-        return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
-    else:
-        return render_template("403.html")
+    if request.method == "GET":
+        if HasPrivilege(session["AccountId"], 6):
+            return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
+        else:
+            return render_template("403.html")
+    if request.method == "POST":
+        if HasPrivilege(session["AccountId"], 6):
+            ApplyUserEdit(request.form)
+            return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
+
 
 @app.route("/logs/<page>")
 def Logs(page):

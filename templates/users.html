@@ -32,8 +32,7 @@
             {% else %}
             <td><a class="btn btn-danger" style="color: white;">No</a></td>
             {% endif %}
-            <td></td>
-            <!--Will add buttons later when forms are done-->
+            <td><a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}">Edit</a></td>
         </tr>
         {% endfor %}
     </tbody>
