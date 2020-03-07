@@ -53,7 +53,7 @@
             </div>
             <div class="form-group">
                 <label>Privilege</label>
-                <select name="privilege">
+                <select name="privilege" class="form-control">
                     {% for priv in Privs %}
                     {% if priv["Priv"] == UserData["Privileges"] %}
                     <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
