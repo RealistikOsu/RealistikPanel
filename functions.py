@@ -670,7 +670,7 @@ def GetCFullName(ISO3166):
 
 def GetPrivileges():
     """Gets list of privileges"""
-    mycursor.execute("SELECT name, privilages FROM privileges_groups")
+    mycursor.execute("SELECT name, privileges FROM privileges_groups")
     priv = mycursor.fetchall()
     Privs = {}
     for x in priv:
