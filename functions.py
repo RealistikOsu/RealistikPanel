@@ -666,7 +666,11 @@ def RAPFetch(page = 1):
 def GetCFullName(ISO3166):
     """Gets the full name of the country provided."""
     Country = pycountry.countries.get(alpha_2=ISO3166)
-    return Country.name
+    try:
+        CountryName = Country.name
+    except:
+        CountryName = "Unknown"
+    return CountryName
 
 def GetPrivileges():
     """Gets list of privileges"""
