@@ -148,7 +148,6 @@ def RecentPlays():
         for plays_rx in playx_rx:
             #addint them to the list
             plays_rx = list(plays_rx)
-            plays_rx.append("RX")
             plays.append(plays_rx)
     PlaysArray = []
     #converting into lists as theyre cooler (and easier to work with)
@@ -172,14 +171,10 @@ def RecentPlays():
         Dicti = {}
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
-        #if rx
-        if x[-1] == "RX":
-            Dicti["SongName"] = SongName + " +Relax"
-        else:
-            Dicti["SongName"] = SongName
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
         Dicti["Time"] = TimestampConverter(x[3])
+        Dicti["Mods"] = ModToText(x[7])
         ReadableArray.append(Dicti)
     
     ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
@@ -701,3 +696,72 @@ def ApplyUserEdit(form):
     mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}', username = '{Username}', username_safe = '{SafeUsername}' WHERE id = {UserId}")
     mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}', username_aka = '{Aka}', username = '{Username}' WHERE id = {UserId}")
     mydb.commit()
+
+def ModToText(mod: int):
+    """Converts mod enum to cool string."""
+    #mod enums
+    Mods = ""
+    if mod == 0:
+        return ""
+    else:
+        #addming mod names to str
+        #they use bitwise too just like the perms
+        if mod & 1:
+            Mods += "NF"
+        if mod & 2:
+            Mods += "EZ"
+        if mod & 4:
+            Mods += "NV"
+        if mod & 8:
+            Mods += "HD"
+        if mod & 16:
+            Mods += "HR"
+        if mod & 32:
+            Mods += "SD"
+        if mod & 64:
+            Mods += "DT"
+        if mod & 128:
+            Mods += "RX"
+        if mod & 256:
+            Mods += "HT"
+        if mod & 512:
+            Mods += "NC"
+        if mod & 1024:
+            Mods += "FL"
+        if mod & 2048:
+            Mods += "AP"
+        if mod & 4096:
+            Mods += "SO"
+        if mod & 8192:
+            Mods += "RX"
+        if mod & 16384:
+            Mods += "PF"
+        if mod & 32768:
+            Mods += "K4"
+        if mod & 65536:
+            Mods += "K5"
+        if mod & 131072:
+            Mods += "K6"
+        if mod & 262144:
+            Mods += "K7"
+        if mod & 524288:
+            Mods += "K8"
+        if mod & 1015808:
+            Mods += "KM" #idk what this is
+        if mod & 1048576:
+            Mods += "FI"
+        if mod & 2097152:
+            Mods += "RM"
+        if mod & 4194304:
+            Mods += "LM"
+        if mod & 16777216:
+            Mods += "K9"
+        if mod & 33554432:
+            Mods += "KX" #key 10 but 2 char. might change to k10
+        if mod & 67108864:
+            Mods += "K1"
+        if mod & 134217728:
+            Mods += "K2"
+        if mod & 268435456:
+            Mods += "K3"
+        return Mods
