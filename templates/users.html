@@ -26,7 +26,7 @@
         <tr>
             <td>{{ user["Id"] }}</td>
             <td><a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a></td>
-            <td>{{ user["Privilege"]["Name"] }}</td>
+            <td><a class="btn btn-{{ user['Privilege']['Colour'] }}">{{ user["Privilege"]["Name"] }}</a></td>
             {% if user["Allowed"] %}
             <td><a class="btn btn-success">Yes</a></td>
             {% else %}
