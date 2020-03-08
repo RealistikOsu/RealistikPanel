@@ -169,8 +169,9 @@ def PPApi(id):
 def Wipe(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(id)
         WipeAccount(id)
-        RAPLog(session["AccountId"], f"has wiped account id {id}")
+        RAPLog(session["AccountId"], f"has wiped account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -178,8 +179,9 @@ def Wipe(id: int):
 def Restrict(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
         ResUnTrict(id)
-        RAPLog(session["AccountId"], f"has restricted account ID {id}")
+        RAPLog(session["AccountId"], f"has restricted account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -187,8 +189,9 @@ def Restrict(id: int):
 def Ban(id: int):
     """Do the FBI to the person."""
     if HasPrivilege(session["AccountId"], 5):
+        Account = GetUser(id)
         BanUser(id)
-        RAPLog(session["AccountId"], f"has banned account ID {id}")
+        RAPLog(session["AccountId"], f"has banned account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -196,8 +199,9 @@ def Ban(id: int):
 def HWID(id: int):
     """Clear HWID matches."""
     if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
         ClearHWID(id)
-        RAPLog(session["AccountId"], f"has cleared the HWID matches for the account ID {id}")
+        RAPLog(session["AccountId"], f"has cleared the HWID matches for the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -205,9 +209,9 @@ def HWID(id: int):
 def DeleteAcc(id: int):
     """Account goes bye bye forever."""
     if HasPrivilege(session["AccountId"], 6):
-        AccountToBeDeleted = GetUser(id) #here it makes sense as the account wont be here for the admin to look up
+        AccountToBeDeleted = GetUser(id)
         ClearHWID(id)
-        RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']}")
+        RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -215,8 +219,9 @@ def DeleteAcc(id: int):
 def KickFromBancho(id: int):
     """Kick from bancho"""
     if HasPrivilege(session["AccountId"], 12):
+        Account = GetUser(id)
         BanchoKick(id, "You have been kicked by an admin!")
-        RAPLog(session["AccountId"], f"has kicked the account ID {id}")
+        RAPLog(session["AccountId"], f"has kicked the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
