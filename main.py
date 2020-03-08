@@ -105,8 +105,10 @@ def LegacyIndex():
     if request.args.get("p") == "124":
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
-    if request.args.get("p") == "124": #hanayo link
+    elif request.args.get("p") == "100" and HasPrivilege(session["AccountId"]): #hanayo link
         return redirect(url_for("dash"))
+    else:
+        return redirect(url_for("dash")) #take them to the root
 
 @app.route("/rank/action", methods=["POST"])
 def Rank():
