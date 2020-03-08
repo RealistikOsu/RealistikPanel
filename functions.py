@@ -865,7 +865,7 @@ def BanchoKick(id : int, reason):
 def FindWithIp(Ip):
     """Gets array of users."""
     #fetching user id of person with given ip
-    mycursor.execute(f"SELECT userid, ip FROM ip_user WHERE ip = {Ip}")
+    mycursor.execute(f"SELECT userid, ip FROM ip_user WHERE ip = '{Ip}'")
     UserTruple = mycursor.fetchall()
     #turning the data into array with ids
     UserArray = []
