@@ -784,10 +784,10 @@ def ResUnTrict(id : int):
     """Restricts or unrestricts account yeah."""
     mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
     Privilege = mycursor.fetchall()[0][0]
-    r.publish("peppy:disconnect", { #lets the user know what is up
+    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : {id},
         "reason" : f"Your account has been restricted! Check with staff to see what's up."
-    })
+    }))
     if Privilege == 2: #if restricted
         mycursor.execute(f"UPDATE users SET privileges = 3 WHERE id = {id}")
     else: 
@@ -799,10 +799,10 @@ def BanUser(id : int):
     mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
     Privilege = mycursor.fetchall()[0][0]
     Timestamp = round(time.time())
-    r.publish("peppy:disconnect", { #lets the user know what is up
+    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : {id},
         "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
-    })
+    }))
     if Privilege == 0: #if already banned
         mycursor.execute(f"UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = {id}")
     else: 
@@ -816,10 +816,10 @@ def ClearHWID(id : int):
 
 def DeleteAccount(id : int):
     """Deletes the account provided. Press F to pay respects."""
-    r.publish("peppy:disconnect", { #lets the user know what is up
+    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : {id},
         "reason" : f"You have been deleted from {UserConfig['ServerName']}. Bye!"
-    })
+    }))
     #NUKE. BIG NUKE.
     mycursor.execute(f"DELETE FROM scores WHERE userid = {id}")
     mycursor.execute(f"DELETE FROM users WHERE id = {id}")
