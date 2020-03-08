@@ -850,6 +850,7 @@ def DeleteAccount(id : int):
     mycursor.execute(f"DELETE FROM user_clans WHERE user = {id}")
     if UserConfig["HasRelax"]:
         mycursor.execute(f"DELETE FROM scores_relax WHERE userid = {id}")
+    mydb.commit()
 
 def BanchoKick(id : int, reason):
     """Kicks the user from Bancho."""
