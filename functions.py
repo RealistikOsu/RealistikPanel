@@ -684,7 +684,7 @@ def GetPrivileges():
     for x in priv:
         Privs.append({
             "Name" : x[0],
-            "Priv" : str(x[1])
+            "Priv" : x[1]
         })
     return Privs
 
