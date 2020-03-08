@@ -158,7 +158,18 @@ def ConfirmDelete(id):
     #me forgetting to commit changes saved me
     if HasPrivilege(session["AccountId"], 6):
         AccountToBeDeleted = GetUser(id)
-        return render_template("confirm.html", data=DashData(),  session=session, title="Logs", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
+        return render_template("confirm.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+
+@app.route("/user/iplookup/<ip>")
+def IPUsers(Ip):
+    if HasPrivilege(session["AccountId"], 6):
+        IPUserLookup  = FindWithIp(Ip)
+        UserLen = len(IPUserLookup)
+        return render_template("iplookup.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=Ip)
+    else:
+        return render_template("403.html")
 
 #API for js
 @app.route("/api/js/pp/<id>")

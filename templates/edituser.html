@@ -87,6 +87,9 @@
         This is the <b>danger zone!</b> These actions could mess up someone's profile if done without reason.
         <p></p>
         <div class="buttons">
+            <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
+        </div>
+        <div class="buttons">
             <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger">Wipe</a>
             <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
             <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger">Ban/Unban</a>

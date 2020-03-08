@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="section-title">IP Lookup</h2>
+<p class="section-lead">Spot possible multiaccounters by searching users who have the same IP.</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Search Results for IP: <b>{{ ip }}</b></h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">User ID</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">IP</th>
+                    <th scope="col">PP</th>
+                    <th scope="col">Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in ipusers %}
+                <tr>
+                    <td>{{ user["Id"] }}</td>
+                    <td>{{ user["Username"] }}</td>
+                    <td>{{ user["Ip"] }}</a></td>
+                    <td>{{ user["pp"] }}</td>
+                    <td><a href="/user/edit/{{ user['Id'] }}" class="btn btn-danger">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p></p>
+        <h2>
+            {% if IPLen == 0 %}
+            <span style="color: #4287f5;">Nothing Found!</span>
+            {% elif IPLen == 1 %}
+            <span style="color: #32a852;">All Good!</span>
+            {% elif IPLen > 1 %}
+            <span style="color: #eb4034;">Possible Multiaccount!</span>
+            {% endif %}
+        </h2>
+    </div>
+    <div class="card-footer">
+        RealistikPanel!
+    </div>
+</div>
+{% endblock %}

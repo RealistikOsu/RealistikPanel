@@ -861,3 +861,21 @@ def BanchoKick(id : int, reason):
         "userID" : id,
         "reason" : reason
     }))
+
+def FindWithIp(Ip):
+    """Gets array of users."""
+    #fetching user id of person with given ip
+    mycursor.execute(f"SELECT userid, ip FROM ip_user WHERE ip = {Ip}")
+    UserTruple = mycursor.fetchall()
+    #turning the data into array with ids
+    UserArray = []
+    for x in UserTruple:
+        ListToAdd = [x[0], x[1]] #so ip is present for later use
+        UserArray.append(ListToAdd)
+    UserDataArray = [] #this will have the dicts
+    for User in UserArray:
+        UserData = GetUser(User[0])
+        UserData["Ip"] = User[1]
+        UserDataArray.append(UserData)
+        #lets take a second here to appreciate my naming scheme
+    return UserDataArray
