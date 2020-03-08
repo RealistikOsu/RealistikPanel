@@ -163,11 +163,11 @@ def ConfirmDelete(id):
         return render_template("403.html")
 
 @app.route("/user/iplookup/<ip>")
-def IPUsers(Ip):
+def IPUsers(ip):
     if HasPrivilege(session["AccountId"], 6):
-        IPUserLookup  = FindWithIp(Ip)
+        IPUserLookup  = FindWithIp(ip)
         UserLen = len(IPUserLookup)
-        return render_template("iplookup.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=Ip)
+        return render_template("iplookup.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
     else:
         return render_template("403.html")
 
