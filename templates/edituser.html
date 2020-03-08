@@ -72,7 +72,7 @@
                 <label>Admin Notes</label>
                 <input type="text" class="form-control" name="notes" value="{{ UserData['Notes'] }}" style="height: 200px;">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="iptext">
                 <b>IP: </b>{{ UserData['Ip'] }}
             </div>
             <button class="btn btn-success" type="submit" name="">Apply!</button>
@@ -102,5 +102,17 @@
 <script>
     //sets default country to one from UserData
     document.getElementById("countryselect").value = "{{ UserData['Country'] }}";
+    //ip lookup, did it via js not to slow down the loading with a request
+    let url = "{{ config['IpLookup'] }}{{ UserData['Ip'] }}";
+    fetch(url)
+    .then(res => res.json())
+    .then((out) => {
+    console.log("Got json hopefully ", out);
+    // doing things
+    document.getElementById("iptext").innerHTML = "<b>IP:</b> ("+out["country"]+")"
+    })
+    .catch(err => {
+        document.getElementById("iptext").innerHTML = "<b>IP:</b> (Unknown)"
+    }); 
 </script>
 {% endblock %}
