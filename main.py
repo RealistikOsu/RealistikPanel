@@ -193,12 +193,21 @@ def HWID(id: int):
     else:
         return render_template("403.html")
 @app.route("/actions/delete/<id>")
-def Delete(id: int):
+def DeleteAcc(id: int):
     """Account goes bye bye forever."""
     if HasPrivilege(session["AccountId"], 6):
         AccountToBeDeleted = GetUser(id) #here it makes sense as the account wont be here for the admin to look up
         ClearHWID(id)
         RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+@app.route("/actions/kick/<id>")
+def KickFromBancho(id: int):
+    """Kick from bancho"""
+    if HasPrivilege(session["AccountId"], 12):
+        BanchoKick(id, "You have been kicked by an admin!")
+        RAPLog(session["AccountId"], f"has kicked the account ID {id}")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")

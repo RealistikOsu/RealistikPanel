@@ -272,7 +272,7 @@ def GetBmapInfo(id):
         beatmap["BmapNumber"] = BMapNumber
     return BeatmapList
 
-def HasPrivilege(UserID, ReqPriv = 2):
+def HasPrivilege(UserID : int, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
     # 0 = no verification
     # 1 = Only registration required
@@ -286,6 +286,7 @@ def HasPrivilege(UserID, ReqPriv = 2):
     # 9 = RealistikPanel Nomination Accept (feature not added yet)
     # 10 = RealistikPanel Overwatch (feature not added yet)
     # 11 = Wipe account required
+    # 12 = Kick users required
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -347,6 +348,8 @@ def HasPrivilege(UserID, ReqPriv = 2):
         result = Privilege & RPOverwatch
     elif ReqPriv == 11:
         result = Privilege & WipeUsers
+    elif ReqPriv == 12:
+        result = Privilege & KickUsers
     
     if result > 1:
         return True
@@ -847,3 +850,10 @@ def DeleteAccount(id : int):
     mycursor.execute(f"DELETE FROM user_clans WHERE user = {id}")
     if UserConfig["HasRelax"]:
         mycursor.execute(f"DELETE FROM scores_relax WHERE userid = {id}")
+
+def BanchoKick(id : int, reason):
+    """Kicks the user from Bancho."""
+    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
+        "userID" : id,
+        "reason" : reason
+    }))
