@@ -285,6 +285,7 @@ def HasPrivilege(UserID, ReqPriv = 2):
     # 8 = RealistikPanel Nominate (feature not added yet)
     # 9 = RealistikPanel Nomination Accept (feature not added yet)
     # 10 = RealistikPanel Overwatch (feature not added yet)
+    # 11 = Wipe account required
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -339,11 +340,13 @@ def HasPrivilege(UserID, ReqPriv = 2):
     elif ReqPriv == 7:
         result = Privilege & ViewRAPLogs
     elif ReqPriv == 8:
-        result == Privilege & RPNominate
+        result = Privilege & RPNominate
     elif ReqPriv == 9:
-        result == Privilege & RPNominateAccept
+        result = Privilege & RPNominateAccept
     elif ReqPriv == 10:
-        result == Privilege & RPOverwatch
+        result = Privilege & RPOverwatch
+    elif ReqPriv == 11:
+        result = Privilege & WipeUsers
     
     if result > 1:
         return True
@@ -765,3 +768,78 @@ def ModToText(mod: int):
         if mod & 268435456:
             Mods += "K3"
         return Mods
+
+def WipeAccount(AccId):
+    """Wipes the account with the given id."""
+    mycursor.execute(f"DELETE FROM scores WHERE userid = {AccId}")
+    if UserConfig["HasRelax"]:
+        mycursor.execute(f"DELETE FROM scores_relax WHERE userid = {AccId}")
+    #now we reset stats... thats a bit of a query if i say so myself
+    mycursor.execute(f"UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = {AccId}")
+    if UserConfig["HasRelax"]:
+        mycursor.execute(f"UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = {AccId}")
+    mydb.commit()
+
+def ResUnTrict(id : int):
+    """Restricts or unrestricts account yeah."""
+    mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
+    Privilege = mycursor.fetchall()[0][0]
+    r.publish("peppy:disconnect", { #lets the user know what is up
+        "userID" : {id},
+        "reason" : f"Your account has been restricted! Check with staff to see what's up."
+    })
+    if Privilege == 2: #if restricted
+        mycursor.execute(f"UPDATE users SET privileges = 3 WHERE id = {id}")
+    else: 
+        mycursor.execute(f"UPDATE users SET privileges = 2 WHERE id = {id}") #restrict em bois
+    mydb.commit()
+
+def BanUser(id : int):
+    """User go bye bye!"""
+    mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
+    Privilege = mycursor.fetchall()[0][0]
+    Timestamp = round(time.time())
+    r.publish("peppy:disconnect", { #lets the user know what is up
+        "userID" : {id},
+        "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
+    })
+    if Privilege == 0: #if already banned
+        mycursor.execute(f"UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = {id}")
+    else: 
+        mycursor.execute(f"UPDATE users SET privileges = 0, ban_datetime = '{Timestamp}' WHERE id = {id}") #restrict em bois
+    mydb.commit()
+
+def ClearHWID(id : int):
+    """Clears the HWID matches for provided acc."""
+    mycursor.execute(f"DELETE FROM hw_user WHERE userid = {id}")
+    mydb.commit()
+
+def DeleteAccount(id : int):
+    """Deletes the account provided. Press F to pay respects."""
+    r.publish("peppy:disconnect", { #lets the user know what is up
+        "userID" : {id},
+        "reason" : f"You have been deleted from {UserConfig['ServerName']}. Bye!"
+    })
+    #NUKE. BIG NUKE.
+    mycursor.execute(f"DELETE FROM scores WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM users WHERE id = {id}")
+    mycursor.execute(f"DELETE FROM 2fa WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM 2fa_telegram WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM 2fa_totp WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM beatmaps_rating WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM comments WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM discord_roles WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM ip_user WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM profile_backgrounds WHERE uid = {id}")
+    mycursor.execute(f"DELETE FROM rank_requests WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM reports WHERE to_uid = {id} OR from_uid = {id}")
+    mycursor.execute(f"DELETE FROM remember WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM tokens WHERE user = {id}")
+    mycursor.execute(f"DELETE FROM remember WHERE userid = {id}")
+    mycursor.execute(f"DELETE FROM users_achievements WHERE user_id = {id}")
+    mycursor.execute(f"DELETE FROM users_beatmap_playcount WHERE user_id = {id}")
+    mycursor.execute(f"DELETE FROM users_relationships WHERE user1 = {id} OR user2 = {id}")
+    mycursor.execute(f"DELETE FROM user_badges WHERE user = {id}")
+    mycursor.execute(f"DELETE FROM user_clans WHERE user = {id}")
+    if UserConfig["HasRelax"]:
+        mycursor.execute(f"DELETE FROM scores_relax WHERE userid = {id}")

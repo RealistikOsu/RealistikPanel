@@ -74,8 +74,27 @@
         </form>
     </div>
 </div>
+<div class="card">
+    <div class="card-header">
+        <h4>Admin Actions</h4>
+    </div>
+    <div class="card-body">
+        This is the <b>danger zone!</b> These actions could mess up someone's profile if done without reason.
+        <div class="buttons">
+            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger">Wipe</a>
+            <a href="/actions/lock/{{ UserData['Id'] }}" class="btn btn-danger">Lock/Unlock</a>
+            <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
+            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger">Ban/Unban</a>
+            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger">Clear HWID</a>
+            <a href="/actions/delete/{{ UserData['Id'] }}" class="btn btn-danger">Delete Account</a>
+        </div>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
 <script>
     //sets default country to one from UserData
-    document.getElementById("countryselect").value = "{{ UserData["Country"] }}";
+    document.getElementById("countryselect").value = "{{ UserData['Country'] }}";
 </script>
 {% endblock %}

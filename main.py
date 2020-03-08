@@ -105,6 +105,8 @@ def LegacyIndex():
     if request.args.get("p") == "124":
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
+    if request.args.get("p") == "124": #hanayo link
+        return redirect(url_for("dash"))
 
 @app.route("/rank/action", methods=["POST"])
 def Rank():
@@ -153,6 +155,53 @@ def PPApi(id):
     return jsonify({
         "pp" : str(round(CalcPP(id), 2))
     })
+#actions
+@app.route("/actions/wipe/<id>", methods = ["POST"])
+def Wipe(id: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        WipeAccount(id)
+        RAPLog(session["AccountId"], f"has wiped account id {id}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+@app.route("/actions/restrict/<id>", methods = ["POST"])
+def Restrict(id: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 6):
+        ResUnTrict(id)
+        RAPLog(session["AccountId"], f"has restricted account ID {id}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+@app.route("/actions/ban/<id>", methods = ["POST"])
+def Ban(id: int):
+    """Do the FBI to the person."""
+    if HasPrivilege(session["AccountId"], 5):
+        BanUser(id)
+        RAPLog(session["AccountId"], f"has banned account ID {id}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+@app.route("/actions/hwid/<id>", methods = ["POST"])
+def HWID(id: int):
+    """Clear HWID matches."""
+    if HasPrivilege(session["AccountId"], 6):
+        ClearHWID(id)
+        RAPLog(session["AccountId"], f"has cleared the HWID matches for the account ID {id}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
+@app.route("/actions/delete/<id>", methods = ["POST"])
+def Delete(id: int):
+    """Account goes bye bye forever."""
+    if HasPrivilege(session["AccountId"], 6):
+        AccountToBeDeleted = GetUser(id) #here it makes sense as the account wont be here for the admin to look up
+        ClearHWID(id)
+        RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']}")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return render_template("403.html")
 
 #error handlers
 @app.errorhandler(404)
