@@ -16,7 +16,7 @@
     <div class="card-body">
         <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}.<br>
         Their status on {{ config["ServerName"] }} is 
-        {% if priv['Priv'] >= 3 %}
+        {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
         {% else %}
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
