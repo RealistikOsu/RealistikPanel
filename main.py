@@ -156,7 +156,7 @@ def PPApi(id):
         "pp" : str(round(CalcPP(id), 2))
     })
 #actions
-@app.route("/actions/wipe/<id>", methods = ["POST"])
+@app.route("/actions/wipe/<id>")
 def Wipe(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 11):
@@ -165,7 +165,7 @@ def Wipe(id: int):
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
-@app.route("/actions/restrict/<id>", methods = ["POST"])
+@app.route("/actions/restrict/<id>")
 def Restrict(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 6):
@@ -174,7 +174,7 @@ def Restrict(id: int):
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
-@app.route("/actions/ban/<id>", methods = ["POST"])
+@app.route("/actions/ban/<id>")
 def Ban(id: int):
     """Do the FBI to the person."""
     if HasPrivilege(session["AccountId"], 5):
@@ -183,7 +183,7 @@ def Ban(id: int):
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
-@app.route("/actions/hwid/<id>", methods = ["POST"])
+@app.route("/actions/hwid/<id>")
 def HWID(id: int):
     """Clear HWID matches."""
     if HasPrivilege(session["AccountId"], 6):
@@ -192,7 +192,7 @@ def HWID(id: int):
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
-@app.route("/actions/delete/<id>", methods = ["POST"])
+@app.route("/actions/delete/<id>")
 def Delete(id: int):
     """Account goes bye bye forever."""
     if HasPrivilege(session["AccountId"], 6):
