@@ -149,6 +149,15 @@ def Logs(page):
     else:
         return render_template("403.html")
 
+@app.route("/action/confirm/delete/<id>")
+def ConfirmDelete(id):
+    """Confirms deletion of acc so accidents dont happen"""
+    #i almost deleted my own acc lmao
+    #me forgetting to commit changes saved me
+    if HasPrivilege(session["AccountId"], 6):
+        AccountToBeDeleted = GetUser(id)
+        return render_template("confirm.html", data=DashData(),  session=session, title="Logs", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
+
 #API for js
 @app.route("/api/js/pp/<id>")
 def PPApi(id):
