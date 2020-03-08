@@ -576,7 +576,17 @@ def FetchUsers(page = 0):
 def GetUser(id):
     """Gets data for user. (universal)"""
     mycursor.execute(f"SELECT id, username, pp_std, country FROM users_stats WHERE id = {id} LIMIT 1")
-    User = mycursor.fetchall()[0]
+    User = mycursor.fetchall()
+    if len(User) == 0:
+        #if no one found
+        return {
+            "Id" : 0,
+            "Username" : "Not Found",
+            "pp" : 0,
+            "IsOnline" : False,
+            "Country" : "GB" #RULE BRITANNIA
+        }
+    User = User[0]
     return {
         "Id" : User[0],
         "Username" : User[1],
