@@ -604,7 +604,7 @@ def UserData(id):
     Data["Aka"] = Data1[2]
     Data["Email"] = Data2[0]
     Data["RegisterTime"] = Data2[1]
-    Data["Privileges"] = str(Data2[2])
+    Data["Privileges"] = Data2[2]
     Data["Notes"] = Data2[3]
     Data["DonorExpire"] = Data2[4]
     Data["SilenceEnd"] = Data2[5]

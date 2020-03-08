@@ -15,7 +15,12 @@
     </div>
     <div class="card-body">
         <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}.<br>
-        They are a {{ config["ServerName"] }} <b>{{ UserData["PrivName"] }}</b>
+        Their status on {{ config["ServerName"] }} is 
+        {% if priv['Priv'] >= 3 %}
+        <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
+        {% else %}
+        <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
+        {% endif %}
     </div>
     <div class="card-footer">
         RealistikPanel
