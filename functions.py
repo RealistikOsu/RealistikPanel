@@ -874,8 +874,9 @@ def FindWithIp(Ip):
         UserArray.append(ListToAdd)
     UserDataArray = [] #this will have the dicts
     for User in UserArray:
-        UserData = GetUser(User[0])
-        UserData["Ip"] = User[1]
-        UserDataArray.append(UserData)
+        if len(User) != 0:
+            UserData = GetUser(User[0])
+            UserData["Ip"] = User[1]
+            UserDataArray.append(UserData)
         #lets take a second here to appreciate my naming scheme
     return UserDataArray
