@@ -772,6 +772,10 @@ def ModToText(mod: int):
 def WipeAccount(AccId):
     """Wipes the account with the given id."""
     mycursor.execute(f"DELETE FROM scores WHERE userid = {AccId}")
+    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
+        "userID" : id,
+        "reason" : f"Your account has been wiped! F"
+    }))
     if UserConfig["HasRelax"]:
         mycursor.execute(f"DELETE FROM scores_relax WHERE userid = {AccId}")
     #now we reset stats... thats a bit of a query if i say so myself
@@ -785,7 +789,7 @@ def ResUnTrict(id : int):
     mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
     Privilege = mycursor.fetchall()[0][0]
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : {id},
+        "userID" : id,
         "reason" : f"Your account has been restricted! Check with staff to see what's up."
     }))
     if Privilege == 2: #if restricted
@@ -800,7 +804,7 @@ def BanUser(id : int):
     Privilege = mycursor.fetchall()[0][0]
     Timestamp = round(time.time())
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : {id},
+        "userID" : id,
         "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
     }))
     if Privilege == 0: #if already banned
@@ -817,7 +821,7 @@ def ClearHWID(id : int):
 def DeleteAccount(id : int):
     """Deletes the account provided. Press F to pay respects."""
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : {id},
+        "userID" : id,
         "reason" : f"You have been deleted from {UserConfig['ServerName']}. Bye!"
     }))
     #NUKE. BIG NUKE.
