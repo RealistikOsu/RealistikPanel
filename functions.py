@@ -544,7 +544,7 @@ def FetchUsers(page = 0):
             PrivilegeDict[str(Priv)]["Name"] = info[0]
             PrivilegeDict[str(Priv)]["Privileges"] = Priv
             PrivilegeDict[str(Priv)]["Colour"] = info[1]
-            if PrivilegeDict[str(Priv)]["Colour"] == "default":
+            if PrivilegeDict[str(Priv)]["Colour"] == "default" or PrivilegeDict[str(Priv)]["Colour"] == "":
                 #stisla doesnt have a default button so ill hard-code change it to a warning
                 PrivilegeDict[str(Priv)]["Colour"] = "warning"
 
