@@ -109,10 +109,10 @@
     .then((out) => {
     console.log("Got json hopefully ", out);
     // doing things
-    document.getElementById("iptext").innerHTML = "<b>IP:</b> ("+out["country"]+")"
+    document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} ("+out["country"]+")"
     })
     .catch(err => {
-        document.getElementById("iptext").innerHTML = "<b>IP:</b> (Unknown)"
+        document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)"
     }); 
 </script>
 {% endblock %}
