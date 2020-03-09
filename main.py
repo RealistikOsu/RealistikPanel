@@ -6,6 +6,10 @@ from config import UserConfig
 from functions import *
 from colorama import Fore, init
 import os
+from updater import *
+
+
+
 
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
@@ -256,3 +260,6 @@ def BeforeRequest():
             session[x] = ServSession[x]
 
 app.run(host= '0.0.0.0', port=UserConfig["Port"])
+
+if __name__ == "__main__":
+    handleUpdate() # handle update...

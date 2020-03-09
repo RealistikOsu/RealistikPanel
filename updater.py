@@ -19,7 +19,9 @@ def checkUpdates(endpoint="https://raw.githubusercontent.com/KotypeyPyEdition/Re
         up = json.load(f)
 
         r = requests.get(endpoint)
-        return up['version'] is not r.json()['version']
+
+
+        return up['version'] != r.json()['version']
 
 
 def getLatestVersion(endpoint="https://raw.githubusercontent.com/KotypeyPyEdition/RealistikPanel/updates/buildinfo.json"):
@@ -38,14 +40,15 @@ def isDevBuild(config="config.json"):
 
 def UpdateBuild(config='buildinfo.json'):
 
+    
     if not isDevBuild(): return
 
+    print(' Detected Development version... disabling update notify')
 
     with open(config) as f:
         d = json.load(f)
 
         currBuild = int(time.time())
-        print(currBuild)
 
         d['version'] = currBuild
 
@@ -65,12 +68,12 @@ def update():
 
 
 def handleUpdate():
-    if isDevBuild(): UpdateBuild()
+    if isDevBuild(): return UpdateBuild()
     CheckUpdates = checkUpdates()
-    if not checkUpdates:
+    if not CheckUpdates:
         return
 
-    print(f'Update found: {getLatestVersion()}\nto update just run with arguments --update')
+    print(f' Update found: {getLatestVersion()}\n to update just run with arguments --update')
     args = ' '.join(sys.argv)
     if '--update' in args:
         update()
