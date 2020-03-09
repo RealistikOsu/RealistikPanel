@@ -32,7 +32,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "RecaptchaSiteKey" : "",
     #RealistikPanel Settings
     "PageSize" : 50, #number of elements per page
-    "SecretKey" : b64encode(urandom(64)).decode('utf-8') #generates random encryption key
+    "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
+    "DevBuild": False
 }
 
 class JsonFile:
