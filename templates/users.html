@@ -25,7 +25,7 @@
         {% for user in UserData %}
         <tr>
             <td>{{ user["Id"] }}</td>
-            <td><a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a></td>
+            <td><img src="https://www.countryflags.io/{{ user['Country'] }}/flat/16.png"><a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a></td>
             <td><a class="btn btn-{{ user['Privilege']['Colour'] }}" style="color: white;">{{ user["Privilege"]["Name"] }}</a></td>
             {% if user["Allowed"] %}
             <td><a class="btn btn-success" style="color: white;">Yes</a></td>

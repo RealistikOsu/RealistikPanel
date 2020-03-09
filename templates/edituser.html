@@ -14,7 +14,7 @@
         {% endif %}
     </div>
     <div class="card-body">
-        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}.<br>
+        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }} <img src="https://www.countryflags.io/{{ UserData['Country'] }}/flat/16.png"><br>
         Their status on {{ config["ServerName"] }} is 
         {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>

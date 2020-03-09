@@ -524,7 +524,8 @@ def FetchUsers(page = 0):
     #    "234543": {
     #        "Name" : "Owner",
     #        "Privileges" : 234543,
-    #        "Colour" : "success"
+    #        "Colour" : "success",
+    #        "Country" : "GB"
     #    }
     #}
     PrivilegeDict = {}
@@ -560,10 +561,14 @@ def FetchUsers(page = 0):
     #]
     Users = []
     for user in People:
+        #country query
+        mycursor.execute(f"SELECT country FROM users_stats WHERE id = {user[0]}")
+        Country = mycursor.fetchall()[0][0]
         Dict = {
             "Id" : user[0],
             "Name" : user[1],
-            "Privilege" : PrivilegeDict[str(user[2])]
+            "Privilege" : PrivilegeDict[str(user[2])],
+            "Country" : Country
         }
         if user[3] == 1:
             Dict["Allowed"] = True
