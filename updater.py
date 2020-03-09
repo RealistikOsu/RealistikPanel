@@ -14,7 +14,7 @@ import sys
 
 
 
-def checkUpdates(endpoint="https://raw.githubusercontent.com/KotypeyPyEdition/RealistikPanel/updates/buildinfo.json", file="buildinfo.json"):
+def checkUpdates(endpoint="https://raw.githubusercontent.com/RealistikOsu/RealistikPanel/master/buildinfo.json", file="buildinfo.json"):
     with open(file) as f:
         up = json.load(f)
 
