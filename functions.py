@@ -64,7 +64,8 @@ def DashData():
     totalPP = r.get("ripple:total_pp")#Not calculated by every server .decode("utf-8")
     RegisteredUsers = r.get("ripple:registered_users")
     OnlineUsers = r.get("ripple:online_users")
-
+    TotalPlays = r.get("ripple:total_plays")
+    TotalScores = r.get("ripple:total_submitted_scores")
 
     #If we dont have variable(variable is None) will set it and get it again
     if not totalPP:
@@ -78,8 +79,10 @@ def DashData():
         OnlineUsers = r.get("ripple:online_users")
     response = {
         "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
-        "OnlineUsers" : OnlineUsers.decode("utf-8") ,
-        "TotalPP" : f'{int(totalPP.decode("utf-8")):,}', 
+        "OnlineUsers" : OnlineUsers.decode("utf-8"),
+        "TotalPP" : f'{int(totalPP.decode("utf-8")):,}',
+        "TotalPlays" : f'{int(TotalPlays.decode("utf-8")):,}',
+        "TotalScores" : f'{int(TotalScores.decode("utf-8")):,}',
         "Alert" : Alert
     }
     return response
