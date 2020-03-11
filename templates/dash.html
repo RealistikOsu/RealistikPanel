@@ -2,7 +2,7 @@
 
 {% block content %}
 <h2 class="section-title">Dashboard</h2>
-<p class="section-lead">This is the RealistikPanel dashboard! Here you can see the status of your server and recent plays.</p>
+<p class="section-lead">This is the RealistikPanel dashboard! The home of RealistikPanel!</p>
 <div class="btn btn-primary">
     <div>
         <h3>{{ data["RegisteredUsers"] }}</h3>
@@ -49,7 +49,7 @@
         <h4>RealistikPanel!</h4>
     </div>
     <div class="card-body">
-        This is the RealistikPanel! This is the admin-only secrety secret admin only panel! This lets you do a lot of <b>dangerous and scary</b> things so be warned!
+        <div id="PlayerChart"></div>
     </div>
     <div class="card-footer">
         RealistikPanel
@@ -78,4 +78,52 @@
         {% endfor %}
     </tbody>
 </table>
+<script>
+//Dash data
+var ctx = document.getElementById("PlayerChart").getContext('2d');
+var myChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: {{ Graph["IntervalList"] }}, 
+    datasets: [{
+      label: 'Online Players',
+      data: {{ Graph["PlayerCount"] }},
+      borderWidth: 2,
+      backgroundColor: 'rgba(63,82,227,.8)',
+      borderWidth: 0,
+      borderColor: 'transparent',
+      pointBorderWidth: 0,
+      pointRadius: 3.5,
+      pointBackgroundColor: 'transparent',
+      pointHoverBackgroundColor: 'rgba(63,82,227,.8)',
+    }]
+  },
+  options: {
+    legend: {
+      display: false
+    },
+    scales: {
+      yAxes: [{
+        gridLines: {
+          drawBorder: false,
+          color: '#f2f2f2',
+        },
+        ticks: {
+          beginAtZero: true,
+          stepSize: 200,
+          callback: function(value, index, values) {
+            return '$' + value;
+          }
+        }
+      }],
+      xAxes: [{
+        gridLines: {
+          display: false,
+          tickMarkLength: 15,
+        }
+      }]
+    },
+  }
+});
+</script>
 {% endblock %}

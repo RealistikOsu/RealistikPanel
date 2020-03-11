@@ -7,9 +7,7 @@ from functions import *
 from colorama import Fore, init
 import os
 from updater import *
-
-
-
+from threading import Thread
 
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
@@ -35,7 +33,7 @@ def home():
 @app.route("/dash/")
 def dash():
     if HasPrivilege(session["AccountId"]):
-        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig)
+        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph = DashActData())
     else:
         return render_template("403.html")
 
@@ -263,3 +261,5 @@ app.run(host= '0.0.0.0', port=UserConfig["Port"])
 
 if __name__ == "__main__":
     handleUpdate() # handle update...
+    CountFetchThread = Thread(PlayerCountCollection)
+    CountFetchThread.start()

@@ -44,6 +44,8 @@ except Exception as e:
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
+#public variables
+PlayerCount = [] # list of players 
 
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
@@ -936,3 +938,32 @@ def PlayStyle(Enum : int):
         Styles.append("Eggplant")
     
     return Styles
+
+def PlayerCountCollection(loop = True):
+    """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
+    while loop:
+        CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
+        PlayerCount.append(CurrentCount)
+        time.sleep(UserConfig["UserCountFetchRate"] * 60)
+        #so graph doesnt get too huge
+        if len(PlayerCount) > 40:
+            PlayerCount.pop(PlayerCount[0])
+    if not loop:
+        CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
+        PlayerCount.append(CurrentCount)
+        time.sleep(UserConfig["UserCountFetchRate"] * 60)
+
+def DashActData():
+    """Returns data for dash graphs."""
+    Data = {}
+    Data["PlayerCount"] = str(PlayerCount) #string for easier use in js
+    
+    #getting time intervals
+    PrevNum = 0
+    IntervalList = []
+    for x in PlayerCount:
+        IntervalList.append(str(PrevNum + UserConfig["UserCountFetchRate"] + "m"))
+        PrevNum += UserConfig["UserCountFetchRate"]
+
+    Data["IntervalList"] = IntervalList
+    return Data

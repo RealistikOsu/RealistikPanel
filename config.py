@@ -33,7 +33,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     #RealistikPanel Settings
     "PageSize" : 50, #number of elements per page
     "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
-    "DevBuild": False
+    "DevBuild": False, #for developers only to create a new buildinfo.json code
+    "UserCountFetchRate" : 5 #In minutes. The interval between grabbing the player count
 }
 
 class JsonFile:
