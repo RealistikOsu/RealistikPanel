@@ -258,7 +258,7 @@ def BeforeRequest():
             session[x] = ServSession[x]
 
 if __name__ == "__main__":
-    handleUpdate() # handle update...
     CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
     CountFetchThread.start()
     app.run(host= '0.0.0.0', port=UserConfig["Port"])
+    handleUpdate() # handle update...
