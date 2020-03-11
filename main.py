@@ -257,9 +257,8 @@ def BeforeRequest():
         for x in list(ServSession.keys()):
             session[x] = ServSession[x]
 
-app.run(host= '0.0.0.0', port=UserConfig["Port"])
-
 if __name__ == "__main__":
     handleUpdate() # handle update...
     CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
     CountFetchThread.start()
+    app.run(host= '0.0.0.0', port=UserConfig["Port"])
