@@ -965,5 +965,5 @@ def DashActData():
         IntervalList.append(str(PrevNum + UserConfig["UserCountFetchRate"]) + "m")
         PrevNum += UserConfig["UserCountFetchRate"]
 
-    Data["IntervalList"] = IntervalList
+    Data["IntervalList"] = str(IntervalList)
     return Data
