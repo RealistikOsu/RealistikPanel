@@ -956,7 +956,7 @@ def PlayerCountCollection(loop = True):
 def DashActData():
     """Returns data for dash graphs."""
     Data = {}
-    Data["PlayerCount"] = str(PlayerCount) #string for easier use in js
+    Data["PlayerCount"] = json.dumps(str(PlayerCount)) #string for easier use in js
     
     #getting time intervals
     PrevNum = 0
@@ -965,5 +965,5 @@ def DashActData():
         IntervalList.append(str(PrevNum + UserConfig["UserCountFetchRate"]) + "m")
         PrevNum += UserConfig["UserCountFetchRate"]
 
-    Data["IntervalList"] = str(IntervalList)
+    Data["IntervalList"] = json.dumps(str(IntervalList))
     return Data
