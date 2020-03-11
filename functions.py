@@ -898,3 +898,41 @@ def FindWithIp(Ip):
             UserDataArray.append(UserData)
         #lets take a second here to appreciate my naming scheme
     return UserDataArray
+
+def PlayStyle(Enum : int):
+    """Returns array of playstyles."""
+    #should be similar to privileges (it is)
+    Styles = []
+    #Play style enums
+    Mouse = 1 << 0
+    Tablet = 1 << 1
+    Keyboard = 1 << 2
+    Touchscreen = 1 << 3
+    #Nice ones ripple
+    Spoon = 1 << 4
+    LeapMotion = 1 << 5
+    OculusRift = 1 << 6
+    Dick = 1 << 7
+    Eggplant = 1 << 8
+
+    #if statement time
+    if Enum & Mouse >= 1:
+        Styles.append("Mouse")
+    if Enum & Tablet >= 1:
+        Styles.append("Tablet")
+    if Enum & Keyboard >= 1:
+        Styles.append("Keyboard")
+    if Enum & Touchscreen >= 1:
+        Styles.append("Touchscreen")
+    if Enum & Spoon >= 1:
+        Styles.append("Spoon")
+    if Enum & LeapMotion >= 1:
+        Styles.append("Leap Motion")
+    if Enum & OculusRift >= 1:
+        Styles.append("Oculus Rift")
+    if Enum & Dick >= 1:
+        Styles.append("Dick")
+    if Enum & Eggplant >= 1:
+        Styles.append("Eggplant")
+    
+    return Styles
