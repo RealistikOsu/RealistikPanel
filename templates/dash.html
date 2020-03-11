@@ -85,10 +85,10 @@ var ctx = document.getElementById("PlayerChart").getContext('2d');
 var myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: {{ Graph["IntervalList"] }}, 
+    labels: {{ Graph["IntervalList"]|safe }}, 
     datasets: [{
       label: 'Online Players',
-      data: {{ Graph["PlayerCount"] }},
+      data: {{ Graph["PlayerCount"]|safe }},
       borderWidth: 2,
       backgroundColor: 'rgba(63,82,227,.8)',
       borderWidth: 0,
