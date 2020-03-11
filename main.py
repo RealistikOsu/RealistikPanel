@@ -261,5 +261,5 @@ app.run(host= '0.0.0.0', port=UserConfig["Port"])
 
 if __name__ == "__main__":
     handleUpdate() # handle update...
-    CountFetchThread = Thread(target=PlayerCountCollection)
+    CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
     CountFetchThread.start()
