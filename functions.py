@@ -79,6 +79,12 @@ def DashData():
     if not OnlineUsers:
         r.set('ripple:online_users', 1)
         OnlineUsers = r.get("ripple:online_users")
+    if not TotalPlays:
+        r.set('ripple:total_plays', 1)
+        TotalPlays = r.get("ripple:total_plays")
+    if not TotalScores:
+        r.set('ripple:total_plays', 1)
+        TotalScores = r.get("ripple:total_submitted_scores")
     response = {
         "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
         "OnlineUsers" : OnlineUsers.decode("utf-8"),
