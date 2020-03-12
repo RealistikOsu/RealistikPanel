@@ -3,44 +3,46 @@
 {% block content %}
 <h2 class="section-title">Dashboard</h2>
 <p class="section-lead">This is the RealistikPanel dashboard! The home of RealistikPanel!</p>
-<div class="btn btn-primary">
-    <div>
-        <h3>{{ data["RegisteredUsers"] }}</h3>
+<div class="buttons">
+    <div class="btn btn-primary">
+        <div>
+            <h3>{{ data["RegisteredUsers"] }}</h3>
+        </div>
+        <div>
+            Registered Users
+        </div>
     </div>
-    <div>
-        Registered Users
+    <div class="btn btn-success">
+        <div>
+            <h3>{{ data["OnlineUsers"] }}</h3>
+        </div>
+        <div>
+            Online Users
+        </div>
     </div>
-</div>
-<div class="btn btn-success">
-    <div>
-        <h3>{{ data["OnlineUsers"] }}</h3>
+    <div class="btn btn-secondary">
+        <div>
+            <h3>{{ data["TotalPP"] }}</h3>
+        </div>
+        <div>
+            Total PP
+        </div>
     </div>
-    <div>
-        Online Users
+    <div class="btn btn-warning">
+        <div>
+            <h3>{{ data["TotalPlays"] }}</h3>
+        </div>
+        <div>
+            Total Plays
+        </div>
     </div>
-</div>
-<div class="btn btn-secondary">
-    <div>
-        <h3>{{ data["TotalPP"] }}</h3>
-    </div>
-    <div>
-        Total PP
-    </div>
-</div>
-<div class="btn btn-warning">
-    <div>
-        <h3>{{ data["TotalPlays"] }}</h3>
-    </div>
-    <div>
-        Total Plays
-    </div>
-</div>
-<div class="btn btn-info">
-    <div>
-        <h3>{{ data["TotalScores"] }}</h3>
-    </div>
-    <div>
-        Total Scores
+    <div class="btn btn-info">
+        <div>
+            <h3>{{ data["TotalScores"] }}</h3>
+        </div>
+        <div>
+            Total Scores
+        </div>
     </div>
 </div>
 <p></p>
