@@ -196,7 +196,7 @@ def Restrict(id: int):
     if HasPrivilege(session["AccountId"], 6):
         Account = GetUser(id)
         ResUnTrict(id)
-        RAPLog(session["AccountId"], f"has restricted account {Account['Username']} ({id})")
+        RAPLog(session["AccountId"], f"has restricted the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
@@ -206,7 +206,7 @@ def Ban(id: int):
     if HasPrivilege(session["AccountId"], 5):
         Account = GetUser(id)
         BanUser(id)
-        RAPLog(session["AccountId"], f"has banned account {Account['Username']} ({id})")
+        RAPLog(session["AccountId"], f"has banned the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
         return render_template("403.html")
