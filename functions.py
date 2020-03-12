@@ -968,8 +968,8 @@ def DashActData():
     PrevNum = 0
     IntervalList = []
     for x in PlayerCount:
-        IntervalList.append(str(PrevNum) + "m")
+        IntervalList.append(PrevNum)
         PrevNum += UserConfig["UserCountFetchRate"]
 
-    Data["IntervalList"] = json.dumps(IntervalList.reverse())
+    Data["IntervalList"] = IntervalList.reverse()
     return Data
