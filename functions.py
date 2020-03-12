@@ -83,7 +83,7 @@ def DashData():
         r.set('ripple:total_plays', 1)
         TotalPlays = r.get("ripple:total_plays")
     if not TotalScores:
-        r.set('ripple:total_plays', 1)
+        r.set('ripple:total_submitted_scores', 1)
         TotalScores = r.get("ripple:total_submitted_scores")
     response = {
         "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
