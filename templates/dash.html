@@ -44,6 +44,10 @@
             Total Scores
         </div>
     </div>
+    <!-- Status things -->
+    <div class="letsstatus"></div>
+    <div class="banchostatus"></div>
+    <div class="apistatus"></div>
 </div>
 <p></p>
 <div class="card">
@@ -83,14 +87,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <script>
 //Dash data
+//LEAVE ME ALONE JS DEBUGGER
+var IntList = {{ Graph["IntervalList"]|safe }}
+var Data = {{ Graph["PlayerCount"]|safe }}
 var ctx = document.getElementById("PlayerChart").getContext('2d');
 var myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: {{ Graph["IntervalList"]|safe }}, 
+    labels: IntList, 
     datasets: [{
       label: 'Online Players',
-      data: {{ Graph["PlayerCount"]|safe }},
+      data: Data,
       borderWidth: 2,
       backgroundColor: 'rgba(63,82,227,.8)',
       borderWidth: 0,
@@ -128,5 +135,50 @@ var myChart = new Chart(ctx, {
     },
   }
 });
+
+/*
+statuses for things like
+lets
+bancho
+api
+maybe soon hanayo
+*/
+//json getting from url
+
+var API_URL = "{{ config['ServerURL'] }}api/v1/users/rxfull?id=1000"
+var LetsAPI = "{{ config['LetsAPI'] }}v1/pp?b=1058295" //this url for a predictable result
+var BanchoURL = "{{ config['BanchoURL'] }}api/v1/isOnline?id=1000"
+
+fetch(LetsAPI)
+.then(res => res.json())
+.then((out) => {
+if (out["code"] == 200) {
+    document.getElementById("letsstatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
+}
+else {
+    document.getElementById("letsstatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
+}
+fetch(BanchoURL)
+.then(res => res.json())
+.then((out) => {
+if (out["code"] == 200) {
+    document.getElementById("banchostatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
+}
+else {
+    document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
+}
+})
+.catch(err => { document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>' }); 
+fetch(API_URL)
+.then(res => res.json())
+.then((out) => {
+if (out["code"] == 200) {
+    document.getElementById("apistatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>'
+}
+else {
+    document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>'
+}
+})
+.catch(err => { document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>' }); 
 </script>
 {% endblock %}
