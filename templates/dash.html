@@ -154,8 +154,7 @@ fetch(LetsAPI)
 .then((out) => {
 if (out["code"] == 200) {
     document.getElementById("letsstatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
-}
-else {
+} else {
     document.getElementById("letsstatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
 }
 fetch(BanchoURL)
@@ -163,8 +162,7 @@ fetch(BanchoURL)
 .then((out) => {
 if (out["code"] == 200) {
     document.getElementById("banchostatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
-}
-else {
+} else {
     document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
 }
 })
@@ -174,8 +172,7 @@ fetch(API_URL)
 .then((out) => {
 if (out["code"] == 200) {
     document.getElementById("apistatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>'
-}
-else {
+} else {
     document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>'
 }
 })
