@@ -151,7 +151,7 @@ var BanchoURL = "http://"+ window.location.host +"/js/status/bancho"
 fetch(LetsAPI)
 .then(res => res.json())
 .then((out) => {
-    if (out["code"] == 200) {
+    if (out["status"] == 200) {
         document.getElementById("letsstatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
     } else {
         document.getElementById("letsstatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
@@ -161,7 +161,7 @@ fetch(LetsAPI)
 fetch(BanchoURL)
 .then(res => res.json())
 .then((out) => {
-    if (out["code"] == 200) {
+    if (out["status"] == 200) {
         document.getElementById("banchostatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
     } else {
         document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
