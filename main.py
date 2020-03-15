@@ -174,11 +174,22 @@ def IPUsers(ip):
         return render_template("403.html")
 
 #API for js
-@app.route("/api/js/pp/<id>")
+@app.route("/js/pp/<id>")
 def PPApi(id):
     return jsonify({
         "pp" : str(round(CalcPP(id), 2))
     })
+#api mirrors
+@app.route("/js/status/api")
+def ApiStatus():
+    return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/users/rxfull?id=1000").json()) #this url to provide a predictable result
+@app.route("/js/status/lets")
+def LetsStatus():
+    return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/pp?b=1058295").json()) #this url to provide a predictable result
+@app.route("/js/status/bancho")
+def BanchoStatus():
+    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/isOnline?id=1000").json()) #this url to provide a predictable result
+
 #actions
 @app.route("/actions/wipe/<id>")
 def Wipe(id: int):

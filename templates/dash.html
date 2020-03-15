@@ -142,9 +142,9 @@ maybe soon hanayo
 */
 //json getting from url
 
-var API_URL = "{{ config['ServerURL'] }}api/v1/users/rxfull?id=1000"
-var LetsAPI = "{{ config['LetsAPI'] }}v1/pp?b=1058295" //this url for a predictable result
-var BanchoURL = "{{ config['BanchoURL'] }}api/v1/isOnline?id=1000"
+var API_URL = "http://"+ window.location.host +"/js/status/api"
+var LetsAPI = "http://"+ window.location.host +"/js/status/lets"
+var BanchoURL = "http://"+ window.location.host +"/js/status/bancho"
 
 fetch(LetsAPI)
 .then(res => res.json())

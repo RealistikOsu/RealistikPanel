@@ -77,7 +77,7 @@
 
     function CalcPP(BeatmapNr, BeatmapID) {
         //json getting from url
-        let url = "http://"+ window.location.host +"/api/js/pp/"+BeatmapID;
+        let url = "http://"+ window.location.host +"/js/pp/"+BeatmapID;
 
         fetch(url)
         .then(res => res.json())
