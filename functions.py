@@ -820,14 +820,16 @@ def ResUnTrict(id : int):
     """Restricts or unrestricts account yeah."""
     mycursor.execute(f"SELECT privileges FROM users WHERE id = {id}")
     Privilege = mycursor.fetchall()[0][0]
-    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : id,
-        "reason" : f"Your account has been restricted! Check with staff to see what's up."
-    }))
     if Privilege == 2: #if restricted
-        mycursor.execute(f"UPDATE users SET privileges = 3 WHERE id = {id}")
+        TimeBan = round(time.time())
+        mycursor.execute(f"UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = {id}") #unrestricts
     else: 
-        mycursor.execute(f"UPDATE users SET privileges = 2 WHERE id = {id}") #restrict em bois
+        r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
+            "userID" : id,
+            "reason" : f"Your account has been restricted! Check with staff to see what's up."
+        }))
+        TimeBan = round(time.time())
+        mycursor.execute(f"UPDATE users SET privileges = 2, ban_datetime = {TimeBan} WHERE id = {id}") #restrict em bois
     mydb.commit()
 
 def BanUser(id : int):
