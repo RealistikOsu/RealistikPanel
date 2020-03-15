@@ -87,17 +87,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <script>
 //Dash data
-//LEAVE ME ALONE JS DEBUGGER
-var IntList = {{ Graph["IntervalList"]|safe }}
-var Data = {{ Graph["PlayerCount"]|safe }}
 var ctx = document.getElementById("PlayerChart").getContext('2d');
 var myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: IntList, 
+    labels: {{ Graph["IntervalList"]|safe }}, 
     datasets: [{
       label: 'Online Players',
-      data: Data,
+      data: {{ Graph["PlayerCount"]|safe }},
       borderWidth: 2,
       backgroundColor: 'rgba(63,82,227,.8)',
       borderWidth: 0,
