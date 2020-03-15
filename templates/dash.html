@@ -149,29 +149,31 @@ var BanchoURL = "{{ config['BanchoURL'] }}api/v1/isOnline?id=1000"
 fetch(LetsAPI)
 .then(res => res.json())
 .then((out) => {
-if (out["code"] == 200) {
-    document.getElementById("letsstatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
-} else {
-    document.getElementById("letsstatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
-}
+    if (out["code"] == 200) {
+        document.getElementById("letsstatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
+    } else {
+        document.getElementById("letsstatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
+    }
+})
+.catch(err => { document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>' }); 
 fetch(BanchoURL)
 .then(res => res.json())
 .then((out) => {
-if (out["code"] == 200) {
-    document.getElementById("banchostatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
-} else {
-    document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
-}
+    if (out["code"] == 200) {
+        document.getElementById("banchostatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
+    } else {
+        document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
+    }
 })
 .catch(err => { document.getElementById("banchostatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>' }); 
 fetch(API_URL)
 .then(res => res.json())
 .then((out) => {
-if (out["code"] == 200) {
-    document.getElementById("apistatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>'
-} else {
-    document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>'
-}
+    if (out["code"] == 200) {
+        document.getElementById("apistatus").innerHTML ='<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>'
+    } else {
+        document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>'
+    }
 })
 .catch(err => { document.getElementById("apistatus").innerHTML ='<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>' }); 
 </script>
