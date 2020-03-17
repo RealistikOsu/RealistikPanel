@@ -34,7 +34,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "PageSize" : 50, #number of elements per page
     "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
     "DevBuild": False, #for developers only to create a new buildinfo.json code
-    "UserCountFetchRate" : 5 #In minutes. The interval between grabbing the player count
+    "UserCountFetchRate" : 5, #In minutes. The interval between grabbing the player count
+    "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel" #AGPL requirement i believe
 }
 
 class JsonFile:
