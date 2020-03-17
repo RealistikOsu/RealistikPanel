@@ -976,3 +976,27 @@ def DashActData():
     IntervalList.reverse()
     Data["IntervalList"] = json.dumps(IntervalList)
     return Data
+"""
+commented until working
+def GiveRemoveSupporter(AccountID : int):
+    Gives or removes supporter.
+    SupporterPriv = 7 #set according to your osu ps, might move to config later
+    mycursor.execute(f"SELECT privileges FROM users WHERE id = {AccountID} LIMIT 1")
+    UserPriv = mycursor.fetchall()[0][0]
+    if UserPriv & SupporterPriv == 7:
+        #already has supporter
+        #removing supporter
+        """
+
+def GetBadges():
+    """Gets all the badges."""
+    mycursor.execute("SELECT * FROM badges")
+    Data = mycursor.fetchall()
+    Badges = []
+    for badge in Data:
+        Badges.append({
+            "Id" : badge[0],
+            "Name" : badge[1],
+            "Icon" : badge[2]
+        })
+    return Badges

@@ -169,7 +169,14 @@ def IPUsers(ip):
     if HasPrivilege(session["AccountId"], 6):
         IPUserLookup  = FindWithIp(ip)
         UserLen = len(IPUserLookup)
-        return render_template("iplookup.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
+        return render_template("iplookup.html", data=DashData(),  session=session, title="IP Lookup", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
+    else:
+        return render_template("403.html")
+
+@app.route("/badges")
+def Badges():
+    if HasPrivilege(session["AccountId"]):
+        return render_template("badges.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, badges=GetBadges())
     else:
         return render_template("403.html")
 
