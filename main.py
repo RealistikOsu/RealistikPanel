@@ -175,7 +175,7 @@ def IPUsers(ip):
 
 @app.route("/badges")
 def Badges():
-    if HasPrivilege(session["AccountId"]):
+    if HasPrivilege(session["AccountId"], 4):
         return render_template("badges.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, badges=GetBadges())
     else:
         return render_template("403.html")
