@@ -259,6 +259,14 @@ def KickFromBancho(id: int):
     else:
         return render_template("403.html")
 
+@app.route("/actions/deletebadge/<id>")
+def BadgeDeath(id:int):
+    if HasPrivilege(session["AccountId"], 4):
+        DeleteBadge(id)
+        RAPLog(session["AccountId"], f"deleted the badge with the ID of {id}")
+        return redirect(url_for("Badges"))
+    else:
+        return render_template("403.html")
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):

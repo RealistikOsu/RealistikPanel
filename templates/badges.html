@@ -23,7 +23,12 @@
                     <td>{{ badge["Id"] }}</td>
                     <td>{{ badge["Name"] }}</td>
                     <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
-                    <td></td>
+                    <td>
+                        <div class="buttons">
+                            <a href="/actions/deletebadge/{{ badge['Id'] }}" class="btn btn-danger">Delete</a>
+                            <a href="#" class="btn btn-primary disabled">Edit</a>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -1000,3 +1000,8 @@ def GetBadges():
             "Icon" : badge[2]
         })
     return Badges
+
+def DeleteBadge(BadgeId : int):
+    """"Delets the badge with the gived id."""
+    mycursor.execute(f"DELETE FROM badges WHERE id = {BadgeId}")
+    mydb.commit()
