@@ -62,7 +62,7 @@ def update():
 
     print(f'Updating to {build} version...')
     os.system('git pull')
-    print('Panel should be updated if not updated DM me kotypey: Kotypey#9393 or RealistikDash#1939')
+    print('Panel should be updated if not updated DM me kotypey: Kotypey#9393 or RealistikDash#0077')
     exit()
 
 

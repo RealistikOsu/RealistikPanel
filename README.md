@@ -28,7 +28,7 @@ Everyday tons of new features
 - Editing users
 
 # Support
-To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#1939** and I will happily help you.
+To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#0077** and I will happily help you.
 
 RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu database.
 
