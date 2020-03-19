@@ -1053,4 +1053,6 @@ def CreateBadge():
     """Creates empty badge."""
     mycursor.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
     mydb.commit()
-    return 1
+    #checking the ID
+    mycursor.execute("SELECT LAST id FROM badges")
+    return mycursor.fetchall()[0][0]
