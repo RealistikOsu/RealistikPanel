@@ -1054,5 +1054,5 @@ def CreateBadge():
     mycursor.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
     mydb.commit()
     #checking the ID
-    mycursor.execute("SELECT LAST id FROM badges")
+    mycursor.execute("SELECT id FROM badges ORDER BY id DESC LIMIT 1")
     return mycursor.fetchall()[0][0]
