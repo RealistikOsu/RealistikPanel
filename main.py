@@ -284,6 +284,7 @@ def BadgeDeath(id:int):
 def CreateBadgeAction():
     if HasPrivilege(session["AccountId"], 4):
         Badge = CreateBadge()
+        RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
         return redirect(f"/badge/edit/{Badge}")
     else:
         return render_template("403.html")

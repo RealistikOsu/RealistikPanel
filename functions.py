@@ -136,17 +136,21 @@ def LoginHandler(username, password):
             else:
                 return [False, "Missing privileges!"]
 
-def TimestampConverter(timestamp):
+def TimestampConverter(timestamp, NoDate=1):
     """Converts timestamps into readable time."""
     date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
     #so we avoid things like 21:6
-    hour = str(date.hour)
-    minute = str(date.minute)
+    #hour = str(date.hour)
+    #minute = str(date.minute)
     #if len(hour) == 1:
         #hour = "0" + hour
-    if len(minute) == 1:
-        minute = "0" + minute
-    return f"{hour}:{minute}"
+    #if len(minute) == 1:
+        #minute = "0" + minute
+    if NoDate == 1:
+        #return f"{hour}:{minute}"
+        return date.strftime("%H:%M")
+    if NoDate == 2:
+        return date.strftime("%d/%m/%Y %H:%M")
 
 def RecentPlays():
     """Returns recent plays."""
@@ -688,7 +692,7 @@ def RAPFetch(page = 1):
             "LogId" : log[0],
             "AccountData" : LogUserData,
             "Text" : log[2],
-            "Time" : TimestampConverter(log[3]),
+            "Time" : TimestampConverter(log[3], 2),
             "Via" : log[4]
         }
         LogArray.append(TheLog)
