@@ -1021,5 +1021,5 @@ def SaveBadge(form):
     BadgeID = form["badgeid"]
     BadgeName = form["name"]
     BadgeIcon = form["icon"]
-    mycursor.execute(f"UPDATE badges SET name = {BadgeName}, icon = {BadgeIcon} WHERE id = {BadgeID}")
+    mycursor.execute(f"UPDATE badges SET name = '{BadgeName}', icon = '{BadgeIcon}' WHERE id = {BadgeID}")
     mydb.commit()
