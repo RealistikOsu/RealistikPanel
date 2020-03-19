@@ -11,6 +11,7 @@ import time
 import hashlib 
 import json
 import pycountry
+from osrparse import *
 
 init() #initialises colourama for colours
 
@@ -1023,3 +1024,27 @@ def SaveBadge(form):
     BadgeIcon = form["icon"]
     mycursor.execute(f"UPDATE badges SET name = '{BadgeName}', icon = '{BadgeIcon}' WHERE id = {BadgeID}")
     mydb.commit()
+
+def ParseReplay(replay):
+    """Parses replay and returns data in dict."""
+    Replay = parse_replay_file(replay)
+    return {
+        #"GameMode" : Replay.game_mode, #commented until enum sorted out
+        "GameVersion" : Replay.game_version,
+        "BeatmapHash" : Replay.beatmap_hash,
+        "Player" : Replay.player_name,
+        "ReplayHash" : Replay.replay_hash,
+        "300s" : Replay.number_300s,
+        "100s" : Replay.number_100s,
+        "50s" : Replay.number_50s,
+        "Gekis" : Replay.gekis,
+        "Katus" : Replay.katus,
+        "Misses" : Replay.misses,
+        "Score" : Replay.score,
+        "Combo" : Replay.max_combo,
+        "IsPC" : Replay.is_perfect_combo,
+        "Mods" : Replay.mod_combination,
+        "Timestamp" : Replay.timestamp,
+        "LifeGraph" : Replay.life_bar_graph,
+        "ReplayEvents" : Replay.play_data #useful for recreating the replay
+    }
