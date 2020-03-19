@@ -1005,3 +1005,21 @@ def DeleteBadge(BadgeId : int):
     """"Delets the badge with the gived id."""
     mycursor.execute(f"DELETE FROM badges WHERE id = {BadgeId}")
     mydb.commit()
+
+def GetBadge(BadgeID:int):
+    """Gets data of given badge."""
+    mycursor.execute(f"SELECT * FROM badges WHERE id = {BadgeID} LIMIT 1")
+    BadgeData = mycursor.fetchall()[0]
+    return {
+        "Id" : BadgeData[0],
+        "Name" : BadgeData[1],
+        "Icon" : BadgeData[2]
+    }
+
+def SaveBadge(form):
+    """Saves the edits done to the badge."""
+    BadgeID = form["badgeid"]
+    BadgeName = form["name"]
+    BadgeIcon = form["icon"]
+    mycursor.execute(f"UPDATE badges SET name = {BadgeName}, icon = {BadgeIcon} WHERE id = {BadgeId}")
+    mydb.commit()

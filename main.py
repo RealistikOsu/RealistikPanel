@@ -77,7 +77,7 @@ def BanchoSettings():
 @app.route("/rank/<id>")
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
-        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(),  session=session, beatdata=GetBmapInfo(id), config=UserConfig)
+        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig)
     else:
         return render_template("403.html")
 
@@ -85,7 +85,7 @@ def RankMap(id):
 def RankFrom():
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 3):
-            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(),  session=session, config=UserConfig)
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig)
         else:
             return render_template("403.html")
     else:
@@ -97,7 +97,7 @@ def RankFrom():
 @app.route("/users/<page>")
 def Users(page = 1):
     if HasPrivilege(session["AccountId"], 6):
-        return render_template("users.html", title="Users", data=DashData(),  session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
+        return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
     else:
         return render_template("403.html")
 
@@ -125,10 +125,10 @@ def Rank():
 def SystemSettings():
     if request.method == "GET":
         if request.method == "GET":
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+            return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
             ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-            return render_template("syssettings.html", data=DashData(),  session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+            return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         else:
             return render_template("403.html")
 
@@ -136,20 +136,20 @@ def SystemSettings():
 def EditUser(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
-            return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
         else:
             return render_template("403.html")
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             ApplyUserEdit(request.form)
             RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
-            return render_template("edituser.html", data=DashData(),  session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges())
 
 
 @app.route("/logs/<page>")
 def Logs(page):
     if HasPrivilege(session["AccountId"], 7):
-        return render_template("raplogs.html", data=DashData(),  session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page))
+        return render_template("raplogs.html", data=DashData(), session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page))
     else:
         return render_template("403.html")
 
@@ -160,7 +160,7 @@ def ConfirmDelete(id):
     #me forgetting to commit changes saved me
     if HasPrivilege(session["AccountId"], 6):
         AccountToBeDeleted = GetUser(id)
-        return render_template("confirm.html", data=DashData(),  session=session, title="Confirmation Required", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
+        return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
     else:
         return render_template("403.html")
 
@@ -169,14 +169,26 @@ def IPUsers(ip):
     if HasPrivilege(session["AccountId"], 6):
         IPUserLookup  = FindWithIp(ip)
         UserLen = len(IPUserLookup)
-        return render_template("iplookup.html", data=DashData(),  session=session, title="IP Lookup", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
+        return render_template("iplookup.html", data=DashData(), session=session, title="IP Lookup", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
     else:
         return render_template("403.html")
 
 @app.route("/badges")
 def Badges():
     if HasPrivilege(session["AccountId"], 4):
-        return render_template("badges.html", data=DashData(),  session=session, title="Badges", config=UserConfig, badges=GetBadges())
+        return render_template("badges.html", data=DashData(), session=session, title="Badges", config=UserConfig, badges=GetBadges())
+    else:
+        return render_template("403.html")
+
+@app.route("/badge/edit/<BadgeID>", methods = ["GET", "POST"])
+def EditBadge(BadgeID: int):
+    if HasPrivilege(session["AccountId"], 4):
+        if request.method == "GET":
+            return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID))
+        if request.method == "POST":
+            SaveBadge(request.form)
+            RAPLog(session["AccountId"], f"edited the badge with the ID of {BadgeID}")
+            return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID))
     else:
         return render_template("403.html")
 
