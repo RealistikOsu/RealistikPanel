@@ -279,6 +279,15 @@ def BadgeDeath(id:int):
         return redirect(url_for("Badges"))
     else:
         return render_template("403.html")
+
+@app.route("/actions/createbadge")
+def CreateBadgeAction():
+    if HasPrivilege(session["AccountId"], 4):
+        Badge = CreateBadge()
+        return redirect(f"/badge/edit/{Badge}")
+    else:
+        return render_template("403.html")
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):

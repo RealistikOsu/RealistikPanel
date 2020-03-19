@@ -1048,3 +1048,9 @@ def ParseReplay(replay):
         "LifeGraph" : Replay.life_bar_graph,
         "ReplayEvents" : Replay.play_data #useful for recreating the replay
     }
+
+def CreateBadge():
+    """Creates empty badge."""
+    mycursor.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
+    mydb.commit()
+    return 1
