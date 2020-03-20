@@ -1073,7 +1073,8 @@ def GetPriv(PrivID: int):
     return {
         "Id" : Priv[0],
         "Name" : Priv[1],
-        "Privileges" : Priv[2]
+        "Privileges" : Priv[2],
+        "Colour" : Priv[3]
     }
 
 def DelPriv(PrivID: int):

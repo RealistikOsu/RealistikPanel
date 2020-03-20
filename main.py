@@ -198,6 +198,15 @@ def EditPrivileges():
         return render_template("privileges.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPrivileges())
     else:
         return render_template("403.html")
+
+@app.route("/privilege/edit/<Privilege>", methods = ["GET", "POST"])
+def EditPrivilege(Privilege: int):
+    if HasPrivilege(session["AccountId"], 13):
+        if request.method == "GET":
+            return render_template("privileges.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPriv(Privilege))
+    else:
+        return render_template("403.html")
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):

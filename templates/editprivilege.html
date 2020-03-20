@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="section-title">Edit Privilege</h2>
+<p class="section-lead">Edit, change or remove the privilege!</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Edit <b>{{ privileges['Name'] }}</b></h4>
+    </div>
+    <div class="card-body">
+        <form action="/" method="post">
+            <div class="form-group">
+                <label>Privilege Group ID</label>
+                <input type="text" class="form-control" name="id" value="{{ privileges['Id'] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label>Privilege Group Name</label>
+                <input type="text" class="form-control" name="name" value="{{ privileges['Name'] }}">
+            </div>
+            <div class="form-group">
+                <label>Privileges</label>
+                <input name="privileges" value="1" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserPublic<br>
+                <input name="privileges" value="2" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserNormal<br>
+                <input name="privileges" value="4" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserDonor<br>
+                <input name="privileges" value="8" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminAccessRAP<br>
+                <input name="privileges" value="16" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageUsers<br>
+                <input name="privileges" value="32" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminBanUsers<br>
+                <input name="privileges" value="64" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminSilenceUsers<br>
+                <input name="privileges" value="128" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminWipeUsers<br>
+                <input name="privileges" value="256" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBeatmaps<br>
+                <input name="privileges" value="512" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageServers<br>
+                <input name="privileges" value="1024" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageSettings<br>
+                <input name="privileges" value="2048" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBetaKeys<br>
+                <input name="privileges" value="4096" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageReports<br>
+                <input name="privileges" value="8192" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageDocs<br>
+                <input name="privileges" value="16384" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBadges<br>
+                <input name="privileges" value="32768" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminViewRAPLogs<br>
+                <input name="privileges" value="65536" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManagePrivileges<br>
+                <input name="privileges" value="131072" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminSendAlerts<br>
+                <input name="privileges" value="262144" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminChatMod<br>
+                <input name="privileges" value="524288" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminKickUsers<br>
+                <input name="privileges" value="1048576" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserPendingVerification<br>
+                <input name="privileges" value="2097152" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserTournamentStaff<br>
+                <input name="privileges" value="4194304" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminCaker<br>
+                <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminViewTopScores
+            </div>
+            <div class="form-group">
+                <label>Privilege Integer</label>
+                <input type="text" class="form-control" name="privilege" value="0" id="privileges-value">
+            </div>
+            <div class="form-group">
+                <label>Colour</label>
+                <input type="text" class="form-control" name="colour" value="{{ privileges['Colour'] }}">
+            </div>
+            <div class="buttons">
+                <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
+                <a href="/actions/deletepriv/{{ privileges['Id'] }}" class="btn btn-danger">Delete</a>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        RealistikPanel!
+    </div>
+</div>
+<script>
+//Snippet taken from Ripple's old-frontend
+function updatePrivileges() {
+   var result = 0;
+   $("input:checkbox[name=privileges]:checked").each(function(){
+        result = Number(result) + Number($(this).val());
+    });
+    $("#privileges-value").attr("value", result);
+}	
+</script>
+{% endblock %}
