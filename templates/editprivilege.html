@@ -18,30 +18,30 @@
             </div>
             <div class="form-group">
                 <label>Privileges</label>
-                <input name="privileges" value="1" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserPublic<br>
-                <input name="privileges" value="2" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserNormal<br>
-                <input name="privileges" value="4" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserDonor<br>
-                <input name="privileges" value="8" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminAccessRAP<br>
-                <input name="privileges" value="16" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageUsers<br>
-                <input name="privileges" value="32" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminBanUsers<br>
-                <input name="privileges" value="64" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminSilenceUsers<br>
-                <input name="privileges" value="128" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminWipeUsers<br>
-                <input name="privileges" value="256" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBeatmaps<br>
-                <input name="privileges" value="512" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageServers<br>
-                <input name="privileges" value="1024" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageSettings<br>
-                <input name="privileges" value="2048" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBetaKeys<br>
-                <input name="privileges" value="4096" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageReports<br>
-                <input name="privileges" value="8192" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageDocs<br>
-                <input name="privileges" value="16384" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManageBadges<br>
-                <input name="privileges" value="32768" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminViewRAPLogs<br>
-                <input name="privileges" value="65536" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminManagePrivileges<br>
-                <input name="privileges" value="131072" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminSendAlerts<br>
-                <input name="privileges" value="262144" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminChatMod<br>
-                <input name="privileges" value="524288" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminKickUsers<br>
-                <input name="privileges" value="1048576" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserPendingVerification<br>
-                <input name="privileges" value="2097152" type="checkbox" onclick="updatePrivileges();" class="form-check-input">UserTournamentStaff<br>
-                <input name="privileges" value="4194304" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminCaker<br>
-                <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input">AdminViewTopScores
+                <input name="privileges" value="1" id="1" type="checkbox" onclick="updatePrivileges();" class="form-check-input" UserPublic<br>
+                <input name="privileges" value="2" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="2">UserNormal<br>
+                <input name="privileges" value="4" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="3">UserDonor<br>
+                <input name="privileges" value="8" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="4">AdminAccessRAP<br>
+                <input name="privileges" value="16" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="5">AdminManageUsers<br>
+                <input name="privileges" value="32" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="6">AdminBanUsers<br>
+                <input name="privileges" value="64" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="7">AdminSilenceUsers<br>
+                <input name="privileges" value="128" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="8">AdminWipeUsers<br>
+                <input name="privileges" value="256" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="9">AdminManageBeatmaps<br>
+                <input name="privileges" value="512" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="10">AdminManageServers<br>
+                <input name="privileges" value="1024" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="11">AdminManageSettings<br>
+                <input name="privileges" value="2048" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="12">AdminManageBetaKeys<br>
+                <input name="privileges" value="4096" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="13">AdminManageReports<br>
+                <input name="privileges" value="8192" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="14">AdminManageDocs<br>
+                <input name="privileges" value="16384" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="15">AdminManageBadges<br>
+                <input name="privileges" value="32768" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="16">AdminViewRAPLogs<br>
+                <input name="privileges" value="65536" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="17">AdminManagePrivileges<br>
+                <input name="privileges" value="131072" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="18">AdminSendAlerts<br>
+                <input name="privileges" value="262144" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="19">AdminChatMod<br>
+                <input name="privileges" value="524288" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="20">AdminKickUsers<br>
+                <input name="privileges" value="1048576" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="21">UserPendingVerification<br>
+                <input name="privileges" value="2097152" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="22">UserTournamentStaff<br>
+                <input name="privileges" value="4194304" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="23">AdminCaker<br>
+                <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="24">AdminViewTopScores
             </div>
             <div class="form-group">
                 <label>Privilege Integer</label>
@@ -69,6 +69,84 @@ function updatePrivileges() {
         result = Number(result) + Number($(this).val());
     });
     $("#privileges-value").attr("value", result);
-}	
+}
+
+//
+var Privilege = "{{ privileges['Privileges'] }}";
+var PrivInt = parseInt(Privilege);
+
+//porting HasPrivilege to JS
+if (PrivInt & 1 >= 1) {
+    document.getElementById("1").checked = true;
+}
+if (PrivInt & 2 >= 1) {
+    document.getElementById("2").checked = true;
+}
+if (PrivInt & 4 >= 1) {
+    document.getElementById("3").checked = true;
+}
+if (PrivInt & 8 >= 1) {
+    document.getElementById("4").checked = true;
+}
+if (PrivInt & 16 >= 1) {
+    document.getElementById("5").checked = true;
+}
+if (PrivInt & 32 >= 1) {
+    document.getElementById("6").checked = true;
+}
+if (PrivInt & 64 >= 1) {
+    document.getElementById("7").checked = true;
+}
+if (PrivInt & 128 >= 1) {
+    document.getElementById("8").checked = true;
+}
+if (PrivInt & 256 >= 1) {
+    document.getElementById("9").checked = true;
+}
+if (PrivInt & 512 >= 1) {
+    document.getElementById("10").checked = true;
+}
+if (PrivInt & 1024 >= 1) {
+    document.getElementById("11").checked = true;
+}
+if (PrivInt & 2048 >= 1) {
+    document.getElementById("12").checked = true;
+}
+if (PrivInt & 4096 >= 1) {
+    document.getElementById("13").checked = true;
+}
+if (PrivInt & 8192 >= 1) {
+    document.getElementById("14").checked = true;
+}
+if (PrivInt & 16384 >= 1) {
+    document.getElementById("15").checked = true;
+}
+if (PrivInt & 32768 >= 1) {
+    document.getElementById("16").checked = true;
+}
+if (PrivInt & 65536 >= 1) {
+    document.getElementById("17").checked = true;
+}
+if (PrivInt & 131072 >= 1) {
+    document.getElementById("18").checked = true;
+}
+if (PrivInt & 262144 >= 1) {
+    document.getElementById("19").checked = true;
+}
+if (PrivInt & 524288 >= 1) {
+    document.getElementById("20").checked = true;
+}
+if (PrivInt & 1048576 >= 1) {
+    document.getElementById("21").checked = true;
+}
+if (PrivInt & 2097152 >= 1) {
+    document.getElementById("22").checked = true;
+}
+if (PrivInt & 4194304 >= 1) {
+    document.getElementById("23").checked = true;
+}
+if (PrivInt & 8388608 >= 1) {
+    document.getElementById("24").checked = true;
+}
 </script>
 {% endblock %}

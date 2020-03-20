@@ -370,7 +370,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     elif ReqPriv == 13:
         result = Privilege & ManagePrivileges
     
-    if result > 1:
+    if result >= 1:
         return True
     else:
         return False
