@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="section-title">Privileges</h2>
+<p class="section-lead">Modify or edit privilege groups!</p>
+<div class="card">
+    <div class="card-header">
+        Privileges
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Privileges</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for priv in privileges %}
+                <tr>
+                    <td>{{ priv["Id"] }}</td>
+                    <td>{{ priv["Name"] }}</td>
+                    <td>{{ priv["Priv"] }}</td>
+                    <td>
+                        <div class="buttons">
+                            <a href="/actions/deletepriv/{{ priv['Id'] }}" class="btn btn-danger">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
+{% endblock %}

@@ -150,7 +150,7 @@ def TimestampConverter(timestamp, NoDate=1):
         #return f"{hour}:{minute}"
         return date.strftime("%H:%M")
     if NoDate == 2:
-        return date.strftime("%d/%m/%Y %H:%M")
+        return date.strftime("%H:%M %d/%m/%Y")
 
 def RecentPlays():
     """Returns recent plays."""
@@ -303,6 +303,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 10 = RealistikPanel Overwatch (feature not added yet)
     # 11 = Wipe account required
     # 12 = Kick users required
+    # 13 = Manage Privileges
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -366,6 +367,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & WipeUsers
     elif ReqPriv == 12:
         result = Privilege & KickUsers
+    elif ReqPriv == 13:
+        result = Privilege & ManagePrivileges
     
     if result > 1:
         return True
@@ -708,14 +711,16 @@ def GetCFullName(ISO3166):
     return CountryName
 
 def GetPrivileges():
-    """Gets list of privileges"""
-    mycursor.execute("SELECT name, privileges FROM privileges_groups")
+    """Gets list of privileges."""
+    mycursor.execute("SELECT * FROM privileges_groups")
     priv = mycursor.fetchall()
     Privs = []
     for x in priv:
         Privs.append({
-            "Name" : x[0],
-            "Priv" : x[1]
+            "Id" : x[0],
+            "Name" : x[1],
+            "Priv" : x[2],
+            "Colour" : x[3]
         })
     return Privs
 
@@ -1060,3 +1065,18 @@ def CreateBadge():
     #checking the ID
     mycursor.execute("SELECT id FROM badges ORDER BY id DESC LIMIT 1")
     return mycursor.fetchall()[0][0]
+
+def GetPriv(PrivID: int):
+    """Gets the priv data from ID."""
+    mycursor.execute(f"SELECT * FROM privileges_groups WHERE id = {PrivID}")
+    Priv = mycursor.fetchall()[0]
+    return {
+        "Id" : Priv[0],
+        "Name" : Priv[1],
+        "Privileges" : Priv[2]
+    }
+
+def DelPriv(PrivID: int):
+    """Deletes a privilege group."""
+    mycursor.execute(f"DELETE FROM privileges_groups WHERE id = {PrivID}")
+    mydb.commit()

@@ -192,6 +192,12 @@ def EditBadge(BadgeID: int):
     else:
         return render_template("403.html")
 
+@app.route("/privileges")
+def EditPrivileges():
+    if HasPrivilege(session["AccountId"], 13):
+        return render_template("privileges", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPrivileges())
+    else:
+        return render_template("403.html")
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
@@ -286,6 +292,16 @@ def CreateBadgeAction():
         Badge = CreateBadge()
         RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
         return redirect(f"/badge/edit/{Badge}")
+    else:
+        return render_template("403.html")
+
+@app.route("/actions/deletepriv/<PrivID>")
+def PrivDeath(PrivID:int):
+    if HasPrivilege(session["AccountId"], 13):
+        PrivData = GetPriv(PrivID)
+        DelPriv(PrivID)
+        RAPLog(session["AccountId"], f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})")
+        return redirect(url_for("EditPrivileges"))
     else:
         return render_template("403.html")
 
