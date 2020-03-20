@@ -203,7 +203,7 @@ def EditPrivileges():
 def EditPrivilege(Privilege: int):
     if HasPrivilege(session["AccountId"], 13):
         if request.method == "GET":
-            return render_template("privileges.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPriv(Privilege))
+            return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPriv(Privilege))
     else:
         return render_template("403.html")
 
