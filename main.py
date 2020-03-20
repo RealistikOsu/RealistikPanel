@@ -195,7 +195,7 @@ def EditBadge(BadgeID: int):
 @app.route("/privileges")
 def EditPrivileges():
     if HasPrivilege(session["AccountId"], 13):
-        return render_template("privileges", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPrivileges())
+        return render_template("privileges.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPrivileges())
     else:
         return render_template("403.html")
 #API for js
