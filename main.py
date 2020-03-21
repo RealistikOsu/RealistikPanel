@@ -204,6 +204,11 @@ def EditPrivilege(Privilege: int):
     if HasPrivilege(session["AccountId"], 13):
         if request.method == "GET":
             return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPriv(Privilege))
+        if request.method == "POST":
+            UpdatePriv(request.form)
+            Priv = GetPriv(Privilege)
+            RAPLog(session["AccountId"], f"has edited the privilege group {Priv['Name']} ({Priv['Id']})")
+            return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv)
     else:
         return render_template("403.html")
 
