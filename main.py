@@ -39,21 +39,24 @@ def dash():
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
-    if request.method == "GET":
-        return render_template("login.html", conf = UserConfig)
-    if request.method == "POST":
-        if recaptcha.verify():
-            LoginData = LoginHandler(request.form["username"], request.form["password"])
-            if not LoginData[0]:
-                return render_template("login.html", alert=LoginData[1], conf = UserConfig)
-            if LoginData[0]:
-                SessionToApply = LoginData[2]
-                #modifying the session
-                for key in list(SessionToApply.keys()):
-                    session[key] = SessionToApply[key]
-                return redirect(url_for("home"))
-        else:
-            return render_template("login.html", alert="ReCaptcha Failed!", conf=UserConfig)
+    if not session["LoggedIn"] and not HasPrivilege(session["AccountId"]):
+        if request.method == "GET":
+            return render_template("login.html", conf = UserConfig)
+        if request.method == "POST":
+            if recaptcha.verify():
+                LoginData = LoginHandler(request.form["username"], request.form["password"])
+                if not LoginData[0]:
+                    return render_template("login.html", alert=LoginData[1], conf = UserConfig)
+                if LoginData[0]:
+                    SessionToApply = LoginData[2]
+                    #modifying the session
+                    for key in list(SessionToApply.keys()):
+                        session[key] = SessionToApply[key]
+                    return redirect(url_for("home"))
+            else:
+                return render_template("login.html", alert="ReCaptcha Failed!", conf=UserConfig)
+    else:
+        return redirect(url_for("dash"))
 
 @app.route("/logout")
 def logout():
