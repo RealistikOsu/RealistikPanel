@@ -7,7 +7,7 @@
         <h4>Edit <b>{{ privileges['Name'] }}</b></h4>
     </div>
     <div class="card-body">
-        <form action="/" method="post">
+        <form action="/privilege/edit/{{ privileges['Id'] }}" method="post">
             <div class="form-group">
                 <label>Privilege Group ID</label>
                 <input type="text" class="form-control" name="id" value="{{ privileges['Id'] }}" readonly>
