@@ -734,11 +734,12 @@ def ApplyUserEdit(form):
     Country = form["country"]
     UserPage = form["userpage"]
     Notes = form["notes"]
+    Privilege = form["privilege"]
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername.replace(" ", "_")
     #SQL Queries
-    mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}', username = '{Username}', username_safe = '{SafeUsername}' WHERE id = {UserId}")
+    mycursor.execute(f"UPDATE users SET email = '{Email}', notes = '{Notes}', username = '{Username}', username_safe = '{SafeUsername}', privileges={Privilege} WHERE id = {UserId}")
     mycursor.execute(f"UPDATE users_stats SET country = '{Country}', userpage_content = '{UserPage}', username_aka = '{Aka}', username = '{Username}' WHERE id = {UserId}")
     mydb.commit()
 
