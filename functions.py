@@ -1089,7 +1089,7 @@ def UpdatePriv(Form):
 
 def GetMostPlayed():
     """Gets the beatmap with the highest playcount."""
-    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount ASC LIMIT 1")
+    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1")
     Beatmap = mycursor.fetchall()[0]
     return {
         "BeatmapId" : Beatmap[0],
