@@ -1084,5 +1084,5 @@ def DelPriv(PrivID: int):
 
 def UpdatePriv(Form):
     """Updates the privilege from form."""
-    mycursor.execute(f"UPDATE privileges_groups SET name = '{Form['name']}', privileges = '{Form['privilege']}', color = {Form['colour']} WHERE id = {Form['id']}")
+    mycursor.execute(f"UPDATE privileges_groups SET name = '{Form['name']}', privileges = '{Form['privilege']}', color = '{Form['colour']}' WHERE id = {Form['id']} LIMIT 1")
     mydb.commit()
