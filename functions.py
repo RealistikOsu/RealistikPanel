@@ -1086,3 +1086,14 @@ def UpdatePriv(Form):
     """Updates the privilege from form."""
     mycursor.execute(f"UPDATE privileges_groups SET name = '{Form['name']}', privileges = '{Form['privilege']}', color = '{Form['colour']}' WHERE id = {Form['id']} LIMIT 1")
     mydb.commit()
+
+def GetMostPlayed():
+    """Gets the beatmap with the highest playcount."""
+    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps GROUP BY playcount ORDER BY COUNT(*) DESC LIMIT 1")
+    Beatmap = mycursor.fetchall()[0]
+    return {
+        "BeatmapId" : Beatmap[0],
+        "SongName" : Beatmap[1],
+        "Cover" : f"https://assets.ppy.sh/beatmaps/{Beatmap[2]}/covers/cover.jpg",
+        "Playcount" : Beatmap[3]
+    }

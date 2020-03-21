@@ -46,16 +46,35 @@
     </div>
 </div>
 <p></p>
-<div class="card">
-    <div class="card-header">
-        <h4>Online Users</h4>
+<div class="col-12 col-md-6 col-lg-6">
+    <div class="card">
+        <div class="card-header">
+            <h4>Online Users</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="PlayerChart" height="50"></canvas>
+        </div>
+        <div class="card-footer">
+            RealistikPanel
+        </div>
     </div>
-    <div class="card-body">
-        <canvas id="PlayerChart" height="50"></canvas>
-    </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
+</div>
+<div class="col-12 col-md-6 col-lg-6">
+    <article class="article">
+        <div class="article-header">
+            <div class="article-image" data-background="{{ MostPlayed['Cover'] }}" style="background-image: url(&quot;assets/img/news/img08.jpg&quot;);">
+        </div>
+        <div class="article-title">
+            <h2><a href="#">{{ MostPlayed["SongName"] }}</a></h2>
+        </div>
+        </div>
+        <div class="article-details">
+            <p>This beatmap has a playcount of <b>{{ MostPlayed["Playcount"] }}</b></p>
+            <div class="article-cta">
+                <a href="{{ config['ServerURL'] }}b/{{ MostPlayed['BeatmapId'] }}" class="btn btn-primary">View Map</a>
+            </div>
+        </div>
+    </article>
 </div>
 <div class="section-title">Recent Plays</div>
 <table class="table table-striped">

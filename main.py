@@ -33,7 +33,7 @@ def home():
 @app.route("/dash/")
 def dash():
     if HasPrivilege(session["AccountId"]):
-        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData())
+        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
     else:
         return render_template("403.html")
 
