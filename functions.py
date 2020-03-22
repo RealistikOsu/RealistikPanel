@@ -508,7 +508,7 @@ def ApplySystemSettings(DataArray, Session):
     
     mydb.commit() #applies the changes
 
-def IsOnline(AccountId):
+def IsOnline(AccountId: int):
     """Checks if given user is online."""
     return requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline%sid={AccountId}").json()["result"]
 
