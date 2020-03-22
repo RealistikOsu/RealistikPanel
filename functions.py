@@ -98,7 +98,7 @@ def DashData():
 
 def LoginHandler(username, password):
     """Checks the passwords and handles the sessions."""
-    mycursor.execute("SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = %s", (username.lower()))
+    mycursor.execute("SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = %s", (username.lower(),))
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
