@@ -1,7 +1,7 @@
 # RealistikPanel!
 The modern admin panel for osu! private servers! This is designed to be a fully fledged Ripple Admin Panel when in its finished state.
 
-![Dashboard](https://i.imgur.com/YUN5eYm.png)
+![Dashboard](https://i.imgur.com/y1vfhXg.png)
 
 It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
 
@@ -34,7 +34,7 @@ RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu da
 
 # Screenshots
 Dashboard
-![Dashboard](https://i.imgur.com/YUN5eYm.png)
+![Dashboard](https://i.imgur.com/y1vfhXg.png)
 User List
 ![Beatmap Ranking](https://i.imgur.com/UEGuU7u.png)
 User Edit
