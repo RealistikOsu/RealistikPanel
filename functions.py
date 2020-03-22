@@ -185,7 +185,11 @@ def RecentPlays():
             SongName = list(SongFetch[0])[0]
         #make and populate a readable dict
         Dicti = {}
-        Dicti["SongName"] = SongName + " +" + ModToText(x[7])
+        Mods = ModToText(x[7])
+        if Mods == "":
+            Dicti["SongName"] = SongName
+        else:
+            Dicti["SongName"] = SongName + " +" + Mods
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
         Dicti["Score"] = f'{x[4]:,}'
