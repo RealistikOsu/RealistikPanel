@@ -1069,7 +1069,7 @@ def CreateBadge():
 
 def GetPriv(PrivID: int):
     """Gets the priv data from ID."""
-    mycursor.execute("SELECT * FROM privileges_groups WHERE id = %s", (PrivId,))
+    mycursor.execute("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
     Priv = mycursor.fetchall()[0]
     return {
         "Id" : Priv[0],
