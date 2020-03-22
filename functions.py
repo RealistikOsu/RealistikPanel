@@ -510,11 +510,11 @@ def ApplySystemSettings(DataArray, Session):
 
 def IsOnline(AccountId: int):
     """Checks if given user is online."""
-    return requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline%sid={AccountId}").json()["result"]
+    return requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()["result"]
 
 def CalcPP(BmapID):
     """Sends request to letsapi to calc PP for beatmap id."""
-    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp%sb={BmapID}").json()
+    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
 def Unique(Alist):
