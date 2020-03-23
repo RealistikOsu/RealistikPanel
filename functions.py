@@ -1113,3 +1113,14 @@ def ListToDots(List: list):
     for part in List:
         Result += str(part) + ","
     return Result[:-1]
+
+def GetUserBadges(AccountID: int):
+    """Gets badges of a user and returns as list."""
+    mycursor.execute("SELECT badges_shown FROM users_stats WHERE id = %s LIMIT 1", (AccountID,))
+    return DotsToList(mycursor.fetchall()[0][0])
+
+def SetUserBadges(AccountID: int, Badges: list):
+    """Sets badge list to account."""
+    DotList = ListToDots(Badges)
+    mycursor.execute("UPDATE users_stats SET badges_shown = %s WHERE id = %s LIMIT 1", (DotList, AccountID,))
+    mydb.commit()
