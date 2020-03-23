@@ -474,7 +474,7 @@ def SystemSettingsValues():
     }
 
 def ApplySystemSettings(DataArray, Session):
-    """Does a thing."""
+    """Applies system settings."""
     WebMan = DataArray[0]
     GameMan =DataArray[1]
     Register = DataArray[2]
@@ -742,6 +742,10 @@ def ApplyUserEdit(form):
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername.replace(" ", "_")
+
+    #Badges
+    BadgeList = [int(form["Badge1"]), int(form["Badge2"]), int(form["Badge3"]), int(form["Badge4"]), int(form["Badge5"]), int(form["Badge6"])]
+    SetUserBadges(UserId, BadgeList)
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
@@ -1121,12 +1125,25 @@ def GetUserBadges(AccountID: int):
     SQLBadges = mycursor.fetchall()
     for badge in SQLBadges:
         Badges.append(badge[0])
+
+    #so we dont run into errors where people have no/less than 6 badges
+    while len(Badges != 6):
+        Badges.append(0)
     return Badges
 
-"""
+
 def SetUserBadges(AccountID: int, Badges: list):
-    Sets badge list to account.
-    DotList = ListToDots(Badges)
-    mycursor.execute("UPDATE users_stats SET badges_shown = %s WHERE id = %s LIMIT 1", (DotList, AccountID,))
+    """Sets badge list to account."""
+    """ Realised flaws with this approach
+    CurrentBadges = GetUserBadges(AccountID) # so it knows which badges to keep
+    ItemFor = 0
+    for Badge in Badges:
+        if not Badge == CurrentBadges[ItemFor]: #if its not the same
+            mycursor.execute("DELETE FROM user_badges WHERE")
+        ItemFor += 1
+    """
+    #This might not be the best and most efficient way but its all ive come up with in my application of user badges
+    mycursor.execute("DELETE FROM user_badges WHERE user = %s", (AccountID,)) #deletes all existing badges
+    for Badge in Badges:
+        mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
     mydb.commit()
-"""
