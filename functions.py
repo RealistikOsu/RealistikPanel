@@ -1127,7 +1127,7 @@ def GetUserBadges(AccountID: int):
         Badges.append(badge[0])
 
     #so we dont run into errors where people have no/less than 6 badges
-    while len(Badges != 6):
+    while len(Badges) != 6:
         Badges.append(0)
     return Badges
 
@@ -1145,5 +1145,6 @@ def SetUserBadges(AccountID: int, Badges: list):
     #This might not be the best and most efficient way but its all ive come up with in my application of user badges
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (AccountID,)) #deletes all existing badges
     for Badge in Badges:
-        mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
+        if Badge != 0 or Badge != 1: #so we dont add empty badges
+            mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
     mydb.commit()
