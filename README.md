@@ -21,11 +21,12 @@ Everyday tons of new features
 - Bancho Settings (viewing and editing)
 - System Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
-- Discord Webhook (sends an embed whenever a map is ranked)
+- Discord Webhook (sends an embed whenever a map is ranked/unranked/loved)
 - RAP Log (viewing and logging)
-- Privileges (checking if user has privilege)
+- Privileges (checking if they are sufficient, creating privilege groups and assigning them)
 - Viewing the user list
 - Editing users
+- Creating and assigning badges
 
 # Support
 To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#0077** and I will happily help you.
