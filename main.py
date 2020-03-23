@@ -126,7 +126,7 @@ def Rank():
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
-    if request.method == "GET":
+    if HasPrivilege(session["AccountId"], 4):
         if request.method == "GET":
             return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
