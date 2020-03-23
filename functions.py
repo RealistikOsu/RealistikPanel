@@ -1102,3 +1102,14 @@ def GetMostPlayed():
         "Cover" : f"https://assets.ppy.sh/beatmaps/{Beatmap[2]}/covers/cover.jpg",
         "Playcount" : Beatmap[3]
     }
+
+def DotsToList(Dots: str):
+    """Converts a comma array (like the one ripple uses for badges) to a Python list."""
+    return Dots.split(",")
+
+def ListToDots(List: list):
+    """Converts Python list to comma array."""
+    Result = ""
+    for part in List:
+        Result += str(part) + ","
+    return Result[:-1]
