@@ -1145,6 +1145,6 @@ def SetUserBadges(AccountID: int, Badges: list):
     #This might not be the best and most efficient way but its all ive come up with in my application of user badges
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (AccountID,)) #deletes all existing badges
     for Badge in Badges:
-        if Badge != 0 or Badge != 1: #so we dont add empty badges
+        if Badge != 0 and Badge != 1: #so we dont add empty badges
             mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
     mydb.commit()
