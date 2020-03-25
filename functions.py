@@ -390,17 +390,12 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     elif ActionName == "Unranked":
         ActionName = 0
     else:
-        print(" Received alien input from rank. what%s")
+        print(" Received alien input from rank. what?")
         return
-    try:
-        mycursor.execute("UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1", (ActionName, BeatmapId,))
-        mycursor.execute("UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3", (BeatmapId,))
-        mydb.commit()
-        Webhook(BeatmapId, ActionName, session)
-        return True
-    except Exception as e:
-        print(" An error occured while ranking!\n " + str(e))
-        return False
+    mycursor.execute("UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1", (ActionName, BeatmapId,))
+    mycursor.execute("UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3", (BeatmapId,))
+    mydb.commit()
+    Webhook(BeatmapId, ActionName, session)
 
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook."""
