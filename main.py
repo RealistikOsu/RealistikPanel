@@ -73,7 +73,7 @@ def BanchoSettings():
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig)
         if request.method == "POST":
             BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
-            return redirect(url_for("BanchoSettings")) #reloads page
+            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, success="Bancho settings were successfully edited!")
     else:
         return render_template("403.html")
 
@@ -131,7 +131,7 @@ def SystemSettings():
             return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
             ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-            return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
+            return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, success = "System settings successfully edited!")
         else:
             return render_template("403.html")
 
@@ -146,7 +146,7 @@ def EditUser(id):
         if HasPrivilege(session["AccountId"], 6):
             ApplyUserEdit(request.form)
             RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges())
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
 
 
 @app.route("/logs/<page>")
@@ -191,7 +191,7 @@ def EditBadge(BadgeID: int):
         if request.method == "POST":
             SaveBadge(request.form)
             RAPLog(session["AccountId"], f"edited the badge with the ID of {BadgeID}")
-            return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID))
+            return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), success=f"Badge {BadgeID} has been successfully edited!")
     else:
         return render_template("403.html")
 
@@ -211,7 +211,7 @@ def EditPrivilege(Privilege: int):
             UpdatePriv(request.form)
             Priv = GetPriv(Privilege)
             RAPLog(session["AccountId"], f"has edited the privilege group {Priv['Name']} ({Priv['Id']})")
-            return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv)
+            return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, success=f"Privilege {Priv['Name']} has been successfully edited!")
     else:
         return render_template("403.html")
 
