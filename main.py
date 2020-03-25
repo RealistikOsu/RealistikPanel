@@ -82,7 +82,7 @@ def BanchoSettings():
     else:
         return render_template("403.html")
 
-@app.route("/rank/<id>")
+@app.route("/rank/<id>", methods = ["GET", "POST"])
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
         if request.method == "GET":
