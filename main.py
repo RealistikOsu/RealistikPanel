@@ -72,15 +72,29 @@ def BanchoSettings():
         if request.method == "GET":
             return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig)
         if request.method == "POST":
-            BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
-            return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, success="Bancho settings were successfully edited!")
+            try:
+                BSPostHandler([request.form["banchoman"], request.form["mainmemuicon"], request.form["loginnotif"]], session) #handles all the changes
+                return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, success="Bancho settings were successfully edited!")
+            except Exception as e:
+                print(e)
+                return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, error="An internal error has occured while saving bancho settings! An error has been logged to the console.")
+
     else:
         return render_template("403.html")
 
 @app.route("/rank/<id>")
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
-        return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig)
+        if request.method == "GET":
+            return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig)
+        if request.method == "POST":
+            try:
+                BeatmapNumber = request.form["beatmapnumber"]
+                RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, success=f"Successfully ranked beatmap {request.form['beatmapnumber']}!")
+            except Exception as e:
+                print(e)
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.")
     else:
         return render_template("403.html")
 
@@ -115,23 +129,18 @@ def LegacyIndex():
     else:
         return redirect(url_for("dash")) #take them to the root
 
-@app.route("/rank/action", methods=["POST"])
-def Rank():
-    if HasPrivilege(session["AccountId"], 3):
-        BeatmapNumber = request.form["beatmapnumber"]
-        RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
-        return redirect(f"/rank/{request.form[f'bmapid-{BeatmapNumber}']}")
-    else:
-        return render_template("403.html")
-
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
     if HasPrivilege(session["AccountId"], 4):
         if request.method == "GET":
             return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig)
         if request.method == "POST":
-            ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
-            return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, success = "System settings successfully edited!")
+            try:
+                ApplySystemSettings([request.form["webman"], request.form["gameman"], request.form["register"], request.form["globalalert"], request.form["homealert"]], session) #why didnt i just pass request
+                return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, success = "System settings successfully edited!")
+            except Exception as e:
+                print(e)
+                return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, error = "An internal error has occured while saving system settings! An error has been logged to the console.")
         else:
             return render_template("403.html")
 
@@ -144,9 +153,13 @@ def EditUser(id):
             return render_template("403.html")
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
-            ApplyUserEdit(request.form)
-            RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
+            try:
+                ApplyUserEdit(request.form)
+                RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
+            except Exception as e:
+                print(e)
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.")
 
 
 @app.route("/logs/<page>")
@@ -189,9 +202,13 @@ def EditBadge(BadgeID: int):
         if request.method == "GET":
             return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID))
         if request.method == "POST":
-            SaveBadge(request.form)
-            RAPLog(session["AccountId"], f"edited the badge with the ID of {BadgeID}")
-            return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), success=f"Badge {BadgeID} has been successfully edited!")
+            try:
+                SaveBadge(request.form)
+                RAPLog(session["AccountId"], f"edited the badge with the ID of {BadgeID}")
+                return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), success=f"Badge {BadgeID} has been successfully edited!")
+            except Exception as e:
+                print(e)
+                return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), error="An internal error has occured while editing the badge! An error has been logged to the console.")
     else:
         return render_template("403.html")
 
@@ -208,10 +225,14 @@ def EditPrivilege(Privilege: int):
         if request.method == "GET":
             return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPriv(Privilege))
         if request.method == "POST":
-            UpdatePriv(request.form)
-            Priv = GetPriv(Privilege)
-            RAPLog(session["AccountId"], f"has edited the privilege group {Priv['Name']} ({Priv['Id']})")
-            return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, success=f"Privilege {Priv['Name']} has been successfully edited!")
+            try:
+                UpdatePriv(request.form)
+                Priv = GetPriv(Privilege)
+                RAPLog(session["AccountId"], f"has edited the privilege group {Priv['Name']} ({Priv['Id']})")
+                return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, success=f"Privilege {Priv['Name']} has been successfully edited!")
+            except Exception as e:
+                print(e)
+                return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, error="An internal error has occured while editing the privileges! An error has been logged to the console.")
     else:
         return render_template("403.html")
 
