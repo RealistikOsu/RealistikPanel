@@ -91,10 +91,10 @@ def RankMap(id):
             try:
                 BeatmapNumber = request.form["beatmapnumber"]
                 RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
-                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, success=f"Successfully ranked beatmap {request.form['beatmapnumber']}!")
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, success=f"Successfully ranked beatmap {request.form['beatmapnumber']}!", Id= id)
             except Exception as e:
                 print(e)
-                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.")
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.", Id= id)
     else:
         return render_template("403.html")
 
