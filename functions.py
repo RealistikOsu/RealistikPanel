@@ -1187,4 +1187,10 @@ def GetLog():
 
     Log = Log[-UserConfig["PageSize"]:]
     Log.reverse() #still wondering why it doesnt return the reversed list and instead returns none
+    LogNr = 0
+    #format the timestamps
+    for log in Log:
+        log["FormatDate"] = TimestampConverter(log["Timestamp"])
+        Log[LogNr] = log
+        LogNr += 1
     return Log

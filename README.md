@@ -11,7 +11,7 @@ You may notice that some of this code (especially the early one) is not too grea
 I am using a lot of libraries and concepts that are new to me and it's the first time I'm doing them.
 This may be reflected in the quality of the code. I will try to fix up or replace some of the old code when I'm satisfied with the feature set.
 
-**THIS PROJECT IS STILL IN ITS EARLY STAGES. NOT EVERY PLANNED FEATURE HAS BEEN IMPLEMENTED AND SOME COMMITS MAY BE BUGGY OR BROKEN.**
+This project is now ready to be deployed as a full replacement to RAP. However, due to my rather unusual way of testing, some commits (especially ones <30 minutes old) may not work. For them, I'd suggest either trying a slightly earlier commit or waiting a few minutes.
 
 # Feature set
 Everyday tons of new features
