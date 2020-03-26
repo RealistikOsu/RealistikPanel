@@ -21,7 +21,7 @@ def checkUpdates(endpoint="https://raw.githubusercontent.com/RealistikOsu/Realis
         r = requests.get(endpoint)
 
 
-        return up['version'] != r.json()['version']
+        return up['version'] < r.json()['version']
 
 
 def getLatestVersion(endpoint="https://raw.githubusercontent.com/RealistikOsu/RealistikPanel/master/buildinfo.json"):
