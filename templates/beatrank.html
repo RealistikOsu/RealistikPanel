@@ -76,6 +76,8 @@
     } 
 
     function CalcPP(BeatmapNr, BeatmapID) {
+        //turn it into a loading thing
+        document.getElementById("pp-"+BeatmapNr).innerHTML = '<a onclick="" class="btn btn-primary btn-progress" style="color: white;">Calculate PP</a>'
         //json getting from url
         let url = "https://"+ window.location.host +"/js/pp/"+BeatmapID;
 
