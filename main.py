@@ -247,7 +247,7 @@ def EditPrivilege(Privilege: int):
 @app.route("/console")
 def Console():
     if HasPrivilege(session["AccountId"], 14):
-        return render_template("editprivilege.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=GetLog())
+        return render_template("consolelogs.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=GetLog())
     else:
         return render_template("403.html")
 

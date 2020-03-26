@@ -1123,7 +1123,13 @@ def DelPriv(PrivID: int):
 
 def UpdatePriv(Form):
     """Updates the privilege from form."""
+    #Get previous privilege number
+    mycursor.execute("SELECT privileges FROM privileges_groups WHERE id = %s", (Form['id'],))
+    PrevPriv = mycursor.fetchall()[0][0]
+    #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
+    #update privs for users
+    mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
     mydb.commit()
 
 def GetMostPlayed():
