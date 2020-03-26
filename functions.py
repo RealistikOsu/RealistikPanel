@@ -1200,3 +1200,9 @@ def GetLog():
         Log[LogNr] = log
         LogNr += 1
     return Log
+
+def GetBuild():
+    """Gets the build number of the current version of RealistikPanel."""
+    with open("buildinfo.json") as file:
+        BuildInfo = json.load(file)
+    return BuildInfo["version"]

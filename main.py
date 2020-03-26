@@ -9,7 +9,8 @@ import os
 from updater import *
 from threading import Thread
 
-ConsoleLog("RealistikPanel Started!")
+print(f" {Fore.BLUE}Running Build {GetBuild()}")
+ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
