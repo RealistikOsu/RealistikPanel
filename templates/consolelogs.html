@@ -3,7 +3,13 @@
 <h2 class="section-title">Console</h2>
 <p class="section-lead">Here you can view RealistikPanel specific logs, such as errors, warnings or notable events.</p>
 {% for log in logs %}
+{% if log["Type"] == 1 %}
+<div class="card card-primary">
+{% elif log["Type"] == 2 %}
+<div class="card card-warning">
+{% elif log["Type"] == 3 %}
 <div class="card card-danger">
+{% endif %}
     <div class="card-header">
         {% if log["Type"] == 1 %}
         <i class="fas fa-info-circle" style="margin: 4px; color: #4287f5;"></i><span>Info</span>
