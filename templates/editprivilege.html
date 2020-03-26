@@ -43,7 +43,9 @@
                     <input name="privileges" value="1048576" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="21">UserPendingVerification<br>
                     <input name="privileges" value="2097152" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="22">UserTournamentStaff<br>
                     <input name="privileges" value="4194304" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="23">AdminCaker<br>
-                    <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="24">AdminViewTopScores
+                    <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="24">AdminViewTopScores<br>
+                    <!--Placeholder for RealistikPanel specific perms-->
+                    <input name="privileges" value="134217728" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="25">RPErrorLogs
                 </div>
             </div>
             <div class="form-group">
@@ -150,6 +152,9 @@ if (PrivInt & 4194304) {
 }
 if (PrivInt & 8388608) {
     document.getElementById("24").checked = true;
+}
+if (PrivInt & 134217728) {
+    document.getElementById("25").checked = true;
 }
 </script>
 {% endblock %}

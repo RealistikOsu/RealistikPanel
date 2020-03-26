@@ -9,6 +9,8 @@ import os
 from updater import *
 from threading import Thread
 
+ConsoleLog("RealistikPanel Started!")
+
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
@@ -77,6 +79,7 @@ def BanchoSettings():
                 return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, success="Bancho settings were successfully edited!")
             except Exception as e:
                 print(e)
+                ConsoleLog("Error while editing bancho settings!", f"{e}", 3)
                 return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, error="An internal error has occured while saving bancho settings! An error has been logged to the console.")
 
     else:
@@ -94,6 +97,7 @@ def RankMap(id):
                 return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, success=f"Successfully ranked beatmap {request.form['beatmapnumber']}!", Id= id)
             except Exception as e:
                 print(e)
+                ConsoleLog(f"Error while ranking beatmap ({id})!", f"{e}", 3)
                 return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.", Id= id)
     else:
         return render_template("403.html")
@@ -140,6 +144,7 @@ def SystemSettings():
                 return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, success = "System settings successfully edited!")
             except Exception as e:
                 print(e)
+                ConsoleLog("Error while editing system settings!", f"{e}", 3)
                 return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, error = "An internal error has occured while saving system settings! An error has been logged to the console.")
         else:
             return render_template("403.html")
@@ -159,6 +164,7 @@ def EditUser(id):
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
             except Exception as e:
                 print(e)
+                ConsoleLog("Error while editing user!", f"{e}", 3)
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.")
 
 
@@ -208,6 +214,7 @@ def EditBadge(BadgeID: int):
                 return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), success=f"Badge {BadgeID} has been successfully edited!")
             except Exception as e:
                 print(e)
+                ConsoleLog("Error while editing badge!", f"{e}", 3)
                 return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), error="An internal error has occured while editing the badge! An error has been logged to the console.")
     else:
         return render_template("403.html")
@@ -232,6 +239,7 @@ def EditPrivilege(Privilege: int):
                 return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, success=f"Privilege {Priv['Name']} has been successfully edited!")
             except Exception as e:
                 print(e)
+                ConsoleLog("Error while editing privilege!", f"{e}", 3)
                 return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, error="An internal error has occured while editing the privileges! An error has been logged to the console.")
     else:
         return render_template("403.html")

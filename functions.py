@@ -12,6 +12,7 @@ import hashlib
 import json
 import pycountry
 from osrparse import *
+import os
 
 init() #initialises colourama for colours
 
@@ -24,6 +25,34 @@ print(f"""{Fore.BLUE}  _____            _ _     _   _ _    _____                
  ---------------------------------------------------------------
 {Fore.RESET}""")
 
+#gotta def this here sorry
+def ConsoleLog(Info: str, Additional: str="", Type: int=1):
+    """Adds a log to the log file."""
+    ### Types
+    # 1 = Info
+    # 2 = Warning
+    # 3 = Error
+    LogToAdd = {
+        "Type": Type,
+        "Info" : Info,
+        "Extra" : Additional,
+        "Timestamp" : round(time.time())
+    }
+    if not os.path.exists("realistikpanel.log"):
+        #if doesnt exist
+        with open("realistikpanel.log", 'w') as json_file:
+            json.dump([], json_file, indent=4)
+    
+    #gets current log
+    with open("realistikpanel.log", "r") as Log:
+        Log = json.load(Log)
+
+    Log.append(LogToAdd) #adds current log
+
+    with open("realistikpanel.log", 'w') as json_file:
+        json.dump(Log, json_file, indent=4)
+
+
 try:
     mydb = mysql.connector.connect(
         host=UserConfig["SQLHost"],
@@ -33,6 +62,7 @@ try:
     print(f"{Fore.GREEN} Successfully connected to MySQL!")
 except Exception as e:
     print(f"{Fore.RED} Failed connecting to MySQL! Abandoning!\n Error: {e}{Fore.RESET}")
+    ConsoleLog("Failed to connect to MySQL", f"{e}", 3)
     exit()
 
 try:
@@ -40,6 +70,7 @@ try:
     print(f"{Fore.GREEN} Successfully connected to Redis!")
 except Exception as e:
     print(f"{Fore.RED} Failed connecting to Redis! Abandoning!\n Error: {e}{Fore.RESET}")
+    ConsoleLog("Failed to connect to Redis", f"{e}", 3)
     exit()
 
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
@@ -308,6 +339,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 11 = Wipe account required
     # 12 = Kick users required
     # 13 = Manage Privileges
+    # 14 = View RealistikPanel error/console logs
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -336,6 +368,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPNominate = 2 << 23
     RPNominateAccept = 2 << 24
     RPOverwatch = 2 << 25
+    RPErrorLogs = 2 << 26
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -373,6 +406,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & KickUsers
     elif ReqPriv == 13:
         result = Privilege & ManagePrivileges
+    elif ReqPriv == 14:
+        result = Privilege & RPErrorLogs
     
     if result >= 1:
         return True
@@ -1143,3 +1178,13 @@ def SetUserBadges(AccountID: int, Badges: list):
         if Badge != 0 and Badge != 1: #so we dont add empty badges
             mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
     mydb.commit()
+
+def GetLog():
+    """Gets the newest x (userconfig page size) entries in the log."""
+
+    with open("realistikpanel.log") as Log:
+        Log = json.load(Log)
+
+    Log = Log[-UserConfig["PageSize"]:]
+    Log.reverse() #still wondering why it doesnt return the reversed list and instead returns none
+    return Log
