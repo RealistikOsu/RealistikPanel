@@ -36,8 +36,13 @@ def home():
 @app.route("/dash/")
 def dash():
     if HasPrivilege(session["AccountId"]):
+        #responsible for the "HeY cHeCk OuT tHe ChAnGeLoG"
+        User = GetUserStore(session["AccountName"])
         UpdateUserStore(session["AccountName"])
-        return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
+        if User["LastBuild"] == GetBuild():
+            return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
+        else:
+            return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed(), info=f"Hey! RealistikPanel has been recently updated to build <b>{GetBuild()}</b>! Check out <a href='/changelogs'>what's new here!</a>")
     else:
         return render_template("403.html")
 
@@ -250,6 +255,13 @@ def EditPrivilege(Privilege: int):
 def Console():
     if HasPrivilege(session["AccountId"], 14):
         return render_template("consolelogs.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=GetLog())
+    else:
+        return render_template("403.html")
+
+@app.route("/changelogs")
+def ChangeLogs():
+    if HasPrivilege(session["AccountId"]):
+        return render_template("changelog.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=Changelogs)
     else:
         return render_template("403.html")
 

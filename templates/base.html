@@ -64,6 +64,9 @@
                     <a href="/system/settings" class="nav-link"><i class="fas fa-cog"></i><span> System Settings</span></a>
                     <a href="/badges" class="nav-link"><i class="fas fa-certificate"></i><span> Badges</span></a>
                     <a href="/privileges" class="nav-link"><i class="fas fa-check-circle"></i><span> Privileges</span></a>
+                    <li class="menu-header">RealistikPanel</li>
+                    <a href="/changelogs" class="nav-link"><i class="fas fa-exchange-alt"></i><span> Changelogs</span></a>
+                    <a href="{{ config['GitHubRepo'] }}" class="nav-link"><i class="fas fa-github"></i><span> Source Code</span></a>
                 </ul>
             </aside>
         </div>
@@ -84,7 +87,7 @@
                         <button class="close" data-dismiss="alert">
                             <span>×</span>
                         </button>
-                        {{ success }}
+                        {{ success|safe }}
                     </div>
                 </div>
                 {% endif %}
@@ -94,7 +97,17 @@
                         <button class="close" data-dismiss="alert">
                             <span>×</span>
                         </button>
-                        {{ error }}
+                        {{ error|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                {% if info %}
+                <div class="alert alert-primary alert-dismissible show fade">
+                    <div class="alert-body">
+                        <button class="close" data-dismiss="alert">
+                            <span>×</span>
+                        </button>
+                        {{ info|safe }}
                     </div>
                 </div>
                 {% endif %}

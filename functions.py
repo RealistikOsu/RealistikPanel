@@ -13,6 +13,7 @@ import json
 import pycountry
 from osrparse import *
 import os
+from changelogs import Changelogs
 
 init() #initialises colourama for colours
 
@@ -1207,7 +1208,7 @@ def GetBuild():
         BuildInfo = json.load(file)
     return BuildInfo["version"]
 
-def UpdateUserStore(Username):
+def UpdateUserStore(Username: str):
     """Updates the user info stored in rpusers.json or creates the file."""
     if not os.path.exists("rpusers.json"):
         #if doesnt exist
@@ -1226,3 +1227,17 @@ def UpdateUserStore(Username):
 
     with open("rpusers.json", 'w') as json_file:
         json.dump(Store, json_file, indent=4)
+
+def GetUserStore(Username: str):
+    """Gets user info from the store."""
+    with open("rpusers.json", "r") as Log:
+        Store = json.load(Log)
+    
+    if Username in list(Store.keys()):
+        return Store[Username]
+    else:
+        return {
+            "Username": Username,
+            "LastLogin" : round(time.time()),
+            "LastBuild" : 0
+        }
