@@ -5,9 +5,9 @@
 {% for log in logs %}
 {% if log["Type"] == 1 %}
 <div class="card card-primary">
-{ elif log["Type"] == 2 }
+{% elif log["Type"] == 2 %}
 <div class="card card-success">
-{ elif log["Type"] == 3 }
+{% elif log["Type"] == 3 %}
 <div class="card card-info">
 {% endif %}
     <div class="card-header">
@@ -19,11 +19,13 @@
         {% if change["Type"] == 1 %}
         {{ change["Content"] }} <br>
         {% elif change["Type"] == 2 %}
-        <span style="color: #fcba03;">[BACKEND]</span>{{ change["Content"] }} <br>
+        <span style="color: #fcba03; margin: 4px;"><b>[BACKEND]</b></span>{{ change["Content"] }} <br>
         {% elif change["Type"] == 3 %}
-        <span style="color: #eb4034;">[REMOVE]</span>{{ change["Content"] }} <br>
+        <span style="color: #eb4034; margin: 4px;"><b>[REMOVE]</b></span>{{ change["Content"] }} <br>
         {% elif change["Type"] == 4 %}
-        <span style="color: #4287f5;">[ADD]</span>{{ change["Content"] }} <br>
+        <span style="color: #4287f5; margin: 4px;"><b>[ADD]</b></span>{{ change["Content"] }} <br>
+        {% elif change["Type"] == 5 %}
+        <span style="color: #32a852; margin: 4px;"><b>[ADD]</b></span>{{ change["Content"] }} <br>
         {% endif %}
         {% endfor %}
     </div>

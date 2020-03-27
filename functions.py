@@ -16,6 +16,7 @@ import os
 from changelogs import Changelogs
 
 init() #initialises colourama for colours
+Changelogs.reverse()
 
 print(f"""{Fore.BLUE}  _____            _ _     _   _ _    _____                 _ _ 
  |  __ \          | (_)   | | (_) |  |  __ \               | | |
