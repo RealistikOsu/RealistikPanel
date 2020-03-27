@@ -3,3 +3,4 @@ config.py
 config.json
 cache.json
 realistikpanel.log
+rpusers.json

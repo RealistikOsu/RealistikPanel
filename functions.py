@@ -1206,3 +1206,23 @@ def GetBuild():
     with open("buildinfo.json") as file:
         BuildInfo = json.load(file)
     return BuildInfo["version"]
+
+def UpdateUserStore(Username):
+    """Updates the user info stored in rpusers.json or creates the file."""
+    if not os.path.exists("rpusers.json"):
+        #if doesnt exist
+        with open("rpusers.json", 'w') as json_file:
+            json.dump({}, json_file, indent=4)
+    
+    #gets current log
+    with open("rpusers.json", "r") as Log:
+        Store = json.load(Log)
+    
+    Store[Username] = {
+        "Username" : Username,
+        "LastLogin" : round(time.time()),
+        "LastBuild" : GetBuild()
+    }
+
+    with open("rpusers.json", 'w') as json_file:
+        json.dump(Store, json_file, indent=4)

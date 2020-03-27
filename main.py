@@ -36,6 +36,7 @@ def home():
 @app.route("/dash/")
 def dash():
     if HasPrivilege(session["AccountId"]):
+        UpdateUserStore(session["AccountName"])
         return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
     else:
         return render_template("403.html")
@@ -251,6 +252,25 @@ def Console():
         return render_template("consolelogs.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=GetLog())
     else:
         return render_template("403.html")
+
+@app.route("/current.json")
+def CurrentIPs():
+    """IPs for the Ripple switcher"""
+    return jsonify({
+        "osu.ppy.sh": "95.179.225.194",
+        "c.ppy.sh": "95.179.225.194",
+        "c1.ppy.sh": "95.179.225.194",
+        "c2.ppy.sh": "95.179.225.194",
+        "c3.ppy.sh": "95.179.225.194",
+        "c4.ppy.sh": "95.179.225.194",
+        "c5.ppy.sh": "95.179.225.194",
+        "c6.ppy.sh": "95.179.225.194",
+        "ce.ppy.sh": "95.179.225.194",
+        "a.ppy.sh": "95.179.225.194",
+        "s.ppy.sh": "95.179.225.194",
+        "i.ppy.sh": "95.179.225.194",
+        "bm6.ppy.sh": "95.179.225.194"
+    })
 
 
 #API for js
