@@ -26,6 +26,17 @@
         <span style="color: #4287f5; margin: 4px;"><b>[ADD]</b></span>{{ change["Content"] }} <br>
         {% elif change["Type"] == 5 %}
         <span style="color: #32a852; margin: 4px;"><b>[FIX]</b></span>{{ change["Content"] }} <br>
+        {% elif change["Type"] == 6 %}
+        <span style="color: #9b59b6; margin: 4px;"><b>[REPLACE]</b></span>{{ change["Content"] }} <br>
+        {% endif %}
+        {% if change["Image"] %}
+        <div class="chocolat-parent">
+            <a href="{{ change['Image'] }}" class="chocolat-image">
+                <div style="max-width:500px">
+                    <img alt="image" src="{{ change['Image'] }}" class="img-fluid" style="max-width:500px">
+                </div>
+            </a>
+        </div>
         {% endif %}
         {% endfor %}
     </div>

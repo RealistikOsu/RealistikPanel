@@ -23,11 +23,11 @@
                 {% endif %}
                 <a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a>
             </td>
-            <td><a class="btn btn-{{ user['Privilege']['Colour'] }}" style="color: white;">{{ user["Privilege"]["Name"] }}</a></td>
+            <td><a class="badge badge-{{ user['Privilege']['Colour'] }}" style="color: white;">{{ user["Privilege"]["Name"] }}</a></td>
             {% if user["Allowed"] %}
-            <td><a class="btn btn-success" style="color: white;">Yes</a></td>
+            <td><a class="badge badge-success" style="color: white;">Yes</a></td>
             {% else %}
-            <td><a class="btn btn-danger" style="color: white;">No</a></td>
+            <td><a class="badge badge-danger" style="color: white;">No</a></td>
             {% endif %}
             <td><a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}">Edit</a></td>
         </tr>
