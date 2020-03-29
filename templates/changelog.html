@@ -29,6 +29,15 @@
         {% elif change["Type"] == 6 %}
         <span style="color: #9b59b6; margin: 4px;"><b>[REPLACE]</b></span>{{ change["Content"] }} <br>
         {% endif %}
+        {% if change["Image"] %}
+        <div class="chocolat-parent">
+            <a href="{{ change['Image'] }}" class="chocolat-image" title="Just an example">
+                <div data-crop-image="285" style="overflow: hidden; position: relative; height: 285px;">
+                    <img alt="image" src="{{ change['Image'] }}" class="img-fluid">
+                </div>
+            </a>
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
     <div class="card-footer">

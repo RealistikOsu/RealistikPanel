@@ -61,6 +61,7 @@ Changelogs = [
             },
             {
                 "Type" : 6,
+                "Image" : "/static/img/changelog/useredit-htmlbadges.png",
                 "Content" : "Replaced 'buttons' with badges in users list."
             },
             {
@@ -78,6 +79,14 @@ Changelogs = [
             {
                 "Type" : 6,
                 "Content" : "Replaced input fields with textareas for multi-line input in user edit."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed new lines being broken in user edit."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added image support for changelogs"
             }
         ]
     }
