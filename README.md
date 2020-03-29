@@ -36,7 +36,7 @@ RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu da
 
 # Screenshots
 Dashboard
-![Dashboard](https://i.imgur.com/YUN5eYm.png)
+![Dashboard](https://i.imgur.com/jm9z92v.png)
 User List
 ![Beatmap Ranking](https://i.imgur.com/UEGuU7u.png)
 User Edit
