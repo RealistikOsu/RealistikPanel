@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="/static/css/components.css">
     <link rel="stylesheet" href="/static/css/realistik.css">
     <link rel="icon" type="image/png" href="/static/img/rosu.ico">
+    {% if session["Theme"] %}
+    <link rel="stylesheet" href="/static/css/daskstisla.css">
+    {% endif %}
     <!--JS Modules-->
     <script src="/static/js/stisla.js"></script>
     <script src="/static/modules/jquery.min.js"></script>
@@ -66,6 +69,7 @@
                     <a href="/privileges" class="nav-link"><i class="fas fa-check-circle"></i><span> Privileges</span></a>
                     <li class="menu-header">RealistikPanel</li>
                     <a href="/changelogs" class="nav-link"><i class="fas fa-exchange-alt"></i><span> Changelogs</span></a>
+                    <a href="/toggledark" class="nav-link"><i class="fas fa-exchange-alt"></i><span> Dark Theme (WIP)</span></a>
                     <a href="{{ config['GitHubRepo'] }}" class="nav-link"><i class="fas fa-github-alt"></i><span> Source Code</span></a>
                 </ul>
             </aside>

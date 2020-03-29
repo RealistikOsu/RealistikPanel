@@ -1,0 +1,40 @@
+/*
+RealistikPanel Dark Stisla
+This is an attempt to introducs dark theme
+into Stisla. Being pretty inexperianced in
+css, dont expect this to be good.
+- RealistikDash
+*/
+
+.article .article-details {
+    background-color: #3c3c3c;
+}
+
+.card {
+    background-color: #3c3c3c;
+}
+
+.card .card-header {
+    border-bottom-color: white;
+}
+
+body {
+    background-color: #4a4a4a;
+    color: white;
+}
+
+.main-sidebar {
+    background-color: black;
+}
+
+.main-sidebar .sidebar-brand a {
+    color: white;
+}
+
+.section .section-title {
+    color: white;
+}
+
+.section .section-lead {
+    color: white;
+}
