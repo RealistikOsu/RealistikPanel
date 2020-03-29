@@ -19,12 +19,12 @@ css, dont expect this to be good.
 }
 
 body {
-    background-color: #4a4a4a;
+    background-color: #313131;
     color: white;
 }
 
 .main-sidebar {
-    background-color: black;
+    background-color: #2d2d2d;
 }
 
 .main-sidebar .sidebar-brand a {
