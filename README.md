@@ -1,7 +1,7 @@
 # RealistikPanel!
-The modern admin panel for osu! private servers! This is designed to be a fully fledged Ripple Admin Panel when in its finished state.
+The modern admin panel for osu! private servers!
 
-![Dashboard](https://i.imgur.com/jm9z92v.png)
+![Dashboard](https://i.imgur.com/7mBmReO.png)
 
 It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
 
@@ -11,7 +11,7 @@ You may notice that some of this code (especially the early one) is not too grea
 I am using a lot of libraries and concepts that are new to me and it's the first time I'm doing them.
 This may be reflected in the quality of the code. I will try to fix up or replace some of the old code when I'm satisfied with the feature set.
 
-This project is now ready to be deployed as a full replacement to RAP. However, due to my rather unusual way of testing, some commits (especially ones <30 minutes old) may not work. For them, I'd suggest either trying a slightly earlier commit or waiting a few minutes.
+This project is now ready to be deployed as a full replacement to RAP.
 
 # Feature set
 Everyday tons of new features
@@ -27,9 +27,10 @@ Everyday tons of new features
 - Viewing the user list
 - Editing users
 - Creating and assigning badges
+Almost everything RAP has to offer and more!
 
 # Support
-To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#0077** and I will happily help you.
+To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#0077** on Discord and I will happily help you.
 
 RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu database.
 
