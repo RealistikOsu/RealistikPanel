@@ -30,13 +30,18 @@
         <span style="color: #9b59b6; margin: 4px;"><b>[REPLACE]</b></span>{{ change["Content"] }} <br>
         {% endif %}
         {% if change["Image"] %}
-        <div class="chocolat-parent">
+        <div class="chocolat-parent" id="{{ change['Image'] }}" data-chocolat-title="{{ change['Content'] }}">
             <a href="{{ change['Image'] }}" class="chocolat-image">
                 <div style="max-width:500px">
                     <img alt="image" src="{{ change['Image'] }}" class="img-fluid" style="max-width:500px">
                 </div>
             </a>
         </div>
+        <script>
+        $(document).ready(function(){
+            $('{{ change["Image"] }}').Chocolat();
+        });
+        </script>
         {% endif %}
         {% endfor %}
     </div>
@@ -44,5 +49,6 @@
         RealistikPanel!
     </div>
 </div>
+<link rel="stylesheet" href="/static/modules/chocolat/dist/css/chocolat.css" type="text/css" media="screen" charset="utf-8">
 {% endfor %}
 {% endblock %}
