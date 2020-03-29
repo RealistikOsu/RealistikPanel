@@ -89,5 +89,21 @@ Changelogs = [
                 "Content" : "Added image support for changelogs"
             }
         ]
+    },
+    {
+        "Build" : 1585511551,
+        "Type" : 2,
+        "Summary" : "This update adds a nice dark theme to spare your eyes!",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added dark theme!",
+                "Image" : "/static/img/changelog/dark-dash.png"
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added theme toggle (between white and dark themes)"
+            }
+        ]
     }
 ]

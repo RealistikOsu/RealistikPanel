@@ -43,7 +43,7 @@ label {
     color: white;
 }
 
-.form-control, .form-control[readonly] {
+.form-control, .form-control[readonly], .form-control:focus {
     background-color: #444444;
     border-color: #797979;
     color: #dadada;
