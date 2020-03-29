@@ -31,9 +31,9 @@
         {% endif %}
         {% if change["Image"] %}
         <div class="chocolat-parent">
-            <a href="{{ change['Image'] }}" class="chocolat-image" title="Just an example">
+            <a href="{{ change['Image'] }}" class="chocolat-image">
                 <div data-crop-image="285" style="overflow: hidden; position: relative; height: 285px;">
-                    <img alt="image" src="{{ change['Image'] }}" class="img-fluid">
+                    <img alt="image" src="{{ change['Image'] }}" class="img-fluid" style="max-width:500px">
                 </div>
             </a>
         </div>
