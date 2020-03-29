@@ -284,7 +284,14 @@ def CurrentIPs():
         "bm6.ppy.sh": "95.179.225.194"
     })
 
-
+@app.route("/toggledark")
+def ToggleDark():
+    if session["Theme"] == "dark":
+        session["Theme"] = "white"
+    else:
+        session["Theme"] = "dark"
+    return redirect(url_for("dash"))
+    
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
