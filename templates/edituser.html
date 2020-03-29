@@ -54,7 +54,7 @@
             </div>
             <div class="form-group">
                 <label>User Page</label>
-                <textarea type="text" class="form-control" name="userpage" value="{{ UserData['UserpageContent'] }}" rows=15>
+                <textarea type="text" class="form-control" name="userpage" rows=15>{{ UserData['UserpageContent'] }}</textarea>
             </div>
             <div class="form-group">
                 <label>Privilege</label>
@@ -103,7 +103,7 @@
             </div>
             <div class="form-group">
                 <label>Admin Notes</label>
-                <textarea type="text" class="form-control" name="notes" value="{{ UserData['Notes'] }}" rows=15>
+                <textarea type="text" class="form-control" name="notes" rows=15>{{ UserData['Notes'] }}</textarea>
             </div>
             <div class="form-group" id="iptext">
                 <b>IP: </b>{{ UserData['Ip'] }}
