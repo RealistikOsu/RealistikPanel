@@ -15,12 +15,12 @@ css, dont expect this to be good.
 }
 
 .card .card-header {
-    border-bottom-color: white;
+    border-bottom-color: #676767;
 }
 
 body {
     background-color: #313131;
-    color: white;
+    color: #dadada;
 }
 
 .main-sidebar {
@@ -43,7 +43,8 @@ label {
     color: white;
 }
 
-.form-control {
+.form-control, .form-control[readonly] {
     background-color: #444444;
     border-color: #797979;
+    color: #dadada;
 }
