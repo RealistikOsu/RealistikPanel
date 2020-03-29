@@ -472,7 +472,13 @@ def Webhook(BeatmapId, ActionName, session):
     webhook.add_embed(embed)
     print(" * Posting webhook!")
     webhook.execute()
-    RAPLog(session["AccountId"], f"ranked/unranked the beatmap {mapa[0]} ({BeatmapId})")
+    if ActionName == 0:
+        Logtext = "unranked"
+    if ActionName == 2:
+        Logtext = "ranked"
+    if ActionName == 5:
+        Logtext = "loved"
+    RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
 
 def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     """Logs to the RAP log."""

@@ -4,6 +4,7 @@
 #3 = Removal
 #4 = Add
 #5 = Fix
+#6 = Replace
 
 #Release types
 #1 = Major
@@ -46,6 +47,37 @@ Changelogs = [
             {
                 "Type" : 4,
                 "Content" : "Added margins around changelog types."
+            }
+        ]
+    },
+    {
+        "Build" : 1585505344,
+        "Type" : 2,
+        "Summary" : "This build focuses on quality of life changes and minor improvements to the user experiance.",
+        "Changes" : [
+            {
+                "Type" : 2,
+                "Content" : "Ordered recent plays by time rather than id."
+            },
+            {
+                "Type" : 6,
+                "Content" : "Replaced 'buttons' with badges in users list."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added new changelog type (REPLACE)."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Ranking logs now state whether"
+            },
+            {
+                "Type" : 5,
+                "Content" : "Replaced GitHub icon in sidebar."
+            },
+            {
+                "Type" : 6,
+                "Content" : "Replaced input fields with textareas for multi-line input in user edit."
             }
         ]
     }
