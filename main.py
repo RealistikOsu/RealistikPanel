@@ -291,7 +291,14 @@ def ToggleDark():
     else:
         session["Theme"] = "dark"
     return redirect(url_for("dash"))
-    
+
+@app.route("/admins")
+def Admins():
+    if HasPrivilege(session["AccountId"]):
+        return render_template("admins.html", data=DashData(), session=session, title="Admins", config=UserConfig, admins=SplitList(GetStore()))
+    else:
+        return render_template("403.html")
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):

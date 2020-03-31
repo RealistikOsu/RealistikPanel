@@ -48,3 +48,31 @@ label {
     border-color: #797979;
     color: #dadada;
 }
+
+.form-group label {
+    color: #6777ef;
+}
+
+.section {
+    background-color: #2d2d2d;
+}
+
+.main-wrapper-1 .section .section-header {
+    border-top: 1px solid #676767;
+}
+
+.navbar .form-inline .form-control {
+    background-color: #444444;
+}
+
+.navbar .form-inline .btn {
+    background-color: #292929;
+}
+
+.btn > i {
+    color: white;
+}
+
+.bg-whitesmoke {
+    color: #5a5a5a;
+}
