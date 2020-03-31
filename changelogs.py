@@ -117,7 +117,7 @@ Changelogs = [
             },
             {
                 "Type" : 5,
-                "Fixed certain dark mode elements not looking correctly (like coloured card footers)"
+                "Content" : "Fixed certain dark mode elements not looking correctly (like coloured card footers)"
             }
         ]
     }
