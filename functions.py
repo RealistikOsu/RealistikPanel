@@ -14,6 +14,7 @@ import pycountry
 from osrparse import *
 import os
 from changelogs import Changelogs
+import timeago
 
 init() #initialises colourama for colours
 Changelogs.reverse()
@@ -1248,3 +1249,38 @@ def GetUserStore(Username: str):
             "LastLogin" : round(time.time()),
             "LastBuild" : 0
         }
+
+def GetUserID(Username: str):
+    """Gets user id from username."""
+    mycursor.execute("SELECT id FROM users WHERE username LIKE %s LIMIT 1", (Username,))
+    Data = mycursor.fetchall()
+    if len(Data) == 0:
+        return 0
+    return Data[0][0]
+
+def GetStore():
+    """Returns user store as list."""
+    with open("rpusers.json", "r") as RPUsers:
+        Store = json.load(RPUsers)
+    
+    TheList = []
+    for x in list(Store.keys()):
+        #timeago - bit of an afterthought so sorry for weird implementation
+        Store[x]["Timeago"] = TimeToTimeAgo(Store[x]["LastLogin"])
+        #Gets User id
+        Store[x]["Id"] = GetUserID(x)
+        TheList.append(Store[x])
+
+    return TheList
+
+def SplitList(TheList : list):
+    """Splits list into 2 halves (thanks stackoverflow)."""
+    length = len(TheList)
+    return [ TheList[i*length // 2: (i+1)*length // 2] 
+            for i in range(2) ]
+
+def TimeToTimeAgo(Timestamp: int):
+    """Converts a seconds timestamp to a timeago string."""
+    DTObj = datetime.datetime.fromtimestamp(Timestamp)
+    CurrentTime = datetime.datetime.now()
+    return timeago.format(DTObj, CurrentTime)

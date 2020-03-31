@@ -105,5 +105,20 @@ Changelogs = [
                 "Content" : "Added theme toggle (between white and dark themes)"
             }
         ]
+    },
+    {
+        "Build" : 1585679639,
+        "Type" : 2,
+        "Summary" : "This update focuses on adding a list of users thatat one point logged into RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added admin list (in the RealistikPanel category on the sidebar)"
+            },
+            {
+                "Type" : 5,
+                "Fixed certain dark mode elements not looking correctly (like coloured card footers)"
+            }
+        ]
     }
 ]
