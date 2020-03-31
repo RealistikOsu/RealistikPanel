@@ -74,5 +74,6 @@ label {
 }
 
 .bg-whitesmoke {
-    color: #5a5a5a;
+    background-color: #3e3e3e !important;
+    color: white;
 }
