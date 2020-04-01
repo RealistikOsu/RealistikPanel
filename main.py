@@ -21,7 +21,7 @@ app.config["MYSQL_PASSWORD"] = UserConfig["SQLPassword"]
 app.config["MYSQL_HOST"] = UserConfig["SQLHost"]
 app.config["MYSQL_DB"] = UserConfig['SQLDatabase']
 mysql.init_app(app)
-
+CreateCursor()
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:

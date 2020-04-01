@@ -56,7 +56,11 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
         json.dump(Log, json_file, indent=4)
 
 mysql = MySQL()
-mycursor = mysql.connection.cursor()
+mycursor = None
+
+def CreateCursor():
+    """Creates MySQL Cursor (and idk how to do this properly)"""
+    mycursor = mysql.connection.cursor()
 """ old db connections
 try:
     mydb = mysql.connector.connect(
