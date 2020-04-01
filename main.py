@@ -15,6 +15,13 @@ ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
+#SQL Data
+app.config["MYSQL_USER"] = UserConfig["SQLUser"]
+app.config["MYSQL_PASSWORD"] = UserConfig["SQLPassword"]
+app.config["MYSQL_HOST"] = UserConfig["SQLHost"]
+app.config["MYSQL_DB"] = UserConfig['SQLDatabase']
+mysql.init_app(app)
+
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:
