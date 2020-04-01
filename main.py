@@ -15,6 +15,7 @@ ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
+app.config['TEMPLATES_AUTO_RELOAD'] = True #disable template cache
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:
