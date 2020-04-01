@@ -1,5 +1,5 @@
 flask
-flask-mysqldb
+mysql-connector
 colorama
 redis
 bcrypt

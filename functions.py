@@ -1,6 +1,6 @@
 #This file is responsible for all the functionality
 from config import UserConfig
-from flask_mysqldb import MySQL
+import mysql.connector
 from colorama import init, Fore
 import redis
 import bcrypt
@@ -55,13 +55,7 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     with open("realistikpanel.log", 'w') as json_file:
         json.dump(Log, json_file, indent=4)
 
-mysql = MySQL()
-mycursor = None
 
-def CreateCursor():
-    """Creates MySQL Cursor (and idk how to do this properly)"""
-    mycursor = mysql.connection.cursor()
-""" old db connections
 try:
     mydb = mysql.connector.connect(
         host=UserConfig["SQLHost"],
@@ -73,7 +67,7 @@ except Exception as e:
     print(f"{Fore.RED} Failed connecting to MySQL! Abandoning!\n Error: {e}{Fore.RESET}")
     ConsoleLog("Failed to connect to MySQL", f"{e}", 3)
     exit()
-"""
+
 try:
     r = redis.Redis(host=UserConfig["RedisHost"], port=UserConfig["RedisPort"], db=UserConfig["RedisDb"]) #establishes redis connection
     print(f"{Fore.GREEN} Successfully connected to Redis!")
@@ -82,8 +76,8 @@ except Exception as e:
     ConsoleLog("Failed to connect to Redis", f"{e}", 3)
     exit()
 
-#mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
-#mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
+mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
+mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 
 #public variables
 PlayerCount = [] # list of players 
@@ -287,7 +281,7 @@ def BSPostHandler(post, session):
     else:
         mycursor.execute("UPDATE bancho_settings SET value_int = 0 WHERE name = 'bancho_maintenance'")
     
-    mysql.connection.commit()
+    mydb.commit()
     RAPLog(session["AccountId"], "modified the bancho settings")
 
 def GetBmapInfo(id):
@@ -438,7 +432,7 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
         return
     mycursor.execute("UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1", (ActionName, BeatmapId,))
     mycursor.execute("UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3", (BeatmapId,))
-    mysql.connection.commit()
+    mydb.commit()
     Webhook(BeatmapId, ActionName, session)
 
 def Webhook(BeatmapId, ActionName, session):
@@ -492,7 +486,7 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     Timestamp = round(time.time())
     #now we putting that in oh yea
     mycursor.execute("INSERT INTO rap_logs (userid, text, datetime, through) VALUES (%s, %s, %s, 'RealistikPanel!')", (UserID, Text, Timestamp,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def checkpw(dbpassword, painpassword):
     """
@@ -555,7 +549,7 @@ def ApplySystemSettings(DataArray, Session):
     else:
         mycursor.execute("UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_home_alert'")
     
-    mysql.connection.commit() #applies the changes
+    mydb.commit() #applies the changes
 
 def IsOnline(AccountId: int):
     """Checks if given user is online."""
@@ -794,7 +788,7 @@ def ApplyUserEdit(form):
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def ModToText(mod: int):
     """Converts mod enum to cool string."""
@@ -878,7 +872,7 @@ def WipeAccount(AccId):
     mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
     if UserConfig["HasRelax"]:
         mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def ResUnTrict(id : int):
     """Restricts or unrestricts account yeah."""
@@ -894,7 +888,7 @@ def ResUnTrict(id : int):
         }))
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
-    mysql.connection.commit()
+    mydb.commit()
 
 def BanUser(id : int):
     """User go bye bye!"""
@@ -909,12 +903,12 @@ def BanUser(id : int):
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
     else: 
         mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,)) #restrict em bois
-    mysql.connection.commit()
+    mydb.commit()
 
 def ClearHWID(id : int):
     """Clears the HWID matches for provided acc."""
     mycursor.execute("DELETE FROM hw_user WHERE userid = %s", (id,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def DeleteAccount(id : int):
     """Deletes the account provided. Press F to pay respects."""
@@ -945,7 +939,7 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
     if UserConfig["HasRelax"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def BanchoKick(id : int, reason):
     """Kicks the user from Bancho."""
@@ -1068,7 +1062,7 @@ def GetBadges():
 def DeleteBadge(BadgeId : int):
     """"Delets the badge with the gived id."""
     mycursor.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def GetBadge(BadgeID:int):
     """Gets data of given badge."""
@@ -1086,7 +1080,7 @@ def SaveBadge(form):
     BadgeName = form["name"]
     BadgeIcon = form["icon"]
     mycursor.execute("UPDATE badges SET name = %s, icon = %s WHERE id = %s", (BadgeName, BadgeIcon, BadgeID,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def ParseReplay(replay):
     """Parses replay and returns data in dict."""
@@ -1115,7 +1109,7 @@ def ParseReplay(replay):
 def CreateBadge():
     """Creates empty badge."""
     mycursor.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
-    mysql.connection.commit()
+    mydb.commit()
     #checking the ID
     mycursor.execute("SELECT id FROM badges ORDER BY id DESC LIMIT 1")
     return mycursor.fetchall()[0][0]
@@ -1134,7 +1128,7 @@ def GetPriv(PrivID: int):
 def DelPriv(PrivID: int):
     """Deletes a privilege group."""
     mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID))
-    mysql.connection.commit()
+    mydb.commit()
 
 def UpdatePriv(Form):
     """Updates the privilege from form."""
@@ -1145,7 +1139,7 @@ def UpdatePriv(Form):
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
     mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
-    mysql.connection.commit()
+    mydb.commit()
 
 def GetMostPlayed():
     """Gets the beatmap with the highest playcount."""
@@ -1198,7 +1192,7 @@ def SetUserBadges(AccountID: int, Badges: list):
     for Badge in Badges:
         if Badge != 0 and Badge != 1: #so we dont add empty badges
             mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, Badge,))
-    mysql.connection.commit()
+    mydb.commit()
 
 def GetLog():
     """Gets the newest x (userconfig page size) entries in the log."""
