@@ -128,15 +128,15 @@ Changelogs = [
         "Changes" : [
             {
                 "Type" : 5,
-                "Summary" : "Fixed user privileges that do not have a group to default to Banned, causing the custom privileges to be lost and lead to possible accidental bans."
+                "Content" : "Fixed user privileges that do not have a group to default to Banned, causing the custom privileges to be lost and lead to possible accidental bans."
             },
             {
                 "Type" : 3,
-                "Summary" : "Removed a lot of unnecessary bootstrap JS modules (not used by me), lowering filesize by 40MB."
+                "Content" : "Removed a lot of unnecessary bootstrap JS modules (not used by me), lowering filesize by 40MB."
             },
             {
                 "Type" : 5,
-                "Summary" : "Default config IP lookup is now over HTTPS not to cause JS issues while RealistikPanel is ran over HTTPS."
+                "Content" : "Default config IP lookup is now over HTTPS not to cause JS issues while RealistikPanel is ran over HTTPS."
             }
         ]
     }
