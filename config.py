@@ -22,7 +22,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "AvatarServer" : "https://a.ussr.pl/",
     "BanchoURL" : "https://c.ussr.pl/",
     "BeatmapMirror" : "http://storage.ripple.moe/",
-    "IpLookup" : "http://ip.zxq.co/",
+    "IpLookup" : "https://ip.zxq.co/",
     "HasRelax" : True,
     "AvatarDir" : "/home/RIPPLE/avatarserver/av/",
     "Webhook" : "", #Discord webhook for posting newly ranked maps
