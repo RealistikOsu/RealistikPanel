@@ -120,5 +120,24 @@ Changelogs = [
                 "Content" : "Fixed certain dark mode elements not looking correctly (like coloured card footers)"
             }
         ]
+    },
+    {
+        "Build" : 1585828868,
+        "Type" : 3,
+        "Summary" : "This update focuses on fixing minor bugs and issues with RealistikPanel, such as accidental bans when privilege group not found",
+        "Changes" : [
+            {
+                "Type" : 5,
+                "Content" : "Fixed user privileges that do not have a group to default to Banned, causing the custom privileges to be lost and lead to possible accidental bans."
+            },
+            {
+                "Type" : 3,
+                "Content" : "Removed a lot of unnecessary bootstrap JS modules (not used by me), lowering filesize by 40MB."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Default config IP lookup is now over HTTPS not to cause JS issues while RealistikPanel is ran over HTTPS."
+            }
+        ]
     }
 ]

@@ -58,7 +58,7 @@
             </div>
             <div class="form-group">
                 <label>Privilege</label>
-                <select name="privilege" class="form-control">
+                <select name="privilege" class="form-control" id="privselect">
                     {% for priv in Privs %}
                     {% if priv["Priv"] == UserData["Privileges"] %}
                     <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
@@ -158,5 +158,20 @@
     document.getElementById("Badge4").value = "{{ UserBadges[3] }}";
     document.getElementById("Badge5").value = "{{ UserBadges[4] }}";
     document.getElementById("Badge6").value = "{{ UserBadges[5] }}";
+
+    var UserPriv = "{{ UserData['Privileges'] }}";
+    var PrivSelect = document.getElementById("privselect");
+
+    if (PrivSelect.value != UserPriv) {
+        //so users with unknown privilege groups dont get accidentally banned
+        //create Unknown Option
+        var NewOption = document.createElement("option");
+        NewOption.appendChild(document.createTextNode("Unknown (" + UserPriv + ")"));
+        NewOption.value = UserPriv
+        //adds to priv option
+        PrivSelect.appendChild(NewOption)
+        //select it
+        PrivSelect.value = NewOption.value
+    }
 </script>
 {% endblock %}
