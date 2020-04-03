@@ -148,7 +148,7 @@ Changelogs = [
             {
                 "Type" : 4,
                 "Content" : "Added rank all, love all, and unrank all buttons when ranking a beatmap set alongside a dedicated webhook for the function.",
-                "Image" : "/static/img/changelog/rank-collectiveaction"
+                "Image" : "/static/img/changelog/rank-collectiveaction.png"
             },
             {
                 "Type" : 5,
