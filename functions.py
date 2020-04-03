@@ -1301,7 +1301,7 @@ def RemoveFromLeaderboard(UserID: int):
             r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
 
         #removing from country leaderboards
-        mycursor.execure("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
+        mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
         Country = mycursor.fetchall()[0][0]
         if Country != "XX": #check if the country is not set
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
