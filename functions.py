@@ -888,6 +888,8 @@ def ResUnTrict(id : int):
         }))
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
+        RemoveFromLeaderboard(id)
+    UpdateBanStatus(id)
     mydb.commit()
 
 def BanUser(id : int):
@@ -903,6 +905,8 @@ def BanUser(id : int):
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
     else: 
         mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,)) #restrict em bois
+        RemoveFromLeaderboard(id)
+    UpdateBanStatus(id)
     mydb.commit()
 
 def ClearHWID(id : int):
@@ -1284,3 +1288,25 @@ def TimeToTimeAgo(Timestamp: int):
     DTObj = datetime.datetime.fromtimestamp(Timestamp)
     CurrentTime = datetime.datetime.now()
     return timeago.format(DTObj, CurrentTime)
+
+def RemoveFromLeaderboard(UserID: int):
+    """Removes the user from leaderboards."""
+    Modes = ["std", "ctb", "mania", "taiko"]
+    for mode in Modes:
+        #redis for each mode
+        r.zrem(f"ripple:leaderboard:{mode}", UserID)
+        if UserConfig["HasRelax"]:
+            #removes from relax leaderboards
+            r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
+
+        #removing from country leaderboards
+        mycursor.execure("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
+        Country = mycursor.fetchall()[0][0]
+        if Country != "XX": #check if the country is not set
+            r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
+            if UserConfig["HasRelax"]:
+                r.zrem(f"ripple:leaderboard_relax:{mode}:{Country}", UserID)
+
+def UpdateBanStatus(UserID: int):
+    """Updates the ban statuses in bancho."""
+    r.publish("peppy:ban", UserID)
