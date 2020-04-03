@@ -78,6 +78,7 @@ except Exception as e:
 
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
+mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 #public variables
 PlayerCount = [] # list of players 
@@ -888,6 +889,8 @@ def ResUnTrict(id : int):
         }))
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
+        RemoveFromLeaderboard(id)
+    UpdateBanStatus(id)
     mydb.commit()
 
 def BanUser(id : int):
@@ -903,6 +906,8 @@ def BanUser(id : int):
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
     else: 
         mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,)) #restrict em bois
+        RemoveFromLeaderboard(id)
+    UpdateBanStatus(id)
     mydb.commit()
 
 def ClearHWID(id : int):
@@ -1284,3 +1289,52 @@ def TimeToTimeAgo(Timestamp: int):
     DTObj = datetime.datetime.fromtimestamp(Timestamp)
     CurrentTime = datetime.datetime.now()
     return timeago.format(DTObj, CurrentTime)
+
+def RemoveFromLeaderboard(UserID: int):
+    """Removes the user from leaderboards."""
+    Modes = ["std", "ctb", "mania", "taiko"]
+    for mode in Modes:
+        #redis for each mode
+        r.zrem(f"ripple:leaderboard:{mode}", UserID)
+        if UserConfig["HasRelax"]:
+            #removes from relax leaderboards
+            r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
+
+        #removing from country leaderboards
+        mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
+        Country = mycursor.fetchall()[0][0]
+        if Country != "XX": #check if the country is not set
+            r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
+            if UserConfig["HasRelax"]:
+                r.zrem(f"ripple:leaderboard_relax:{mode}:{Country}", UserID)
+
+def UpdateBanStatus(UserID: int):
+    """Updates the ban statuses in bancho."""
+    r.publish("peppy:ban", UserID)
+
+def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
+    """Sets status for all beatmaps in beatmapset."""
+    mycursor.execute("UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s", (Staus, BeatmapSet,))
+    mydb.commit()
+
+    #getting status text
+    if Staus == 0:
+        TitleText = "unranked"
+    elif Staus == 2:
+        TitleText = "ranked"
+    elif Staus == 5:
+        TitleText = "loved"
+    
+    mycursor.execute("SELECT song_name, beatmap_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
+    MapData = mycursor.fetchall()[0]
+    #Getting bmap name without diff
+    BmapName = MapData[0].split("[")[0] #¯\_(ツ)_/¯ might work
+    #webhook, didnt use webhook function as it was too adapted for single map webhook
+    webhook = DiscordWebhook(url=UserConfig["Webhook"])
+    embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424)
+    embed.set_author(name=f"{BmapName} was just {TitleText}.", url=f"https://ussr.pl/b/{MapData[1]}", icon_url=f"https://a.ussr.pl/{session['AccountId']}") #will rank to random diff but yea
+    embed.set_footer(text="via RealistikPanel!")
+    embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg")
+    webhook.add_embed(embed)
+    print(" * Posting webhook!")
+    webhook.execute()
