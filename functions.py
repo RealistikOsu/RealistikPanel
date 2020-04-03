@@ -1323,7 +1323,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     elif Staus == 2:
         TitleText = "ranked"
     elif Staus == 5:
-        TitleText == "unranked"
+        TitleText = "loved"
     
     mycursor.execute("SELECT song_name FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
     MapData = mycursor.fetchall()[0]
@@ -1331,7 +1331,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     BmapName = MapData[0].split("[")[0] #¯\_(ツ)_/¯ might work
     #webhook, didnt use webhook function as it was too adapted for single map webhook
     webhook = DiscordWebhook(url=UserConfig["Webhook"])
-    embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
+    embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424)
     embed.set_author(name=f"The beatmap set {BmapName} was just {TitleText}.", url=f"https://ussr.pl/b/{BeatmapSet}", icon_url=f"https://a.ussr.pl/{session['AccountId']}")
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg")
