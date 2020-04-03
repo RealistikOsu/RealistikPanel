@@ -139,5 +139,21 @@ Changelogs = [
                 "Content" : "Default config IP lookup is now over HTTPS not to cause JS issues while RealistikPanel is ran over HTTPS."
             }
         ]
+    },
+    {
+        "Build" : 1585936516,
+        "Type" : 2,
+        "Summary" : "This update's main improvements include the addition of rank all difficulties buttons and fixes to user limitations.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added rank all, love all, and unrank all buttons when ranking a beatmap set alongside a dedicated webhook for the function.",
+                "Image" : "/static/img/changelog/rank-collectiveaction"
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed bans and restrictions not removing from leaderboards."
+            }
+        ]
     }
 ]
