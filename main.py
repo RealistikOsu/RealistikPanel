@@ -15,7 +15,6 @@ ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 app = Flask(__name__)
 recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
-app.config['TEMPLATES_AUTO_RELOAD'] = True #disable template cache
 
 #recaptcha setup
 if UserConfig["UseRecaptcha"]:
@@ -268,7 +267,7 @@ def ChangeLogs():
 
 @app.route("/current.json")
 def CurrentIPs():
-    """IPs for the Ripple switcher"""
+    """IPs for the Ripple switcher."""
     return jsonify({
         "osu.ppy.sh": "95.179.225.194",
         "c.ppy.sh": "95.179.225.194",
@@ -406,6 +405,24 @@ def PrivDeath(PrivID:int):
         return redirect(url_for("EditPrivileges"))
     else:
         return render_template("403.html")
+
+@app.route("/action/rankset/<BeatmapSet>")
+def RankSet(BeatmapSet: int):
+    SetBMAPSetStatus(BeatmapSet, 2, session)
+    RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
+    return redirect(f"/rank/{BeatmapSet}")
+
+@app.route("/action/loveset/<BeatmapSet>")
+def LoveSet(BeatmapSet: int):
+    SetBMAPSetStatus(BeatmapSet, 5, session)
+    RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
+    return redirect(f"/rank/{BeatmapSet}")
+
+@app.route("/action/unrankset/<BeatmapSet>")
+def UnrankSet(BeatmapSet: int):
+    SetBMAPSetStatus(BeatmapSet, 0, session)
+    RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
+    return redirect(f"/rank/{BeatmapSet}")
 
 #error handlers
 @app.errorhandler(404)
