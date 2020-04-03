@@ -78,6 +78,7 @@ except Exception as e:
 
 mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
+mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 #public variables
 PlayerCount = [] # list of players 
