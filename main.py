@@ -38,7 +38,7 @@ def dash():
     if HasPrivilege(session["AccountId"]):
         #responsible for the "HeY cHeCk OuT tHe ChAnGeLoG"
         User = GetUserStore(session["AccountName"])
-        UpdateUserStore(session["AccountName"])
+        Thread(target=UpdateUserStore, args=(session["AccountName"],)).start()
         if User["LastBuild"] == GetBuild():
             return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
         else:
