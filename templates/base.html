@@ -55,21 +55,21 @@
                 <div class="sidebar-brand">
                     <a href="/">RealistikPanel!</a>
                 </div>
-                <ul class="sidebar-menu">
+                <ul class="sidebar-menu" id="sidebar">
                     <li class="menu-header">Information</li>
-                    <a href="/dash" class="nav-link"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
-                    <a href="/users/1" class="nav-link"><i class="fas fa-users"></i><span> Users</span></a>
-                    <a href="/logs/1" class="nav-link"><i class="fas fa-calendar"></i><span> Logs</span></a>
-                    <a href="/console" class="nav-link"><i class="fas fa-terminal"></i><span> Console Logs</span></a>
+                    <a href="/dash" class="nav-link AccessRAP"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
+                    <a href="/users/1" class="nav-link ManageUsers"><i class="fas fa-users"></i><span> Users</span></a>
+                    <a href="/logs/1" class="nav-link ViewRAPLogs"><i class="fas fa-calendar"></i><span> Logs</span></a>
+                    <a href="/console" class="nav-link RPErrorLogs"><i class="fas fa-terminal"></i><span> Console Logs</span></a>
                     <li class="menu-header">Actions</li>
-                    <a href="/rank" class="nav-link"><i class="fas fa-trophy"></i><span> Beatmap Ranking</span></a>
-                    <a href="/bancho/settings" class="nav-link"><i class="fas fa-cogs"></i><span> Bancho Settings</span></a>
-                    <a href="/system/settings" class="nav-link"><i class="fas fa-cog"></i><span> System Settings</span></a>
-                    <a href="/badges" class="nav-link"><i class="fas fa-certificate"></i><span> Badges</span></a>
-                    <a href="/privileges" class="nav-link"><i class="fas fa-check-circle"></i><span> Privileges</span></a>
+                    <a href="/rank" class="nav-link" id="ManageBeatmaps"><i class="fas fa-trophy"></i><span> Beatmap Ranking</span></a>
+                    <a href="/bancho/settings" class="nav-link ManageSettings"><i class="fas fa-cogs"></i><span> Bancho Settings</span></a>
+                    <a href="/system/settings" class="nav-link ManageSettings"><i class="fas fa-cog"></i><span> System Settings</span></a>
+                    <a href="/badges" class="nav-link ManageSettings"><i class="fas fa-certificate"></i><span> Badges</span></a>
+                    <a href="/privileges" class="nav-link ManagePrivileges"><i class="fas fa-check-circle"></i><span> Privileges</span></a>
                     <li class="menu-header">RealistikPanel</li>
-                    <a href="/changelogs" class="nav-link"><i class="fas fa-exchange-alt"></i><span> Changelogs</span></a>
-                    <a href="/admins" class="nav-link"><i class="fas fa-user-cog"></i><span> Admins</span></a>
+                    <a href="/changelogs" class="nav-link AccessRAP"><i class="fas fa-exchange-alt"></i><span> Changelogs</span></a>
+                    <a href="/admins" class="nav-link AccessRAP"><i class="fas fa-user-cog"></i><span> Admins</span></a>
                     <a href="/toggledark" class="nav-link"><i class="fas fa-lightbulb"></i><span>
                         {% if session["Theme"] == "white" %}
                          Dark Theme
@@ -127,5 +127,95 @@
         </div>
     </div>
 </body>
+<script>
+var UserPriv = "{{ session['Privilege'] }}";
+NoPriv = 0
 
+//privileges
+UserNormal = 2 << 0
+AccessRAP = 2 << 2
+ManageUsers = 2 << 3
+BanUsers = 2 << 4
+SilenceUsers = 2 << 5
+WipeUsers = 2 << 6
+ManageBeatmaps = 2 << 7
+ManageServers = 2 << 8
+ManageSettings = 2 << 9
+ManageBetaKeys = 2 << 10
+ManageReports = 2 << 11
+ManageDocs = 2 << 12
+ManageBadges = 2 << 13
+ViewRAPLogs	= 2 << 14
+ManagePrivileges = 2 << 15
+SendAlerts = 2 << 16
+ChatMod	 = 2 << 17
+KickUsers = 2 << 18
+PendingVerification = 2 << 19
+TournamentStaff  = 2 << 20
+Caker = 2 << 21
+ViewTopScores = 2 << 22
+//RealistikPanel Specific Perms
+RPNominate = 2 << 23
+RPNominateAccept = 2 << 24
+RPOverwatch = 2 << 25
+RPErrorLogs = 2 << 26
+
+//doing the crossbrowser and ie
+if (!UserPriv & AccessRAP) {
+    var x = document.getElementsByClassName("AccessRAP");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ManageUsers) {
+    var x = document.getElementsByClassName("ManageUsers");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ManageBeatmaps) {
+    var x = document.getElementsByClassName("ManageBeatmaps");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ManageServers) {
+    var x = document.getElementsByClassName("ManageServers");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ManageSettings) {
+    var x = document.getElementsByClassName("ManageSettings");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ManagePrivileges) {
+    var x = document.getElementsByClassName("ManagePrivileges");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & RPErrorLogs) {
+    var x = document.getElementsByClassName("RPErrorLogs");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+if (!UserPriv & ViewRAPLogs) {
+    var x = document.getElementsByClassName("ViewRAPLogs");
+    var i;
+    for (i = 0; i < x.length; i++) {
+        x[i].innerHTML = ""; //doing this as cross-platform and faster (according to stack overflow people)
+    }
+}
+</script>
 </html>
