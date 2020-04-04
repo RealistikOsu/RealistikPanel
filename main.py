@@ -445,7 +445,7 @@ def NoPerm(session):
     if session["LoggedIn"]:
         return render_template("403.html")
     else:
-        return redirect("login")
+        return redirect("/login")
 
 if __name__ == "__main__":
     CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
