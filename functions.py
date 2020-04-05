@@ -587,8 +587,7 @@ def FetchUsers(page = 0):
     #    "234543": {
     #        "Name" : "Owner",
     #        "Privileges" : 234543,
-    #        "Colour" : "success",
-    #        "Country" : "GB"
+    #        "Colour" : "success"
     #    }
     #}
     PrivilegeDict = {}
@@ -1338,3 +1337,69 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     webhook.add_embed(embed)
     print(" * Posting webhook!")
     webhook.execute()
+
+def FindUserByUsername(User: str, Page):
+    """Finds user by their username OR email."""
+    #calculating page offsets
+    Offset = UserConfig["PageSize"] * (Page - 1)
+    #checking if its an email
+    Split = User.split("@")
+    if len(Split) == 2 and "." in Split[1]: #if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
+        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT %s OFFSET %", (User, UserConfig["PageSize"], Offset,)) #i will keep the like statement unless it causes issues
+    else: #its an email
+        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT %s OFFSET %", (User, UserConfig["PageSize"], Offset,))
+    Users = mycursor.fetchall()
+
+    PrivilegeDict = {}
+    AllPrivileges = []
+    for person in Users:
+        AllPrivileges.append(person[2])
+    UniquePrivileges = Unique(AllPrivileges)
+    #gets all priv info (copy pasted from get users as it is based on same infestructure)
+    for Priv in UniquePrivileges:
+        mycursor.execute("SELECT name, color FROM privileges_groups WHERE privileges = %s LIMIT 1", (Priv,))
+        info = mycursor.fetchall()
+        if len(info) == 0:
+            PrivilegeDict[str(Priv)] = {
+                "Name" : f"Unknown ({Priv})",
+                "Privileges" : Priv,
+                "Colour" : "danger"
+            }
+        else:
+            info = info[0]
+            PrivilegeDict[str(Priv)] = {}
+            PrivilegeDict[str(Priv)]["Name"] = info[0]
+            PrivilegeDict[str(Priv)]["Privileges"] = Priv
+            PrivilegeDict[str(Priv)]["Colour"] = info[1]
+            if PrivilegeDict[str(Priv)]["Colour"] == "default" or PrivilegeDict[str(Priv)]["Colour"] == "":
+                #stisla doesnt have a default button so ill hard-code change it to a warning
+                PrivilegeDict[str(Priv)]["Colour"] = "warning"
+
+    #Convierting user data into cool dicts
+    #Structure
+    #[
+    #    {
+    #        "Id" : 999,
+    #        "Name" : "RealistikDash",
+    #        "Privilege" : PrivilegeDict["234543"],
+    #        "Allowed" : True
+    #    }
+    #]
+    Users = []
+    for user in Users:
+        #country query
+        mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (user[0],))
+        Country = mycursor.fetchall()[0][0]
+        Dict = {
+            "Id" : user[0],
+            "Name" : user[1],
+            "Privilege" : PrivilegeDict[str(user[2])],
+            "Country" : Country
+        }
+        if user[3] == 1:
+            Dict["Allowed"] = True
+        else:
+            Dict["Allowed"] = False
+        Users.append(Dict)
+    
+    return Users

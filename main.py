@@ -122,10 +122,13 @@ def RankFrom():
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
 
-@app.route("/users/<page>")
+@app.route("/users/<page>", methods = ["GET", "POST"])
 def Users(page = 1):
     if HasPrivilege(session["AccountId"], 6):
-        return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
+        if request.method == "GET":
+            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
+        if request.method == "POST":
+            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page))
     else:
          return NoPerm(session)
 
