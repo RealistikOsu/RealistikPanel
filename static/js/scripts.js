@@ -162,8 +162,6 @@ $(function() {
       $(".main-sidebar .sidebar-menu > li > a").removeAttr('data-toggle');
       $(".main-sidebar .sidebar-menu > li > a").removeAttr('data-original-title');
       $(".main-sidebar .sidebar-menu > li > a").removeAttr('title');
-      //rel was here
-      $(".main-sidebar .sidebar-menu > li > a > span").remove();
     }else{
       body.addClass('sidebar-mini');
       body.removeClass('sidebar-show');
