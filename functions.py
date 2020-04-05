@@ -1386,7 +1386,7 @@ def FindUserByUsername(User: str, Page):
                 "Privilege" : PrivilegeDict[str(yuser[2])],
                 "Country" : Country
             }
-            if user[3] == 1:
+            if yuser[3] == 1:
                 Dict["Allowed"] = True
             else:
                 Dict["Allowed"] = False
