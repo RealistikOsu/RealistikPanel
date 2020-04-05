@@ -1345,9 +1345,9 @@ def FindUserByUsername(User: str, Page):
     #checking if its an email
     Split = User.split("@")
     if len(Split) == 2 and "." in Split[1]: #if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
-        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT %s OFFSET %", (User, UserConfig["PageSize"], Offset,)) #i will keep the like statement unless it causes issues
-    else: #its an email
-        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT %s OFFSET %", (User, UserConfig["PageSize"], Offset,))
+        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT %s OFFSET %s", (User, UserConfig["PageSize"], Offset,)) #i will keep the like statement unless it causes issues
+    else: #its a username
+        mycursor.execute("SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT %s OFFSET %s", (User, UserConfig["PageSize"], Offset,))
     Users = mycursor.fetchall()
 
     PrivilegeDict = {}
