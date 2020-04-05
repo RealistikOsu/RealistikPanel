@@ -179,6 +179,10 @@ Changelogs = [
                 "Content" : "Added release type text to changelogs."
             },
             {
+                "Type" : 4,
+                "Content" : "Added margin to changelog images to provide a more uniform look."
+            },
+            {
                 "Type" : 5,
                 "Content" : "RealistikPanel now will check whether the user is logged in to decide whether to redirect to a 403 or the login page."
             },
@@ -189,6 +193,14 @@ Changelogs = [
             {
                 "Type" : 2,
                 "Content" : "Threaded user store writes to make dash loading times faster."
+            },
+            {
+                "Type" : 6,
+                "Content" : "Set the default panel theme to the dark theme."
+            },
+            {
+                "Type" : 3,
+                "Content" : "Removed unintended debugging code from user edit page."
             }
         ]
     }
