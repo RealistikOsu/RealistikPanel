@@ -11,7 +11,16 @@
 <div class="card card-info">
 {% endif %}
     <div class="card-header">
-        <h4>RealistikPanel Build {{ log["Build"] }}</h4>
+        <h4>
+            RealistikPanel Build {{ log["Build"] }} 
+            {% if log["Type"] == 1 %}
+            (Major Release)
+            {% elif log["Type"] == 2 %}
+            (Minor Release)
+            {% elif log["Type"] == 3 %}
+            (Bugfix)
+            {% endif %}
+        </h4>
     </div>
     <div class="card-body">
         {{ log["Summary"] }} <br><br>
