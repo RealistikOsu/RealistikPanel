@@ -3,5 +3,5 @@ ServSession = {
     "AccountId" : 0,
     "AccountName" : "",
     "Privilege" : "0",
-    "Theme" : "white" #options = dark | white
+    "Theme" : "dark" #options = dark | white
 }
