@@ -123,12 +123,12 @@
             <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
         </div>
         <div class="buttons">
-            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger">Wipe</a>
+            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
             <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
-            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger">Ban/Unban</a>
-            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger">Clear HWID</a>
-            <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger">Delete Account</a>
-            <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning">Kick User</a>
+            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger" id="ban">Ban/Unban</a>
+            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
+            <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
+            <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
         </div>
     </div>
     <div class="card-footer">
@@ -143,8 +143,6 @@
     fetch(url)
     .then(res => res.json())
     .then((out) => {
-    console.log("Got json hopefully ", out);
-    // doing things
     document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} ("+out["country"]+")"
     })
     .catch(err => {
@@ -172,6 +170,19 @@
         PrivSelect.appendChild(NewOption)
         //select it
         PrivSelect.value = NewOption.value
+    }
+
+    //disabling buttons the person has no perm to use
+    if (!(UserPriv & 128)) {
+        document.getElementById("wipe").remove();
+        document.getElementById("hwid").remove();
+        document.getElementById("delete").remove();
+    }
+    if (!(UserPriv & 32)) {
+        document.getElementById("ban").remove()
+    }
+    if (!(UserPriv & 524288)) {
+        document.getElementById("kick").remove()
     }
 </script>
 {% endblock %}

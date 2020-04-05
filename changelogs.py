@@ -155,5 +155,53 @@ Changelogs = [
                 "Content" : "Fixed bans and restrictions not removing from leaderboards."
             }
         ]
+    },
+    {
+        "Build" : 1586053016,
+        "Type" : 1,
+        "Summary" : "This build's objectives are the addition of user search, displaying sidebar options according to privileges and more!",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Sidebar will now only display pages the user has privileges to access."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added user search to the user list, allowing you to search by username or email.",
+                "Image" : "/static/img/changelog/user-search.png"
+            },
+            {
+                "Type" : 4,
+                "Content" : "User edit actions will only display actions the user has privileges to take."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added release type text to changelogs."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added margin to changelog images to provide a more uniform look."
+            },
+            {
+                "Type" : 5,
+                "Content" : "RealistikPanel now will check whether the user is logged in to decide whether to redirect to a 403 or the login page."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed online text consistency between rows in the admins list."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Threaded user store writes to make dash loading times faster."
+            },
+            {
+                "Type" : 6,
+                "Content" : "Set the default panel theme to the dark theme."
+            },
+            {
+                "Type" : 3,
+                "Content" : "Removed unintended debugging code from user edit page."
+            }
+        ]
     }
 ]

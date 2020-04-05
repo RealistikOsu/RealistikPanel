@@ -1,6 +1,22 @@
 {% extends "base.html" %} {% block content %}
 <h2 class="section-title">Users</h2>
 <p class="section-lead">This is the users panel. It lists all registered users and provides links to actions that can be quickly done to the users.</p>
+<div class="card">
+    <div class="card-header">
+        Search for users.
+    </div>
+    <div class="card-body">
+        <form action="/users/1" method="post">
+            <div class="form-group">
+                <input type="text" class="form-control" name="user" placeholder="Username or Email">
+            </div>
+            <button class="btn btn-success" type="submit" name="">Search</button>
+        </form>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
 <table class="table table-striped">
     <thead>
         <tr>
