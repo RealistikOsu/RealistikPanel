@@ -77,3 +77,19 @@ label {
     background-color: #3e3e3e !important;
     color: white;
 }
+
+body.sidebar-mini .main-sidebar:after {
+    background-color: #2d2d2d;
+}
+
+.dropdown-menu {
+    background-color: #2d2d2d;;
+}
+
+.dropdown-menu .dropdown-title {
+    color: #dadada;
+}
+
+.dropdown-item {
+    color: #dadada;
+}
