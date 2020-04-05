@@ -1385,7 +1385,6 @@ def FindUserByUsername(User: str, Page):
     #        "Allowed" : True
     #    }
     #]
-    Users = []
     for user in Users:
         #country query
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (user[0],))
