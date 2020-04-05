@@ -87,7 +87,7 @@ body.sidebar-mini .main-sidebar:after {
 }
 
 .dropdown-menu .dropdown-title {
-    color: #dadada;
+    color: #dadada!important;
 }
 
 .dropdown-item {
