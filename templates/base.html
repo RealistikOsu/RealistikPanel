@@ -33,6 +33,8 @@
 <body>
     <div class="main-wrapper main-wrapper-1">
         {% if session["LoggedIn"] %}
+        <!--
+            Old pre-rewrite navbar...
         <nav class="navbar bg-primary navbar-expand-lg">
             <ul class="navbar-nav mr-3">
                 <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
@@ -40,6 +42,40 @@
             <a class="navbar-brand" href="/">{{ config['ServerName'] }}</a>
             <ul class="navbar-nav navbar-right">
                 <li class="dropdown">
+                    <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
+                        <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
+                        <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-title">RealistikPanel!</div>
+                        <a href="{{ config['ServerURL'] }}u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
+                            <i class="far fa-user"></i> Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/logout" class="dropdown-item has-icon text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        -->
+        <!-- navbar background color -->
+        <div class="navbar-bg"></div>
+        <!-- navbar -->
+        <nav class="navbar navbar-expand-lg main-navbar">
+            <!-- navbar nav left -->
+            <form class="form-inline mr-auto">
+                <!-- navbar toggler -->
+                <ul class="navbar-nav mr-3">
+                    <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
+                    <li><a class="navbar-brand" href="/">{{ config['ServerName'] }}</a></li>
+                </ul>
+            </form>
+            <!-- navbar right -->
+            <ul class="navbar-nav navbar-right">
+                <!-- navbar right item -->
+                <li class="dropdown"><a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user">
                     <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
                         <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
                         <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
