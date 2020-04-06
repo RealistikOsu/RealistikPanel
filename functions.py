@@ -1409,6 +1409,7 @@ def UpdateCachedStore(): #not used for now
     """Updates the data in the cached user store."""
     UpToDateStore = GetStore()
     for User in UpToDateStore:
+        CachedStore[User["Username"]] = {}
         for Key in list(User.keys()):
             CachedStore[User["Username"]][Key] = User[Key]
 
