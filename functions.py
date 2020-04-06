@@ -82,6 +82,7 @@ mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 #public variables
 PlayerCount = [] # list of players 
+CachedStore = {}
 
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
@@ -1240,6 +1241,13 @@ def UpdateUserStore(Username: str):
     with open("rpusers.json", 'w') as json_file:
         json.dump(Store, json_file, indent=4)
 
+    #Updating cached store
+    CachedStore[Username] = {
+        "Username" : Username,
+        "LastLogin" : round(time.time()),
+        "LastBuild" : GetBuild()
+    }
+
 def GetUserStore(Username: str):
     """Gets user info from the store."""
     with open("rpusers.json", "r") as Log:
@@ -1396,3 +1404,20 @@ def FindUserByUsername(User: str, Page):
         return TheUsersDict
     else:
         return []
+
+def UpdateCachedStore(): #not used for now
+    """Updates the data in the cached user store."""
+    UpToDateStore = GetStore()
+    for User in UpToDateStore:
+        for Key in list(User.keys()):
+            CachedStore[User["Username"]][Key] = User[Key]
+
+def GetCachedStore(Username: str):
+    if Username in list(CachedStore.keys()):
+        return CachedStore[Username]
+    else:
+        return {
+            "Username": Username,
+            "LastLogin" : round(time.time()),
+            "LastBuild" : 0
+        }

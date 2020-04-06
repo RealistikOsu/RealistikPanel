@@ -37,7 +37,7 @@ def home():
 def dash():
     if HasPrivilege(session["AccountId"]):
         #responsible for the "HeY cHeCk OuT tHe ChAnGeLoG"
-        User = GetUserStore(session["AccountName"])
+        User = GetCachedStore(session["AccountName"])
         Thread(target=UpdateUserStore, args=(session["AccountName"],)).start()
         if User["LastBuild"] == GetBuild():
             return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
@@ -451,7 +451,7 @@ def NoPerm(session):
         return redirect("/login")
 
 if __name__ == "__main__":
-    CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
-    CountFetchThread.start()
+    Thread(target=PlayerCountCollection, args=(True,)).start()
+    UpdateCachedStore()
     app.run(host= '0.0.0.0', port=UserConfig["Port"])
     handleUpdate() # handle update...
