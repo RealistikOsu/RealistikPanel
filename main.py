@@ -37,7 +37,7 @@ def home():
 def dash():
     if HasPrivilege(session["AccountId"]):
         #responsible for the "HeY cHeCk OuT tHe ChAnGeLoG"
-        User = GetUserStore(session["AccountName"])
+        User = GetCachedStore(session["AccountName"])
         Thread(target=UpdateUserStore, args=(session["AccountName"],)).start()
         if User["LastBuild"] == GetBuild():
             return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed())
@@ -128,7 +128,7 @@ def Users(page = 1):
         if request.method == "GET":
             return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page))
         if request.method == "POST":
-            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page))
+            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page), User=request.form["user"])
     else:
          return NoPerm(session)
 
@@ -335,8 +335,10 @@ def Restrict(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 6):
         Account = GetUser(id)
-        ResUnTrict(id)
-        RAPLog(session["AccountId"], f"has restricted the account {Account['Username']} ({id})")
+        if ResUnTrict(id):
+            RAPLog(session["AccountId"], f"has restricted the account {Account['Username']} ({id})")
+        else:
+            RAPLog(session["AccountId"], f"has unrestricted the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
          return NoPerm(session)
@@ -345,8 +347,10 @@ def Ban(id: int):
     """Do the FBI to the person."""
     if HasPrivilege(session["AccountId"], 5):
         Account = GetUser(id)
-        BanUser(id)
-        RAPLog(session["AccountId"], f"has banned the account {Account['Username']} ({id})")
+        if BanUser(id):
+            RAPLog(session["AccountId"], f"has banned the account {Account['Username']} ({id})")
+        else:
+            RAPLog(session["AccountId"], f"has unbanned the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
          return NoPerm(session)
@@ -434,6 +438,7 @@ def NotFoundError(error):
 
 @app.errorhandler(500)
 def BadCodeError(error):
+    ConsoleLog("Error while editing bancho settings!", error, 3)
     return render_template("500.html")
 
 #we make sure session exists
@@ -451,7 +456,7 @@ def NoPerm(session):
         return redirect("/login")
 
 if __name__ == "__main__":
-    CountFetchThread = Thread(target=PlayerCountCollection, args=(True,))
-    CountFetchThread.start()
+    Thread(target=PlayerCountCollection, args=(True,)).start()
+    UpdateCachedStore()
     app.run(host= '0.0.0.0', port=UserConfig["Port"])
     handleUpdate() # handle update...

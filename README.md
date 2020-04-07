@@ -1,7 +1,7 @@
 # RealistikPanel!
 The modern admin panel for osu! private servers!
 
-![Dashboard](https://i.imgur.com/7mBmReO.png)
+![Dashboard](https://i.imgur.com/2pJIyL2.png)
 
 It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
 
@@ -36,16 +36,18 @@ RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu da
 
 # Screenshots
 Dashboard
-![Dashboard](https://i.imgur.com/jm9z92v.png)
+![Dashboard](https://i.imgur.com/2pJIyL2.png)
 User List
-![Beatmap Ranking](https://i.imgur.com/UEGuU7u.png)
+![Beatmap Ranking](https://i.imgur.com/lWcGDpi.png)
 User Edit
-![Beatmap Ranking](https://i.imgur.com/qMAi3o9.png)
+![Beatmap Ranking](https://i.imgur.com/j1VnY7p.png)
 Beatmap Ranking
-![Beatmap Ranking](https://i.imgur.com/f2eNzDK.png)
+![Beatmap Ranking](https://i.imgur.com/egk94hI.png)
 Bancho Settings
-![Bancho Settings](https://i.imgur.com/k4t1wPH.png)
+![Bancho Settings](https://i.imgur.com/kxmhkRr.png)
 System Settings
-![System Settings](https://i.imgur.com/X2XUlQ4.png)
+![System Settings](https://i.imgur.com/dGrQq8Q.png)
 Admin Logs
-![Admin Logs](https://i.imgur.com/5crcySv.png)
+![Admin Logs](https://i.imgur.com/zArbrB7.png)
+Privilege Groups
+![Admin Logs](https://i.imgur.com/P310vDI.png)

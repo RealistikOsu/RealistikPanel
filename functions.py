@@ -82,6 +82,7 @@ mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 #public variables
 PlayerCount = [] # list of players 
+CachedStore = {}
 
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
@@ -696,6 +697,12 @@ def UserData(id):
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0][0]
+
+    #removing "None" from user page and admin notes
+    if Data["Notes"] == None:
+        Data["Notes"] = ""
+    if Data["UserpageContent"] == None:
+        Data["UserpageContent"] = ""
     return Data
 
 def RAPFetch(page = 1):
@@ -881,6 +888,7 @@ def ResUnTrict(id : int):
     if Privilege == 2: #if restricted
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s", (id,)) #unrestricts
+        TheReturn = False
     else: 
         r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
             "userID" : id,
@@ -889,25 +897,30 @@ def ResUnTrict(id : int):
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
+        TheReturn = True
     UpdateBanStatus(id)
     mydb.commit()
+    return TheReturn
 
 def BanUser(id : int):
     """User go bye bye!"""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()[0][0]
     Timestamp = round(time.time())
-    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : id,
-        "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
-    }))
     if Privilege == 0: #if already banned
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
+        TheReturn = False
     else: 
-        mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,)) #restrict em bois
+        mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,))
         RemoveFromLeaderboard(id)
+        r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
+            "userID" : id,
+            "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
+        }))
+        TheReturn = True
     UpdateBanStatus(id)
     mydb.commit()
+    return TheReturn
 
 def ClearHWID(id : int):
     """Clears the HWID matches for provided acc."""
@@ -1240,6 +1253,13 @@ def UpdateUserStore(Username: str):
     with open("rpusers.json", 'w') as json_file:
         json.dump(Store, json_file, indent=4)
 
+    #Updating cached store
+    CachedStore[Username] = {
+        "Username" : Username,
+        "LastLogin" : round(time.time()),
+        "LastBuild" : GetBuild()
+    }
+
 def GetUserStore(Username: str):
     """Gets user info from the store."""
     with open("rpusers.json", "r") as Log:
@@ -1396,3 +1416,21 @@ def FindUserByUsername(User: str, Page):
         return TheUsersDict
     else:
         return []
+
+def UpdateCachedStore(): #not used for now
+    """Updates the data in the cached user store."""
+    UpToDateStore = GetStore()
+    for User in UpToDateStore:
+        CachedStore[User["Username"]] = {}
+        for Key in list(User.keys()):
+            CachedStore[User["Username"]][Key] = User[Key]
+
+def GetCachedStore(Username: str):
+    if Username in list(CachedStore.keys()):
+        return CachedStore[Username]
+    else:
+        return {
+            "Username": Username,
+            "LastLogin" : round(time.time()),
+            "LastBuild" : 0
+        }
