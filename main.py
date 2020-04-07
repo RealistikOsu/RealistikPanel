@@ -342,6 +342,7 @@ def Restrict(id: int):
         return redirect(f"/user/edit/{id}")
     else:
          return NoPerm(session)
+
 @app.route("/actions/ban/<id>")
 def Ban(id: int):
     """Do the FBI to the person."""
@@ -438,7 +439,7 @@ def NotFoundError(error):
 
 @app.errorhandler(500)
 def BadCodeError(error):
-    ConsoleLog("Error while editing bancho settings!", error, 3)
+    ConsoleLog("Misc unhandled error!", f"{error}", 3)
     return render_template("500.html")
 
 #we make sure session exists
