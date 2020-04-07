@@ -236,6 +236,10 @@ Changelogs = [
                 "Content" : "Rewrote the navigation bar structure to fix any major layout complications."
             },
             {
+                "Type" : 5,
+                "Content" : "Fixed unset user pages and admin notes appearing as 'None'."
+            },
+            {
                 "Type" : 2,
                 "Content" : "User stores are now cached rather than always being read."
             }
