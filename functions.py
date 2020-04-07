@@ -882,6 +882,7 @@ def ResUnTrict(id : int):
     if Privilege == 2: #if restricted
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s", (id,)) #unrestricts
+        TheReturn = False
     else: 
         r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
             "userID" : id,
@@ -890,25 +891,30 @@ def ResUnTrict(id : int):
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
+        TheReturn = True
     UpdateBanStatus(id)
     mydb.commit()
+    return TheReturn
 
 def BanUser(id : int):
     """User go bye bye!"""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()[0][0]
     Timestamp = round(time.time())
-    r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : id,
-        "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
-    }))
     if Privilege == 0: #if already banned
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
+        TheReturn = False
     else: 
-        mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,)) #restrict em bois
+        mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,))
         RemoveFromLeaderboard(id)
+        r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
+            "userID" : id,
+            "reason" : f"You have been banned from {UserConfig['ServerName']}. You will not be missed."
+        }))
+        TheReturn = True
     UpdateBanStatus(id)
     mydb.commit()
+    return TheReturn
 
 def ClearHWID(id : int):
     """Clears the HWID matches for provided acc."""
