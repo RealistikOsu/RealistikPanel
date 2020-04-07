@@ -203,5 +203,42 @@ Changelogs = [
                 "Content" : "Removed unintended debugging code from user edit page."
             }
         ]
+    },
+    {
+        "Build" : 1586295323,
+        "Type" : 1,
+        "Summary" : "This update focuses on improving usability for mobile users and improving the design of RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added a sidebar toggler for mobile users.",
+                "Image" : "/static/img/changelog/base-toggle.jpg"
+            },
+            {
+                "Type" : 4,
+                "Content" : "Made user search display the current query."
+            },
+            {
+                "Type": 4,
+                "Content" : "Added loading bars to show page loading progress."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Differentiated error log exceptions."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Made the navigation bar transparent to fit better with the colour scheme of the panel.",
+                "Image" : "/static/img/changelog/base-nav.png"
+            },
+            {
+                "Type" : 5,
+                "Content" : "Rewrote the navigation bar structure to fix any major layout complications."
+            },
+            {
+                "Type" : 2,
+                "Content" : "User stores are now cached rather than always being read."
+            }
+        ]
     }
 ]
