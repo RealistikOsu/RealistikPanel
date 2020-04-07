@@ -697,6 +697,12 @@ def UserData(id):
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0][0]
+
+    #removing "None" from user page and admin notes
+    if Data["Notes"] == None:
+        Data["Notes"] = ""
+    if Data["UserpageContent"] == None:
+        Data["UserpageContent"] = ""
     return Data
 
 def RAPFetch(page = 1):
