@@ -53,9 +53,23 @@
 
 <!--The page buttons-->
 <center>
-    {% if not page <= 1 %}
-    <a href="/users/{{ page-1 }}" style="margin: 1rem;"><- Previous Page</a>
-    {% endif %}
-    <a href="/users/{{ page+1 }}" style="margin: 1rem;">Next Page -></a>
+    <ul class="pagination">
+        {% if not page <= 1 %}
+        <li class="page-item disabled">
+        {% else %}
+        <li class="page-item">
+        {% endif %}
+            <a class="page-link" href="/users/{{ page+1 }}" aria-label="Previous">
+                <span aria-hidden="true">«</span>
+                <span class="sr-only">Previous</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
+                <span aria-hidden="true">»</span>
+                <span class="sr-only">Next</span>
+            </a>
+        </li>
+    </ul>
 </center>
 {% endblock %}
