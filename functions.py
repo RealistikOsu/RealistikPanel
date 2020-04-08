@@ -774,7 +774,7 @@ def GetPrivileges():
         })
     return Privs
 
-def ApplyUserEdit(form):
+def ApplyUserEdit(form, session):
     """Apples the user settings."""
     #getting variables from form
     UserId = form["userid"]
@@ -788,6 +788,15 @@ def ApplyUserEdit(form):
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername.replace(" ", "_")
+
+    #stop people ascending themselves
+    CurrentPriv = int(session["Privilege"])
+    FromID = session["AccountId"]
+    if int(UserId) == FromID:
+        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (FromID,))
+        OriginalPriv = mycursor.fetchall()[0][0]
+        if int(Privilege) > OriginalPriv:
+            return
 
     #Badges
     BadgeList = [int(form["Badge1"]), int(form["Badge2"]), int(form["Badge3"]), int(form["Badge4"]), int(form["Badge5"]), int(form["Badge6"])]
