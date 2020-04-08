@@ -1153,7 +1153,7 @@ def GetPriv(PrivID: int):
 
 def DelPriv(PrivID: int):
     """Deletes a privilege group."""
-    mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID))
+    mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
     mydb.commit()
 
 def UpdatePriv(Form):
