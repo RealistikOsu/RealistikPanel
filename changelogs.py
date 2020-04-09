@@ -244,5 +244,20 @@ Changelogs = [
                 "Content" : "User stores are now cached rather than always being read."
             }
         ]
+    },
+    {
+        "Build": 1586394807,
+        "Type" : 3,
+        "Summary" : "This build focuses on improving security of RealistikPanel and laying the foundation for future features.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added critical permission check to beatmap ranking."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Added supporter management functions (not utilised yet)."
+            }
+        ]
     }
 ]

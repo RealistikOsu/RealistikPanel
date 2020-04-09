@@ -169,7 +169,7 @@ def EditUser(id):
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             try:
-                ApplyUserEdit(request.form)
+                ApplyUserEdit(request.form, session)
                 RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
             except Exception as e:
@@ -416,21 +416,30 @@ def PrivDeath(PrivID:int):
 
 @app.route("/action/rankset/<BeatmapSet>")
 def RankSet(BeatmapSet: int):
-    SetBMAPSetStatus(BeatmapSet, 2, session)
-    RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
-    return redirect(f"/rank/{BeatmapSet}")
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 2, session)
+        RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return NoPerm(session)
 
 @app.route("/action/loveset/<BeatmapSet>")
 def LoveSet(BeatmapSet: int):
-    SetBMAPSetStatus(BeatmapSet, 5, session)
-    RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
-    return redirect(f"/rank/{BeatmapSet}")
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 5, session)
+        RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return NoPerm(session)
 
 @app.route("/action/unrankset/<BeatmapSet>")
 def UnrankSet(BeatmapSet: int):
-    SetBMAPSetStatus(BeatmapSet, 0, session)
-    RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
-    return redirect(f"/rank/{BeatmapSet}")
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 0, session)
+        RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return NoPerm(session)
 
 #error handlers
 @app.errorhandler(404)

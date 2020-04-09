@@ -774,7 +774,7 @@ def GetPrivileges():
         })
     return Privs
 
-def ApplyUserEdit(form):
+def ApplyUserEdit(form, session):
     """Apples the user settings."""
     #getting variables from form
     UserId = form["userid"]
@@ -788,6 +788,15 @@ def ApplyUserEdit(form):
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername.replace(" ", "_")
+
+    #stop people ascending themselves
+    CurrentPriv = int(session["Privilege"])
+    FromID = session["AccountId"]
+    if int(UserId) == FromID:
+        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (FromID,))
+        OriginalPriv = mycursor.fetchall()[0][0]
+        if int(Privilege) > OriginalPriv:
+            return
 
     #Badges
     BadgeList = [int(form["Badge1"]), int(form["Badge2"]), int(form["Badge3"]), int(form["Badge4"]), int(form["Badge5"]), int(form["Badge6"])]
@@ -1051,17 +1060,39 @@ def DashActData():
     IntervalList.reverse()
     Data["IntervalList"] = json.dumps(IntervalList)
     return Data
-"""
-commented until working
-def GiveRemoveSupporter(AccountID : int):
-    Gives or removes supporter.
-    SupporterPriv = 7 #set according to your osu ps, might move to config later
-    mycursor.execute(f"SELECT privileges FROM users WHERE id = {AccountID} LIMIT 1")
-    UserPriv = mycursor.fetchall()[0][0]
-    if UserPriv & SupporterPriv == 7:
-        #already has supporter
-        #removing supporter
-        """
+
+def GiveSupporter(AccountID : int, Duration = 1):
+    """Gives the target user supporter.
+    Args:
+        AccountID (int): The account id of the target user.
+        Duration (int): The time (in months) that the supporter rank should last
+    """ #messing around with docstrings
+    #checking if person already has supporter
+    #also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    CurrentPriv = mycursor.fetchall()[0][0]
+    if CurrentPriv & 4:
+        #already has supporter, extending
+        mycursor.execute("SELECT donor_expire FROM user WHERE id = %s", (AccountID,))
+        ToEnd = mycursor.execute()[0][0]
+        ToEnd += 2.628e+6 * Duration
+        mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
+        mydb.commit()
+    else:
+        EndTimestamp = round(time.time()) + (2.628e+6 * Duration)
+        CurrentPriv += 4 #adding donor perms
+        mycursor.execute("UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s", (CurrentPriv, EndTimestamp, AccountID,))
+        mydb.commit()
+
+def RemoveSupporter(AccountID: int):
+    """Removes supporter from the target user."""
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    CurrentPriv = mycursor.fetchall()[0][0]
+    #checking if they dont have it so privs arent messed up
+    if CurrentPriv & 4:
+        return
+    CurrentPriv -= 4
+    mycursor.execute("UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s", (CurrentPriv, AccountID,))
 
 def GetBadges():
     """Gets all the badges."""
@@ -1144,7 +1175,7 @@ def GetPriv(PrivID: int):
 
 def DelPriv(PrivID: int):
     """Deletes a privilege group."""
-    mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID))
+    mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
     mydb.commit()
 
 def UpdatePriv(Form):
