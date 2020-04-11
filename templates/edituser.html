@@ -21,6 +21,9 @@
         {% else %}
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
         {% endif %}
+        {% if UserData["Privileges"] & 4 %}
+        <span style="color: #e8b923;">Their Donor rank expires {{ UserData["DonorExpireStr"] }}.</span>
+        {% endif %}
     </div>
     <div class="card-footer">
         RealistikPanel

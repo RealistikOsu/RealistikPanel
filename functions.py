@@ -698,6 +698,7 @@ def UserData(id):
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0][0]
 
+    Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
         Data["Notes"] = ""
