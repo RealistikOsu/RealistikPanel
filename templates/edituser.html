@@ -22,7 +22,8 @@
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
         {% endif %}
         {% if UserData["HasSupporter"] %}
-        <span style="color: #e8b923;">Their Donor rank expires {{ UserData["DonorExpireStr"] }}.</span>
+        <br>
+        <span style="color: #e8b923;">Their Donor rank expires <b>{{ UserData["DonorExpireStr"] }}</b>.</span>
         {% endif %}
     </div>
     <div class="card-footer">
