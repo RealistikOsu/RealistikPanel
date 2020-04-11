@@ -790,7 +790,7 @@ def ApplyUserEdit(form, session):
     SafeUsername.replace(" ", "_")
 
     #stop people ascending themselves
-    CurrentPriv = int(session["Privilege"])
+    #OriginalPriv = int(session["Privilege"])
     FromID = session["AccountId"]
     if int(UserId) == FromID:
         mycursor.execute("SELECT privileges FROM users WHERE id = %s", (FromID,))
@@ -804,6 +804,8 @@ def ApplyUserEdit(form, session):
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
+    if UserConfig["HasRelax"]:
+        mycursor.execute("UPDATE rx_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
     mydb.commit()
 
 def ModToText(mod: int):
