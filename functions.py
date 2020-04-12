@@ -826,7 +826,7 @@ def ApplyUserEdit(form, session):
     SetUserBadges(UserId, BadgeList)
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
-    mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
+    mycursor.execute("UPDATE users_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
     if UserConfig["HasRelax"]:
         mycursor.execute("UPDATE rx_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
     mydb.commit()
