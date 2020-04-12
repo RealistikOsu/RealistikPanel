@@ -76,7 +76,7 @@ except Exception as e:
     ConsoleLog("Failed to connect to Redis", f"{e}", 3)
     exit()
 
-mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
+mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
