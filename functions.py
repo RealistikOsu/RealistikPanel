@@ -675,7 +675,10 @@ def UserData(id):
     """Gets data for user. (specialised for user edit page)"""
     Data = GetUser(id)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
-    Data1 = mycursor.fetchall()[0]
+    Data1 = mycursor.fetchall()
+    if len(Data) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
+        return None
+    Data1 = Data1[0]
     mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
     Data2 = mycursor.fetchall()[0]
     #Fetches the IP
