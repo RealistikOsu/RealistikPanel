@@ -782,6 +782,8 @@ def GetPrivileges():
     """Gets list of privileges."""
     mycursor.execute("SELECT * FROM privileges_groups")
     priv = mycursor.fetchall()
+    if len(priv) == 0:
+        return []
     Privs = []
     for x in priv:
         Privs.append({
