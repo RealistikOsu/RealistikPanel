@@ -272,19 +272,19 @@ def ChangeLogs():
 def CurrentIPs():
     """IPs for the Ripple switcher."""
     return jsonify({
-        "osu.ppy.sh": UserConfig["StatusIP"],
-        "c.ppy.sh": UserConfig["StatusIP"],
-        "c1.ppy.sh": UserConfig["StatusIP"],
-        "c2.ppy.sh": UserConfig["StatusIP"],
-        "c3.ppy.sh": UserConfig["StatusIP"],
-        "c4.ppy.sh": UserConfig["StatusIP"],
-        "c5.ppy.sh": UserConfig["StatusIP"],
-        "c6.ppy.sh": UserConfig["StatusIP"],
-        "ce.ppy.sh": UserConfig["StatusIP"],
-        "a.ppy.sh": UserConfig["StatusIP"],
-        "s.ppy.sh": UserConfig["StatusIP"],
-        "i.ppy.sh": UserConfig["StatusIP"],
-        "bm6.ppy.sh": UserConfig["StatusIP"]
+        "osu.ppy.sh": UserConfig["CurrentIP"],
+        "c.ppy.sh": UserConfig["CurrentIP"],
+        "c1.ppy.sh": UserConfig["CurrentIP"],
+        "c2.ppy.sh": UserConfig["CurrentIP"],
+        "c3.ppy.sh": UserConfig["CurrentIP"],
+        "c4.ppy.sh": UserConfig["CurrentIP"],
+        "c5.ppy.sh": UserConfig["CurrentIP"],
+        "c6.ppy.sh": UserConfig["CurrentIP"],
+        "ce.ppy.sh": UserConfig["CurrentIP"],
+        "a.ppy.sh": UserConfig["CurrentIP"],
+        "s.ppy.sh": UserConfig["CurrentIP"],
+        "i.ppy.sh": UserConfig["CurrentIP"],
+        "bm6.ppy.sh": UserConfig["CurrentIP"]
     })
 
 @app.route("/toggledark")
