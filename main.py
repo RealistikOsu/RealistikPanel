@@ -308,9 +308,21 @@ def ChangePass(AccountID):
     if HasPrivilege(session["AccountId"], 6): #may create separate perm for this
         if request.method == "GET":
             User = GetUser(int(AccountID))
-            return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for{User['Username']}", config=UserConfig, User=User)
+            return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for {User['Username']}", config=UserConfig, User=User)
         if request.method == "POST":
             ChangePWForm(request.form)
+            return redirect(f"/user/edit/{AccountID}")
+    else:
+        return NoPerm(session)
+
+@app.route("/donoraward/<AccountID>", methods = ["GET", "POST"])
+def DonorAward(AccountID):
+    if HasPrivilege(session["AccountId"], 6):
+        if request.method == "GET":
+            User = GetUser(int(AccountID))
+            return render_template("donoraward.html", data=DashData(), session=session, title=f"Award Donor to {User['Username']}", config=UserConfig, User=User)
+        if request.method == "POST":
+            GiveSupporterForm(request.form)
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)

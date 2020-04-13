@@ -1511,3 +1511,6 @@ def ChangePassword(AccountID: int, NewPassword: str):
 def ChangePWForm(form): #this function may be unnecessary but ehh
     """Handles the change password POST request."""
     ChangePassword(form["accid"], form["newpass"])
+
+def GiveSupporterForm(form):
+    GiveSupporter(form["accid"], int(form["time"]))
