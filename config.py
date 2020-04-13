@@ -35,7 +35,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
     "DevBuild": False, #for developers only to create a new buildinfo.json code
     "UserCountFetchRate" : 5, #In minutes. The interval between grabbing the player count
-    "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel" #AGPL requirement i believe
+    "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel", #AGPL requirement i believe
+    "StatusIP" : "95.179.225.194" #the IP for the /current.json (ripple based switchers)
 }
 
 class JsonFile:

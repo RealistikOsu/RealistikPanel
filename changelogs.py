@@ -259,5 +259,28 @@ Changelogs = [
                 "Content" : "Added supporter management functions (not utilised yet)."
             }
         ]
+    },
+    {
+        "Build" : 1586814976,
+        "Type" : 2,
+        "Summary" : "This build focuses of adding proper donor management and password changing.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added password changing to user edition."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added supporter giving with set end time."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Fixed userpage edition causing issues on servers with the relax gamemode."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Un-hardcoded the IPs in /current.json (CurrentIP in config)."
+            }
+        ]
     }
 ]

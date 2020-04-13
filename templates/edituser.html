@@ -21,6 +21,10 @@
         {% else %}
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
         {% endif %}
+        {% if UserData["HasSupporter"] %}
+        <br>
+        <span style="color: #e8b923;">Their Donor rank expires <b>{{ UserData["DonorExpireStr"] }}</b>.</span>
+        {% endif %}
     </div>
     <div class="card-footer">
         RealistikPanel
@@ -121,6 +125,8 @@
         <p></p>
         <div class="buttons">
             <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
+            <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning">Change Password</a>
+            <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning">Award Donor</a>
         </div>
         <div class="buttons">
             <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>

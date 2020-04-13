@@ -381,7 +381,11 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     #gets users privilege
     try:
         mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
-        Privilege = mycursor.fetchall()[0][0]
+        Privilege = mycursor.fetchall()
+        if len(Privilege) == 0:
+            Privilege = 0
+        else:
+            Privilege = Privilege[0][0]
     except Exception:
         Privilege = 0
 
@@ -626,7 +630,11 @@ def FetchUsers(page = 0):
     for user in People:
         #country query
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (user[0],))
-        Country = mycursor.fetchall()[0][0]
+        Country = mycursor.fetchall()
+        if len(Country) == 0:
+            Country = "XX"
+        else:
+            Country = Country[0][0]
         Dict = {
             "Id" : user[0],
             "Name" : user[1],
@@ -667,13 +675,20 @@ def UserData(id):
     """Gets data for user. (specialised for user edit page)"""
     Data = GetUser(id)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
-    Data1 = mycursor.fetchall()[0]
+    Data1 = mycursor.fetchall()
+    if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
+        return False
+    Data1 = Data1[0]
     mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
     Data2 = mycursor.fetchall()[0]
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (id,))
     try:
-        Ip = mycursor.fetchall()[0][0]
+        Ip = mycursor.fetchall()
+        if len(Ip) == 0:
+            Ip = "0.0.0.0"
+        else:
+            Ip = Ip[0][0]
     except Exception:
         Ip = "0.0.0.0"
     #gets privilege name
@@ -697,6 +712,9 @@ def UserData(id):
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0][0]
+
+    Data["HasSupporter"] = Data["Privileges"] & 4
+    Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
@@ -764,6 +782,8 @@ def GetPrivileges():
     """Gets list of privileges."""
     mycursor.execute("SELECT * FROM privileges_groups")
     priv = mycursor.fetchall()
+    if len(priv) == 0:
+        return []
     Privs = []
     for x in priv:
         Privs.append({
@@ -790,11 +810,14 @@ def ApplyUserEdit(form, session):
     SafeUsername.replace(" ", "_")
 
     #stop people ascending themselves
-    CurrentPriv = int(session["Privilege"])
+    #OriginalPriv = int(session["Privilege"])
     FromID = session["AccountId"]
     if int(UserId) == FromID:
         mycursor.execute("SELECT privileges FROM users WHERE id = %s", (FromID,))
-        OriginalPriv = mycursor.fetchall()[0][0]
+        OriginalPriv = mycursor.fetchall()
+        if len(OriginalPriv) == 0:
+            return
+        OriginalPriv = OriginalPriv[0][0]
         if int(Privilege) > OriginalPriv:
             return
 
@@ -804,6 +827,8 @@ def ApplyUserEdit(form, session):
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
+    if UserConfig["HasRelax"]:
+        mycursor.execute("UPDATE rx_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
     mydb.commit()
 
 def ModToText(mod: int):
@@ -893,7 +918,10 @@ def WipeAccount(AccId):
 def ResUnTrict(id : int):
     """Restricts or unrestricts account yeah."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
-    Privilege = mycursor.fetchall()[0][0]
+    Privilege = mycursor.fetchall()
+    if len(Privilege) == 0:
+        return
+    Privilege = Privilege[0][0]
     if Privilege == 2: #if restricted
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s", (id,)) #unrestricts
@@ -914,8 +942,10 @@ def ResUnTrict(id : int):
 def BanUser(id : int):
     """User go bye bye!"""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
-    Privilege = mycursor.fetchall()[0][0]
-    Timestamp = round(time.time())
+    Privilege = mycursor.fetchall()
+    if len(Privilege) == 0:
+        return
+    Privilege = Privilege[0][0]
     if Privilege == 0: #if already banned
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
         TheReturn = False
@@ -1465,3 +1495,22 @@ def GetCachedStore(Username: str):
             "LastLogin" : round(time.time()),
             "LastBuild" : 0
         }
+
+def CreateBcrypt(Password: str):
+    """Creates hashed password using the hashing methods of Ripple."""
+    MD5Password = hashlib.md5(Password.encode('utf-8')).hexdigest()
+    BHashed = bcrypt.hashpw(MD5Password.encode("utf-8"), bcrypt.gensalt(10))
+    return BHashed.decode()
+
+def ChangePassword(AccountID: int, NewPassword: str):
+    """Changes the password of a user with given AccID """
+    BCrypted = CreateBcrypt(NewPassword)
+    mycursor.execute("UPDATE users SET password_md5 = %s WHERE id = %s", (BCrypted, AccountID,))
+    mydb.commit()
+
+def ChangePWForm(form): #this function may be unnecessary but ehh
+    """Handles the change password POST request."""
+    ChangePassword(form["accid"], form["newpass"])
+
+def GiveSupporterForm(form):
+    GiveSupporter(form["accid"], int(form["time"]))
