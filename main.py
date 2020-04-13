@@ -311,6 +311,8 @@ def ChangePass(AccountID):
             return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for {User['Username']}", config=UserConfig, User=User)
         if request.method == "POST":
             ChangePWForm(request.form)
+            User = GetUser(int(AccountID))
+            RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}) {request.form['time']}.")
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
@@ -323,6 +325,8 @@ def DonorAward(AccountID):
             return render_template("donoraward.html", data=DashData(), session=session, title=f"Award Donor to {User['Username']}", config=UserConfig, User=User)
         if request.method == "POST":
             GiveSupporterForm(request.form)
+            User = GetUser(int(AccountID))
+            RAPLog(session["AccountId"], f"has awarded {User['Username']} ({AccountID}) {request.form['time']} months of donor.")
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
