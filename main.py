@@ -272,19 +272,19 @@ def ChangeLogs():
 def CurrentIPs():
     """IPs for the Ripple switcher."""
     return jsonify({
-        "osu.ppy.sh": "95.179.225.194",
-        "c.ppy.sh": "95.179.225.194",
-        "c1.ppy.sh": "95.179.225.194",
-        "c2.ppy.sh": "95.179.225.194",
-        "c3.ppy.sh": "95.179.225.194",
-        "c4.ppy.sh": "95.179.225.194",
-        "c5.ppy.sh": "95.179.225.194",
-        "c6.ppy.sh": "95.179.225.194",
-        "ce.ppy.sh": "95.179.225.194",
-        "a.ppy.sh": "95.179.225.194",
-        "s.ppy.sh": "95.179.225.194",
-        "i.ppy.sh": "95.179.225.194",
-        "bm6.ppy.sh": "95.179.225.194"
+        "osu.ppy.sh": UserConfig["StatusIP"],
+        "c.ppy.sh": UserConfig["StatusIP"],
+        "c1.ppy.sh": UserConfig["StatusIP"],
+        "c2.ppy.sh": UserConfig["StatusIP"],
+        "c3.ppy.sh": UserConfig["StatusIP"],
+        "c4.ppy.sh": UserConfig["StatusIP"],
+        "c5.ppy.sh": UserConfig["StatusIP"],
+        "c6.ppy.sh": UserConfig["StatusIP"],
+        "ce.ppy.sh": UserConfig["StatusIP"],
+        "a.ppy.sh": UserConfig["StatusIP"],
+        "s.ppy.sh": UserConfig["StatusIP"],
+        "i.ppy.sh": UserConfig["StatusIP"],
+        "bm6.ppy.sh": UserConfig["StatusIP"]
     })
 
 @app.route("/toggledark")
@@ -302,6 +302,16 @@ def Admins():
     else:
          return NoPerm(session)
 
+
+@app.route("/changepass/<AccountID>", methods = ["GET", "POST"]) #may change the route to something within /user
+def ChangePass(AccountID):
+    if HasPrivilege(session["AccountId"], 6): #may create separate perm for this
+        if request.method == "GET":
+            User = GetUser(int(AccountID))
+            return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for{User['Username']}", config=UserConfig, User=User)
+        if request.method == "POST":
+            ChangePWForm(request.form)
+            return redirect(f"/user/{AccountID}")
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):

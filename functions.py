@@ -1495,3 +1495,19 @@ def GetCachedStore(Username: str):
             "LastLogin" : round(time.time()),
             "LastBuild" : 0
         }
+
+def CreateBcrypt(Password: str):
+    """Creates hashed password using the hashing methods of Ripple."""
+    MD5Password = hashlib.md5(Password.encode('utf-8')).hexdigest()
+    BHashed = bcrypt.hashpw(MD5Password.encode("utf-8"), bcrypt.gensalt(10))
+    return BHashed.decode()
+
+def ChangePassword(AccountID: int, NewPassword: str):
+    """Changes the password of a user with given AccID """
+    BCrypted = CreateBcrypt(NewPassword)
+    mycursor.execute("UPDATE users SET password = %s WHERE id = %s", (BCrypted, AccountID,))
+    mydb.commit()
+
+def ChangePWForm(form): #this function may be unnecessary but ehh
+    """Handles the change password POST request."""
+    ChangePassword(form["accid"], form["newpass"])
