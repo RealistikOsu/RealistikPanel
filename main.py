@@ -312,6 +312,8 @@ def ChangePass(AccountID):
         if request.method == "POST":
             ChangePWForm(request.form)
             return redirect(f"/user/{AccountID}")
+    else:
+         return NoPerm(session)
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
