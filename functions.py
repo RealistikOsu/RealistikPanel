@@ -1505,7 +1505,7 @@ def CreateBcrypt(Password: str):
 def ChangePassword(AccountID: int, NewPassword: str):
     """Changes the password of a user with given AccID """
     BCrypted = CreateBcrypt(NewPassword)
-    mycursor.execute("UPDATE users SET password = %s WHERE id = %s", (BCrypted, AccountID,))
+    mycursor.execute("UPDATE users SET password_md5 = %s WHERE id = %s", (BCrypted, AccountID,))
     mydb.commit()
 
 def ChangePWForm(form): #this function may be unnecessary but ehh

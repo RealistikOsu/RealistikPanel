@@ -4,8 +4,8 @@
     <div class="card-header">
         Change the password for {{ User["Username"] }}
     </div>
-    <div class="carb-body">
-        <form action="" method="post">
+    <div class="card-body">
+        <form action="/changepass/{{ User['Id'] }}" method="post">
             <div class="form-group">
                 <label>User ID</label>
                 <input type="text" class="form-control" name="accid" value="{{ User['Id'] }}" readonly>
