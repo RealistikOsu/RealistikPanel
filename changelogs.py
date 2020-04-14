@@ -299,6 +299,10 @@ Changelogs = [
             {
                 "Type" : 5,
                 "Content" : "Fixed rpusers.json not creating on first start."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Online Bancho API call will now return false if there is an error"
             }
         ]
     }
