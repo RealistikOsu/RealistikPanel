@@ -398,7 +398,7 @@ def DeleteAcc(id: int):
     """Account goes bye bye forever."""
     if HasPrivilege(session["AccountId"], 6):
         AccountToBeDeleted = GetUser(id)
-        DeleteAcc(id)
+        DeleteAccount(id)
         RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
