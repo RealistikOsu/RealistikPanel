@@ -400,7 +400,7 @@ def DeleteAcc(id: int):
         AccountToBeDeleted = GetUser(id)
         DeleteAccount(id)
         RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']} ({id})")
-        return redirect(f"/user/edit/{id}")
+        return redirect("/users/1")
     else:
          return NoPerm(session)
 @app.route("/actions/kick/<id>")

@@ -282,5 +282,24 @@ Changelogs = [
                 "Content" : "Un-hardcoded the IPs in /current.json (CurrentIP in config)."
             }
         ]
+    },
+    {
+        "Build" : 1586888761,
+        "Type" : 3,
+        "Summary" : "This build focuses on fixing exisiting issues with RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 5,
+                "Content" : "Fixed incorrect column names in delete user."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed incorrect redirect after deleting user."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed rpusers.json not creating on first start."
+            }
+        ]
     }
 ]

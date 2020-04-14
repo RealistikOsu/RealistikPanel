@@ -842,7 +842,7 @@ def ModToText(mod: int):
     if mod == 0:
         return ""
     else:
-        #addming mod names to str
+        #adding mod names to str
         #they use bitwise too just like the perms
         if mod & 1:
             Mods += "NF"
@@ -947,13 +947,14 @@ def BanUser(id : int):
     """User go bye bye!"""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()
+    Timestamp = round(time.time())
     if len(Privilege) == 0:
         return
     Privilege = Privilege[0][0]
     if Privilege == 0: #if already banned
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s", (id,))
         TheReturn = False
-    else: 
+    else:
         mycursor.execute("UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s", (Timestamp, id,))
         RemoveFromLeaderboard(id)
         r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
@@ -983,7 +984,7 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM 2fa_totp WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (id,))
-    mycursor.execute("DELETE FROM comments WHERE userid = %s", (id,))
+    mycursor.execute("DELETE FROM comments WHERE user_id = %s", (id,))
     mycursor.execute("DELETE FROM discord_roles WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM ip_user WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (id,)) 
