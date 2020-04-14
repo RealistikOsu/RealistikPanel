@@ -302,7 +302,7 @@ Changelogs = [
             },
             {
                 "Type" : 2,
-                "Content" : "Online Bancho API call will now return false if there is an error"
+                "Content" : "Online Bancho API call will now return false if there is an error."
             }
         ]
     }
