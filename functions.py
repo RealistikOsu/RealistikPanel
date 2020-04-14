@@ -982,7 +982,7 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM 2fa WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM 2fa_totp WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM beatmaps_rating WHERE userid = %s", (id,))
+    mycursor.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (id,))
     mycursor.execute("DELETE FROM comments WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM discord_roles WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM ip_user WHERE userid = %s", (id,))
