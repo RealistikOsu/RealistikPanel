@@ -334,7 +334,7 @@ def DonorAward(AccountID):
 @app.route("/rankreq/<Page>")
 def RankReq(Page):
     if HasPrivilege(session["AccountId"], 3):
-        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = Page)
+        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = int(Page))
     else:
         return NoPerm(session)
 #API for js

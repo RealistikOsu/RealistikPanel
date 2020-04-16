@@ -1570,7 +1570,7 @@ def GetRankRequests(Page: int):
         if len(TheID) == 0:
             Usernames[str(AccoundIdentity)] = {"Username" : TheID[0][0]}
     #things arent going to be very performant lmao
-    for i in range(0, len(TheRequests) + 1):
+    for i in range(0, len(TheRequests)):
         TheRequests[i]["RequestUsername"] = Usernames[str(TheRequests[i]["RequestBy"])]
     #flip so it shows newest first yes
     TheRequests.reverse()
