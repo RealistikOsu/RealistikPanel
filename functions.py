@@ -1524,7 +1524,7 @@ def GiveSupporterForm(form):
 def GetRankRequests(Page: int):
     """Gets all the rank requests. This may require some optimisation."""
     Offset = UserConfig["PageSize"] * Page #for the page system to work
-    mycursor.execute("SELECT * FROM rank_requests LIMIT ? OFFSET ?", (UserConfig['PageSize'], Offset,))
+    mycursor.execute("SELECT * FROM rank_requests LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
     RankRequests = mycursor.fetchall()
     #turning what we have so far into
     TheRequests = []
@@ -1532,9 +1532,9 @@ def GetRankRequests(Page: int):
     for Request in RankRequests:
         #getting song info, like 50 individual queries at peak lmao
         if Request[3] == "s":
-            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = ? LIMIT 1", (Request[2],))
+            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
         else:
-            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = ? LIMIT 1", (Request[2],))
+            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1", (Request[2],))
         Name = mycursor.fetchall()
         #if the info is bad
         if len(Name) == 0:
@@ -1565,7 +1565,7 @@ def GetRankRequests(Page: int):
     #getting the Requester usernames
     Usernames = {}
     for AccoundIdentity in UserIDs:
-        mycursor.execute("SELECT username FROM users WHERE id = ?", (AccoundIdentity,))
+        mycursor.execute("SELECT username FROM users WHERE id = %s", (AccoundIdentity,))
         TheID = mycursor.fetchall()
         if len(TheID) == 0:
             Usernames[str(AccoundIdentity)] = {"Username" : TheID[0][0]}
