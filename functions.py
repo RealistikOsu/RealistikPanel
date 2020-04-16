@@ -1556,4 +1556,6 @@ def GetRankRequests(Page: int):
             "Cover" : Cover,
             "BeatmapSetID" : BeatmapSetID
         })
+    #flip so it shows newest first yes
+    TheRequests.reverse()
     return TheRequests
