@@ -1303,7 +1303,7 @@ def UpdateUserStore(Username: str):
     """Updates the user info stored in rpusers.json or creates the file."""
     if not os.path.exists("rpusers.json"):
         #if doesnt exist
-        with open("rpusers.json", 'w') as json_file:
+        with open("rpusers.json", 'w+') as json_file:
             json.dump({}, json_file, indent=4)
     
     #gets current log
@@ -1316,7 +1316,7 @@ def UpdateUserStore(Username: str):
         "LastBuild" : GetBuild()
     }
 
-    with open("rpusers.json", 'w') as json_file:
+    with open("rpusers.json", 'w+') as json_file:
         json.dump(Store, json_file, indent=4)
 
     #Updating cached store
@@ -1519,3 +1519,41 @@ def ChangePWForm(form): #this function may be unnecessary but ehh
 
 def GiveSupporterForm(form):
     GiveSupporter(form["accid"], int(form["time"]))
+
+def GetRankRequests(Page: int):
+    Offset = UserConfig["PageSize"] * Page #for the page system to work
+    mycursor.execute("SELECT * FROM rank_requests LIMIT ? OFFSET ?", (UserConfig['PageSize'], Offset,))
+    RankRequests = mycursor.fetchall()
+    #turning what we have so far into
+    TheRequests = []
+    for Request in RankRequests:
+        #getting song info, like 50 individual queries at peak lmao
+        if Request[3] == "s":
+            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = ? LIMIT 1", (Request[2],))
+        else:
+            mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = ? LIMIT 1", (Request[2],))
+        Name = mycursor.fetchall()
+        #if the info is bad
+        if len(Name) == 0:
+            SongName = "Darude - Sandstorm (Song not found)"
+            BeatmapSetID = 0
+            Cover = "https://i.ytimg.com/vi/erb4n8PW2qw/maxresdefault.jpg"
+        else:
+            SongName = Name[0][0]
+            if Request[3] == "s":
+                SongName = SongName.split("[")[0] #kind of a way to get rid of diff name
+            BeatmapSetID = Name[0][1]
+            Cover = f"https://assets.ppy.sh/beatmaps/{BeatmapSetID}/covers/cover.jpg"
+        #nice dict
+        TheRequests.append({
+            "RequestID" : Request[0],
+            "RequestBy" : Request[1],
+            "RequestSongID" : Request[2], #not specifically song id or set id
+            "Type" : Request[3], #s = set b = single diff
+            "Time" : Request[4],
+            "TimeFormatted" : TimestampConverter(Request[4], 0),
+            "SongName" : SongName,
+            "Cover" : Cover,
+            "BeatmapSetID" : BeatmapSetID
+        })
+    return TheRequests

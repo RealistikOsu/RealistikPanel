@@ -330,6 +330,13 @@ def DonorAward(AccountID):
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
+
+@app.route("/rankreq/<Page>")
+def RankReq(Page):
+    if HasPrivilege(session["AccountId"], 3):
+        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig)
+    else:
+        return NoPerm(session)
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
