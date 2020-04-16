@@ -1575,3 +1575,8 @@ def GetRankRequests(Page: int):
     #flip so it shows newest first yes
     TheRequests.reverse()
     return TheRequests
+
+def DeleteBmapReq(Req):
+    """Deletes the beatmap request."""
+    mycursor.execute("DELETE FROM rank_requests WHERE id = ? LIMIT 1", (Req,))
+    mydb.commit()

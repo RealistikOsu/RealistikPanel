@@ -334,7 +334,7 @@ def DonorAward(AccountID):
 @app.route("/rankreq/<Page>")
 def RankReq(Page):
     if HasPrivilege(session["AccountId"], 3):
-        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)))
+        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int), page = Page)
     else:
         return NoPerm(session)
 #API for js
@@ -473,6 +473,14 @@ def UnrankSet(BeatmapSet: int):
         SetBMAPSetStatus(BeatmapSet, 0, session)
         RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return NoPerm(session)
+
+@app.route("/action/deleterankreq/<ReqID>")
+def MarkRequestAsDone(ReqID):
+    if HasPrivilege(session["AccountId"], 3):
+        DeleteBmapReq(ReqID)
+        return redirect("/rankreq/1")
     else:
         return NoPerm(session)
 
