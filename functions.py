@@ -1518,14 +1518,17 @@ def ChangePWForm(form): #this function may be unnecessary but ehh
     ChangePassword(form["accid"], form["newpass"])
 
 def GiveSupporterForm(form):
+    """Handles the give supporter form/POST request."""
     GiveSupporter(form["accid"], int(form["time"]))
 
 def GetRankRequests(Page: int):
+    """Gets all the rank requests. This may require some optimisation."""
     Offset = UserConfig["PageSize"] * Page #for the page system to work
     mycursor.execute("SELECT * FROM rank_requests LIMIT ? OFFSET ?", (UserConfig['PageSize'], Offset,))
     RankRequests = mycursor.fetchall()
     #turning what we have so far into
     TheRequests = []
+    UserIDs = [] #used for later fetching the users, so we dont have a repeat of 50 queries
     for Request in RankRequests:
         #getting song info, like 50 individual queries at peak lmao
         if Request[3] == "s":
@@ -1556,6 +1559,19 @@ def GetRankRequests(Page: int):
             "Cover" : Cover,
             "BeatmapSetID" : BeatmapSetID
         })
+
+        if Request[1] not in UserIDs:
+            UserIDs.append(Request[1])
+    #getting the Requester usernames
+    Usernames = {}
+    for AccoundIdentity in UserIDs:
+        mycursor.execute("SELECT username FROM users WHERE id = ?", (AccoundIdentity,))
+        TheID = mycursor.fetchall()
+        if len(TheID) == 0:
+            Usernames[str(AccoundIdentity)] = {"Username" : TheID[0][0]}
+    #things arent going to be very performant lmao
+    for i in range(0, len(TheRequests) + 1):
+        TheRequests[i]["RequestUsername"] = Usernames[str(TheRequests[i]["RequestBy"])]
     #flip so it shows newest first yes
     TheRequests.reverse()
     return TheRequests
