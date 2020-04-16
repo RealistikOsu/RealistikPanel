@@ -1523,6 +1523,7 @@ def GiveSupporterForm(form):
 
 def GetRankRequests(Page: int):
     """Gets all the rank requests. This may require some optimisation."""
+    Page -= 1
     Offset = UserConfig["PageSize"] * Page #for the page system to work
     mycursor.execute("SELECT * FROM rank_requests LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
     RankRequests = mycursor.fetchall()
@@ -1568,6 +1569,8 @@ def GetRankRequests(Page: int):
         mycursor.execute("SELECT username FROM users WHERE id = %s", (AccoundIdentity,))
         TheID = mycursor.fetchall()
         if len(TheID) == 0:
+            Usernames[str(AccoundIdentity)] = {"Username" : f"Unknown! ({AccoundIdentity})"}
+        else:
             Usernames[str(AccoundIdentity)] = {"Username" : TheID[0][0]}
     #things arent going to be very performant lmao
     for i in range(0, len(TheRequests)):
