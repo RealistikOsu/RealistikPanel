@@ -93,3 +93,7 @@ body.sidebar-mini .main-sidebar:after {
 .dropdown-item {
     color: #dadada;
 }
+
+.article-cta {
+    background-color: #2d2d2d;
+}
