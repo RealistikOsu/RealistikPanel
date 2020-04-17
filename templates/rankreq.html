@@ -7,17 +7,17 @@
     <div class="article-header">
         <div class="article-image" data-background="{{ Request['Cover'] }}" style="background-image: url(&quot;{{ Request['Cover'] }}&quot;);">
         </div>
-        <div class="article-title">
-            <h2>{{ Request["SongName"] }}</h2>
-        </div>
-        <div class="article-details">
-            This song has been requested by <b><a href="{{ config['ServerURL'] }}u/{{ Request['RequestBy'] }}">{{ Request["RequestUsername"] }}</a></b><br>
-            It was requested at <b>{{ Request['TimeFormatted'] }}</b>
-        </div>
-        <div class="article-cta buttons">
-            <a href="/rank/{{ Request['RequestSongID'] }}" class="btn btn-primary">Manage Beatmap</a>
-            <a href="/action/deleterankreq/{{ Request['RequestID'] }}" class="btn btn-primary">Mark As Done</a>
-        </div>
+    </div>
+    <div class="article-title">
+        <h2>{{ Request["SongName"] }}</h2>
+    </div>
+    <div class="article-details">
+        This song has been requested by <b><a href="{{ config['ServerURL'] }}u/{{ Request['RequestBy'] }}">{{ Request["RequestUsername"] }}</a></b><br>
+        It was requested at <b>{{ Request['TimeFormatted'] }}</b>
+    </div>
+    <div class="article-cta buttons">
+        <a href="/rank/{{ Request['RequestSongID'] }}" class="btn btn-primary">Manage Beatmap</a>
+        <a href="/action/deleterankreq/{{ Request['RequestID'] }}" class="btn btn-primary">Mark As Done</a>
     </div>
 </article>
 {% endfor %}
