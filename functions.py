@@ -1555,7 +1555,7 @@ def GetRankRequests(Page: int):
             "RequestSongID" : Request[2], #not specifically song id or set id
             "Type" : Request[3], #s = set b = single diff
             "Time" : Request[4],
-            "TimeFormatted" : TimestampConverter(Request[4], 0),
+            "TimeFormatted" : TimestampConverter(Request[4], 2),
             "SongName" : SongName,
             "Cover" : Cover,
             "BeatmapSetID" : BeatmapSetID
@@ -1581,5 +1581,5 @@ def GetRankRequests(Page: int):
 
 def DeleteBmapReq(Req):
     """Deletes the beatmap request."""
-    mycursor.execute("DELETE FROM rank_requests WHERE id = ? LIMIT 1", (Req,))
+    mycursor.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
     mydb.commit()
