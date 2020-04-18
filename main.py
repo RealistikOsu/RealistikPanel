@@ -176,6 +176,8 @@ def EditUser(id):
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.")
+        else:
+            return NoPerm(session)
 
 
 @app.route("/logs/<page>")
