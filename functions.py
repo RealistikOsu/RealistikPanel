@@ -909,7 +909,7 @@ def WipeAccount(AccId):
     mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : id,
-        "reason" : f"Your account has been wiped! F"
+        "reason" : "Your account has been wiped! F"
     }))
     if UserConfig["HasRelax"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId))
