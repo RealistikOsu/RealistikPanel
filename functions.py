@@ -191,16 +191,31 @@ def TimestampConverter(timestamp, NoDate=1):
 def RecentPlays():
     """Returns recent plays."""
     #this is probably really bad
-    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT 10")
+    DivBy = 1
+    TotalPlays = 20 #feel free to change it, dont think its necessary in the config
+    if UserConfig["HasRelax"]:
+        DivBy += 1
+    if UserConfig["HasAutopilot"]:
+        DivBy += 1
+    PerGamemode = round(TotalPlays/DivBy)
+    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT %s", (PerGamemode,))
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT 10")
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT %s", (PerGamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
             plays_rx = list(plays_rx)
             plays.append(plays_rx)
+    if UserConfig["HasAutopilot"]:
+        #adding relax plays
+        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 ORDER BY scores_ap.time DESC LIMIT %s", (PerGamemode,))
+        playx_ap = mycursor.fetchall()
+        for plays_ap in playx_ap:
+            #addint them to the list
+            plays_ap = list(plays_ap)
+            plays.append(plays_ap)
     PlaysArray = []
     #converting into lists as theyre cooler (and easier to work with)
     for x in plays:
@@ -867,11 +882,11 @@ def ModToText(mod: int):
         if mod & 1024:
             Mods += "FL"
         if mod & 2048:
-            Mods += "AP"
+            Mods += "AO"
         if mod & 4096:
             Mods += "SO"
         if mod & 8192:
-            Mods += "RX"
+            Mods += "AP"
         if mod & 16384:
             Mods += "PF"
         if mod & 32768:
@@ -913,6 +928,9 @@ def WipeAccount(AccId):
     }))
     if UserConfig["HasRelax"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
+    if UserConfig["HasAutopilot"]:
+        mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
+    #no stat reset until i fix it
     #now we reset stats... thats a bit of a query if i say so myself
     mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
     if UserConfig["HasRelax"]:
@@ -999,6 +1017,8 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
     if UserConfig["HasRelax"]:
+        mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
+    if UserConfig["HasAutopilot"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
     mydb.commit()
 

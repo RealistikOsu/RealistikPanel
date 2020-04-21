@@ -24,6 +24,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "BeatmapMirror" : "http://storage.ripple.moe/",
     "IpLookup" : "https://ip.zxq.co/",
     "HasRelax" : True,
+    "HasAutopilot" : True,
     "AvatarDir" : "/home/RIPPLE/avatarserver/av/",
     "Webhook" : "", #Discord webhook for posting newly ranked maps
     #Recaptcha v2 for the login page
