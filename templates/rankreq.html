@@ -2,26 +2,52 @@
 {% block content %}
 <h2 class="section-title">Rank Requests</h2>
 <p class="section-lead">View all beatmaps that were requested for ranking.</p>
-{% for Request in RankRequests %}
-<article class="article">
-    <div class="article-header">
-        <div class="article-image" data-background="{{ Request['Cover'] }}" style="background-image: url(&quot;{{ Request['Cover'] }}&quot;);"></div>
-        <div class="article-title">
-            <h2>{{ Request["SongName"] }}</h2>
-        </div>
+<div class="row">
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for Request in RankRequests[0] %}
+            <article class="article">
+                <div class="article-header">
+                    <div class="article-image" data-background="{{ Request['Cover'] }}" style="background-image: url(&quot;{{ Request['Cover'] }}&quot;);"></div>
+                    <div class="article-title">
+                        <h2>{{ Request["SongName"] }}</h2>
+                    </div>
+                </div>
+                <div class="article-details">
+                    This song has been requested by <b><a href="{{ config['ServerURL'] }}u/{{ Request['RequestBy'] }}">{{ Request["RequestUsername"] }}</a></b><br>
+                    It was requested at <b>{{ Request['TimeFormatted'] }}</b>
+                </div>
+                <div class="article-cta buttons">
+                    <center>
+                        <a href="/rank/{{ Request['RequestSongID'] }}" class="btn btn-primary">Manage Beatmap</a>
+                        <a href="/action/deleterankreq/{{ Request['RequestID'] }}" class="btn btn-danger">Mark As Done</a>
+                    </center>
+                </div>
+            </article>
+        {% endfor %}
     </div>
-    <div class="article-details">
-        This song has been requested by <b><a href="{{ config['ServerURL'] }}u/{{ Request['RequestBy'] }}">{{ Request["RequestUsername"] }}</a></b><br>
-        It was requested at <b>{{ Request['TimeFormatted'] }}</b>
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for Request in RankRequests[1] %}
+            <article class="article">
+                <div class="article-header">
+                    <div class="article-image" data-background="{{ Request['Cover'] }}" style="background-image: url(&quot;{{ Request['Cover'] }}&quot;);"></div>
+                    <div class="article-title">
+                        <h2>{{ Request["SongName"] }}</h2>
+                    </div>
+                </div>
+                <div class="article-details">
+                    This song has been requested by <b><a href="{{ config['ServerURL'] }}u/{{ Request['RequestBy'] }}">{{ Request["RequestUsername"] }}</a></b><br>
+                    It was requested at <b>{{ Request['TimeFormatted'] }}</b>
+                </div>
+                <div class="article-cta buttons">
+                    <center>
+                        <a href="/rank/{{ Request['RequestSongID'] }}" class="btn btn-primary">Manage Beatmap</a>
+                        <a href="/action/deleterankreq/{{ Request['RequestID'] }}" class="btn btn-danger">Mark As Done</a>
+                    </center>
+                </div>
+            </article>
+        {% endfor %}
     </div>
-    <div class="article-cta buttons">
-        <center>
-            <a href="/rank/{{ Request['RequestSongID'] }}" class="btn btn-primary">Manage Beatmap</a>
-            <a href="/action/deleterankreq/{{ Request['RequestID'] }}" class="btn btn-danger">Mark As Done</a>
-        </center>
-    </div>
-</article>
-{% endfor %}
+</div>
 <!--The page buttons-->
 <center>
     <ul class="pagination">

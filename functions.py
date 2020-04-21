@@ -1577,6 +1577,7 @@ def GetRankRequests(Page: int):
         TheRequests[i]["RequestUsername"] = Usernames[str(TheRequests[i]["RequestBy"])]["Username"]
     #flip so it shows newest first yes
     TheRequests.reverse()
+    TheRequests = SplitList(TheRequests)
     return TheRequests
 
 def DeleteBmapReq(Req):
