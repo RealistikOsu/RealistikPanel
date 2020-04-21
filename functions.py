@@ -908,7 +908,7 @@ def WipeAccount(AccId):
     """Wipes the account with the given id."""
     mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-        "userID" : id,
+        "userID" : AccId,
         "reason" : "Your account has been wiped! F"
     }))
     if UserConfig["HasRelax"]:
@@ -933,7 +933,7 @@ def ResUnTrict(id : int):
     else: 
         r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
             "userID" : id,
-            "reason" : f"Your account has been restricted! Check with staff to see what's up."
+            "reason" : "Your account has been restricted! Check with staff to see what's up."
         }))
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
