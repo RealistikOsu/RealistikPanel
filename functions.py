@@ -912,7 +912,7 @@ def WipeAccount(AccId):
         "reason" : "Your account has been wiped! F"
     }))
     if UserConfig["HasRelax"]:
-        mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId))
+        mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
     #now we reset stats... thats a bit of a query if i say so myself
     mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
     if UserConfig["HasRelax"]:
