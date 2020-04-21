@@ -811,7 +811,7 @@ def ApplyUserEdit(form, session):
     Privilege = form["privilege"]
     #Creating safe username
     SafeUsername = Username.lower()
-    SafeUsername.replace(" ", "_")
+    SafeUsername = SafeUsername.replace(" ", "_")
 
     #stop people ascending themselves
     #OriginalPriv = int(session["Privilege"])
