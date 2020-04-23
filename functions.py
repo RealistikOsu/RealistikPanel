@@ -1008,7 +1008,6 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (id,)) 
     mycursor.execute("DELETE FROM rank_requests WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM reports WHERE to_uid = %s OR from_uid = %s", (id, id,))
-    mycursor.execute("DELETE FROM remember WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM tokens WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM remember WHERE userid = %s", (id,))
     mycursor.execute("DELETE FROM users_achievements WHERE user_id = %s", (id,))

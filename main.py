@@ -494,6 +494,11 @@ def NotFoundError(error):
 @app.errorhandler(500)
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
+    try:
+        #so we fetch unfetched things so everything doesnt collapse
+        mycursor.fetchall()
+    except:
+        pass
     return render_template("500.html")
 
 #we make sure session exists
