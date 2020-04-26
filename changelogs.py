@@ -305,5 +305,32 @@ Changelogs = [
                 "Content" : "Online Bancho API call will now return false if there is an error."
             }
         ]
+    },
+    {
+        "Build" : 1587864076,
+        "Type" : 2,
+        "Summary" : "The aim of this build is to add the viewing of beatmap requests, partial autopilot support and bugfixes to some admin panel functions.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added beatmap requests apge where you can manage all beatmap requests."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added partial support for the autopilot gamemode (eg recent plays)."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed user edition with lacking privileges not returning a valid result."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed incorrect column names in user wipe."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed generation of safe usernames for users with spaces in their usernames."
+            }
+        ]
     }
 ]
