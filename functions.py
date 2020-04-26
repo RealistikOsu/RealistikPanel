@@ -693,7 +693,7 @@ def GetUser(id):
 def UserData(id):
     """Gets data for user. (specialised for user edit page)"""
     Data = GetUser(id)
-    with closing(mydb.cursor()) as mycursor:
+    with mydb.cursor() as mycursor:
         mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
         Data1 = mycursor.fetchall()
         if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
