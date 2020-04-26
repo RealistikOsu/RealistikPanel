@@ -320,6 +320,10 @@ Changelogs = [
                 "Content" : "Added partial support for the autopilot gamemode (eg recent plays)."
             },
             {
+                "Type" : 4,
+                "Content" : "Added logging to password changes via the panel."
+            },
+            {
                 "Type" : 5,
                 "Content" : "Fixed user edition with lacking privileges not returning a valid result."
             },

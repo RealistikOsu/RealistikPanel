@@ -1536,9 +1536,11 @@ def ChangePassword(AccountID: int, NewPassword: str):
     mycursor.execute("UPDATE users SET password_md5 = %s WHERE id = %s", (BCrypted, AccountID,))
     mydb.commit()
 
-def ChangePWForm(form): #this function may be unnecessary but ehh
+def ChangePWForm(form, session): #this function may be unnecessary but ehh
     """Handles the change password POST request."""
     ChangePassword(form["accid"], form["newpass"])
+    User = GetUser(form["accid"])
+    RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({form['accid']})")
 
 def GiveSupporterForm(form):
     """Handles the give supporter form/POST request."""

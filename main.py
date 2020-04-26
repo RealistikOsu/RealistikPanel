@@ -312,7 +312,7 @@ def ChangePass(AccountID):
             User = GetUser(int(AccountID))
             return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for {User['Username']}", config=UserConfig, User=User)
         if request.method == "POST":
-            ChangePWForm(request.form)
+            ChangePWForm(request.form, session)
             User = GetUser(int(AccountID))
             RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}) {request.form['time']}.")
             return redirect(f"/user/edit/{AccountID}")
