@@ -494,7 +494,6 @@ def NotFoundError(error):
 @app.errorhandler(500)
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
-    mycursor.close()
     return render_template("500.html")
 
 #we make sure session exists
