@@ -692,56 +692,56 @@ def GetUser(id):
 
 def UserData(id):
     """Gets data for user. (specialised for user edit page)"""
+    mycursor = mydb.cursor()
     Data = GetUser(id)
-    with mydb.cursor() as mycursor:
-        mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
-        Data1 = mycursor.fetchall()
-        if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
-            return False
-        Data1 = Data1[0]
-        mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
-        Data2 = mycursor.fetchall()[0]
-        #Fetches the IP
-        mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (id,))
-        try:
-            Ip = mycursor.fetchall()
-            if len(Ip) == 0:
-                Ip = "0.0.0.0"
-            else:
-                Ip = Ip[0][0]
-        except Exception:
+    mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
+    Data1 = mycursor.fetchall()
+    if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
+        return False
+    Data1 = Data1[0]
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
+    Data2 = mycursor.fetchall()[0]
+    #Fetches the IP
+    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (id,))
+    try:
+        Ip = mycursor.fetchall()
+        if len(Ip) == 0:
             Ip = "0.0.0.0"
-        #gets privilege name
-        mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
-        PrivData = mycursor.fetchall()
-        if len(PrivData) == 0:
-            PrivData = [[f"Unknown ({Data2[2]})"]]
-        #adds new info to dict
-        #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
-        Data["UserpageContent"] = Data1[0]
-        Data["UserColour"] = Data1[1]
-        Data["Aka"] = Data1[2]
-        Data["Email"] = Data2[0]
-        Data["RegisterTime"] = Data2[1]
-        Data["Privileges"] = Data2[2]
-        Data["Notes"] = Data2[3]
-        Data["DonorExpire"] = Data2[4]
-        Data["SilenceEnd"] = Data2[5]
-        Data["SilenceReason"] = Data2[6]
-        Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
-        Data["Ip"] = Ip
-        Data["CountryFull"] = GetCFullName(Data["Country"])
-        Data["PrivName"] = PrivData[0][0]
+        else:
+            Ip = Ip[0][0]
+    except Exception:
+        Ip = "0.0.0.0"
+    #gets privilege name
+    mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
+    PrivData = mycursor.fetchall()
+    if len(PrivData) == 0:
+        PrivData = [[f"Unknown ({Data2[2]})"]]
+    #adds new info to dict
+    #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
+    Data["UserpageContent"] = Data1[0]
+    Data["UserColour"] = Data1[1]
+    Data["Aka"] = Data1[2]
+    Data["Email"] = Data2[0]
+    Data["RegisterTime"] = Data2[1]
+    Data["Privileges"] = Data2[2]
+    Data["Notes"] = Data2[3]
+    Data["DonorExpire"] = Data2[4]
+    Data["SilenceEnd"] = Data2[5]
+    Data["SilenceReason"] = Data2[6]
+    Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
+    Data["Ip"] = Ip
+    Data["CountryFull"] = GetCFullName(Data["Country"])
+    Data["PrivName"] = PrivData[0][0]
 
-        Data["HasSupporter"] = Data["Privileges"] & 4
-        Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
+    Data["HasSupporter"] = Data["Privileges"] & 4
+    Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
 
-        #removing "None" from user page and admin notes
-        if Data["Notes"] == None:
-            Data["Notes"] = ""
-        if Data["UserpageContent"] == None:
-            Data["UserpageContent"] = ""
-        return Data
+    #removing "None" from user page and admin notes
+    if Data["Notes"] == None:
+        Data["Notes"] = ""
+    if Data["UserpageContent"] == None:
+        Data["UserpageContent"] = ""
+    return Data
 
 def RAPFetch(page = 1):
     """Fetches RAP Logs."""
