@@ -24,6 +24,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "BeatmapMirror" : "http://storage.ripple.moe/",
     "IpLookup" : "https://ip.zxq.co/",
     "HasRelax" : True,
+    "HasAutopilot" : True,
     "AvatarDir" : "/home/RIPPLE/avatarserver/av/",
     "Webhook" : "", #Discord webhook for posting newly ranked maps
     #Recaptcha v2 for the login page
@@ -36,7 +37,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "DevBuild": False, #for developers only to create a new buildinfo.json code
     "UserCountFetchRate" : 5, #In minutes. The interval between grabbing the player count
     "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel", #AGPL requirement i believe
-    "StatusIP" : "95.179.225.194" #the IP for the /current.json (ripple based switchers)
+    "CurrentIP" : "95.179.225.194" #the IP for the /current.json (ripple based switchers)
 }
 
 class JsonFile:

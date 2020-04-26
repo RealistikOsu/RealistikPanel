@@ -176,6 +176,8 @@ def EditUser(id):
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.")
+        else:
+            return NoPerm(session)
 
 
 @app.route("/logs/<page>")
@@ -310,7 +312,7 @@ def ChangePass(AccountID):
             User = GetUser(int(AccountID))
             return render_template("changepass.html", data=DashData(), session=session, title=f"Change the Password for {User['Username']}", config=UserConfig, User=User)
         if request.method == "POST":
-            ChangePWForm(request.form)
+            ChangePWForm(request.form, session)
             User = GetUser(int(AccountID))
             RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}) {request.form['time']}.")
             return redirect(f"/user/edit/{AccountID}")
@@ -328,6 +330,13 @@ def DonorAward(AccountID):
             User = GetUser(int(AccountID))
             RAPLog(session["AccountId"], f"has awarded {User['Username']} ({AccountID}) {request.form['time']} months of donor.")
             return redirect(f"/user/edit/{AccountID}")
+    else:
+        return NoPerm(session)
+
+@app.route("/rankreq/<Page>")
+def RankReq(Page):
+    if HasPrivilege(session["AccountId"], 3):
+        return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = int(Page))
     else:
         return NoPerm(session)
 #API for js
@@ -469,6 +478,14 @@ def UnrankSet(BeatmapSet: int):
     else:
         return NoPerm(session)
 
+@app.route("/action/deleterankreq/<ReqID>")
+def MarkRequestAsDone(ReqID):
+    if HasPrivilege(session["AccountId"], 3):
+        DeleteBmapReq(ReqID)
+        return redirect("/rankreq/1")
+    else:
+        return NoPerm(session)
+
 #error handlers
 @app.errorhandler(404)
 def NotFoundError(error):
@@ -477,6 +494,11 @@ def NotFoundError(error):
 @app.errorhandler(500)
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
+    try:
+        #so we fetch unfetched things so everything doesnt collapse
+        mycursor.fetchall()
+    except:
+        pass
     return render_template("500.html")
 
 #we make sure session exists
