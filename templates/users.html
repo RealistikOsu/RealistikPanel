@@ -73,10 +73,10 @@
             <a class="page-link" href="/users/{{ Page }}">{{ Page }}</a>
         </li>
         {% endfor %}
-        {% if page+1 > Pages[-1] %}
+        {% if page == Pages[-1] %}
         <li class="page-item disabled">
         {% else %}
-        <li class="page-item disabled">
+        <li class="page-item">
         {% endif %}
             <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
                 <span aria-hidden="true">»</span>
