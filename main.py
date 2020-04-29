@@ -163,11 +163,7 @@ def SystemSettings():
 def EditUser(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
-            UserDataa=UserData(id)
-            Privs = GetPrivileges()
-            UserBadges = GetUserBadges(id)
-            badges=GetBadges()
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserDataa, Privs = Privs, UserBadges= UserBadges, badges=badges)
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges())
         else:
              return NoPerm(session)
     if request.method == "POST":
