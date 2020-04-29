@@ -126,9 +126,11 @@ def RankFrom():
 def Users(page = 1):
     if HasPrivilege(session["AccountId"], 6):
         if request.method == "GET":
-            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page), Pages=UserPageCount())
+            Pages = UserPageCount()
+            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FetchUsers(int(page)-1), page=int(page), Pages=Pages, LastPage = Pages[-1])
         if request.method == "POST":
-            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page), User=request.form["user"], Pages=UserPageCount())
+            Pages = UserPageCount()
+            return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page), User=request.form["user"], Pages=Pages, LastPage = Pages[-1])
     else:
          return NoPerm(session)
 
