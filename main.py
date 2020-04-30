@@ -183,7 +183,7 @@ def EditUser(id):
 @app.route("/logs/<page>")
 def Logs(page):
     if HasPrivilege(session["AccountId"], 7):
-        return render_template("raplogs.html", data=DashData(), session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page))
+        return render_template("raplogs.html", data=DashData(), session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page), Pages = RapLogCount())
     else:
          return NoPerm(session)
 

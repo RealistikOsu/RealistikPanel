@@ -1631,3 +1631,25 @@ def UserPageCount():
         TheNumber -= 1
     Pages.reverse()
     return Pages
+
+def RapLogCount():
+    """Gets the amount of pages for rap logs."""
+    #i made it separate, fite me
+    mycursor.execute("SELECT count(*) FROM rap_logs")
+    TheNumber = mycursor.fetchall()[0][0]
+    #working with page number (this is a mess...)
+    TheNumber /= UserConfig["PageSize"]
+    #if not single digit, round up
+    if len(str(TheNumber)) != 0:
+        NewNumber = round(TheNumber)
+        #if number was rounded down
+        if NewNumber == round(int(str(TheNumber).split(".")[0])):
+            NewNumber += 1
+        TheNumber = NewNumber
+    #makign page dict
+    Pages = []
+    while TheNumber != 0:
+        Pages.append(TheNumber)
+        TheNumber -= 1
+    Pages.reverse()
+    return Pages
