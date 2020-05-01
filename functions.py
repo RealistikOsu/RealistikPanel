@@ -848,6 +848,8 @@ def ApplyUserEdit(form, session):
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
     if UserConfig["HasRelax"]:
         mycursor.execute("UPDATE rx_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
+    if UserConfig["HasAutopilot"]:
+        mycursor.execute("UPDATE ap_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
     mydb.commit()
 
 def ModToText(mod: int):
