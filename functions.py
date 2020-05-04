@@ -935,7 +935,7 @@ def WipeAccount(AccId):
     #no stat reset until i fix it
     #now we reset stats... thats a bit of a query if i say so myself
     mycursor.execute("""UPDATE
-            user_stats
+            users_stats
         SET
             ranked_score_std = 0,
             playcount_std = 0,
