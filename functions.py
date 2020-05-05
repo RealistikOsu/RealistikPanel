@@ -1264,7 +1264,7 @@ def GiveSupporter(AccountID : int, Duration = 1):
     if CurrentPriv & 4:
         #already has supporter, extending
         mycursor.execute("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
-        ToEnd = mycursor.execute()[0][0]
+        ToEnd = mycursor.fetchall()[0][0]
         ToEnd += 2.628e+6 * Duration
         mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
         mydb.commit()
