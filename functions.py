@@ -1539,6 +1539,8 @@ def RemoveFromLeaderboard(UserID: int):
         if UserConfig["HasRelax"]:
             #removes from relax leaderboards
             r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
+        if UserConfig["HasAutopilot"]:
+            r.zrem(f"ripple:leaderboard_ap:{mode}", UserID)
 
         #removing from country leaderboards
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
@@ -1547,6 +1549,8 @@ def RemoveFromLeaderboard(UserID: int):
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
             if UserConfig["HasRelax"]:
                 r.zrem(f"ripple:leaderboard_relax:{mode}:{Country}", UserID)
+            if UserConfig["HasAutopilot"]:
+                r.zrem(f"ripple:leaderboard_ap:{mode}:{Country}", UserID)
 
 def UpdateBanStatus(UserID: int):
     """Updates the ban statuses in bancho."""
