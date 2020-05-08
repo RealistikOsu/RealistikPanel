@@ -336,5 +336,33 @@ Changelogs = [
                 "Content" : "Fixed generation of safe usernames for users with spaces in their usernames."
             }
         ]
+    },
+    {
+        "Build" : 1588934871,
+        "Type" : 2,
+        "Summary" : "This update focuses on improving the overall experiance of using RealistikPanel and fixing some bugs.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added pagination to the users page.",
+                "Image" : "/static/img/changelog/user-pagination.png"
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added pagination to admin logs."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed remove from leaderboards not working on autopilot leaderboards."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed user wipe causing an SQL syntax error."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Disallowed the logging into the bot account."
+            }
+        ]
     }
 ]
