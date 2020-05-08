@@ -17,6 +17,37 @@
         RealistikPanel
     </div>
 </div>
+<ul class="pagination">
+    {% if page <= 1 %}
+    <li class="page-item disabled">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
+            <span aria-hidden="true">«</span>
+            <span class="sr-only">Previous</span>
+        </a>
+    </li>
+    {% for Page in Pages %}
+    {% if page == Page %}
+    <li class="page-item active">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ Page }}">{{ Page }}</a>
+    </li>
+    {% endfor %}
+    {% if page == Pages[-1] %}
+    <li class="page-item disabled">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
+            <span aria-hidden="true">»</span>
+            <span class="sr-only">Next</span>
+        </a>
+    </li>
+</ul>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -52,24 +83,35 @@
 </table>
 
 <!--The page buttons-->
-<center>
-    <ul class="pagination">
-        {% if page <= 1 %}
-        <li class="page-item disabled">
-        {% else %}
-        <li class="page-item">
-        {% endif %}
-            <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
-                <span aria-hidden="true">«</span>
-                <span class="sr-only">Previous</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
-                <span aria-hidden="true">»</span>
-                <span class="sr-only">Next</span>
-            </a>
-        </li>
-    </ul>
-</center>
+<ul class="pagination">
+    {% if page <= 1 %}
+    <li class="page-item disabled">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
+            <span aria-hidden="true">«</span>
+            <span class="sr-only">Previous</span>
+        </a>
+    </li>
+    {% for Page in Pages %}
+    {% if page == Page %}
+    <li class="page-item active">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ Page }}">{{ Page }}</a>
+    </li>
+    {% endfor %}
+    {% if page == Pages[-1] %}
+    <li class="page-item disabled">
+    {% else %}
+    <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
+            <span aria-hidden="true">»</span>
+            <span class="sr-only">Next</span>
+        </a>
+    </li>
+</ul>
 {% endblock %}

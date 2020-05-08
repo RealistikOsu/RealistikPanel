@@ -76,7 +76,7 @@ except Exception as e:
     ConsoleLog("Failed to connect to Redis", f"{e}", 3)
     exit()
 
-mycursor = mydb.cursor() #creates a thing to allow us to run mysql commands
+mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
@@ -146,23 +146,27 @@ def LoginHandler(username, password):
         PassHash = User[1]
         IsBanned = User[2]
         Privilege = User[3]
-        id = User = User[4]
+        UserID = User[4]
         
         #Converts IsBanned to bool
         if IsBanned == "0" or not IsBanned:
             IsBanned = False
         else:
             IsBanned = True
+        
+        #dont  allow the bot account to log in (in case the server has a MASSIVE loophole)
+        if UserID == 999:
+            return [False, "You may not log into the bot account."]
 
         #shouldve been done during conversion but eh
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if HasPrivilege(id):
+            if HasPrivilege(UserID):
                 if checkpw(PassHash, password):
                     return [True, "You have been logged in!", { #creating session
                         "LoggedIn" : True,
-                        "AccountId" : id,
+                        "AccountId" : UserID,
                         "AccountName" : Username,
                         "Privilege" : Privilege,
                         "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=2) #so the token expires
@@ -848,6 +852,8 @@ def ApplyUserEdit(form, session):
     mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
     if UserConfig["HasRelax"]:
         mycursor.execute("UPDATE rx_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
+    if UserConfig["HasAutopilot"]:
+        mycursor.execute("UPDATE ap_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
     mydb.commit()
 
 def ModToText(mod: int):
@@ -932,9 +938,139 @@ def WipeAccount(AccId):
         mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
     #no stat reset until i fix it
     #now we reset stats... thats a bit of a query if i say so myself
-    mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
+    mycursor.execute("""UPDATE
+            users_stats
+        SET
+            ranked_score_std = 0,
+            playcount_std = 0,
+            total_score_std = 0,
+            replays_watched_std = 0,
+            ranked_score_taiko = 0,
+            playcount_taiko = 0,
+            total_score_taiko = 0,
+            replays_watched_taiko = 0,
+            ranked_score_ctb = 0,
+            playcount_ctb = 0,
+            total_score_ctb = 0,
+            replays_watched_ctb = 0,
+            ranked_score_mania = 0,
+            playcount_mania = 0,
+            total_score_mania = 0,
+            replays_watched_mania = 0,
+            total_hits_std = 0,
+            total_hits_taiko = 0,
+            total_hits_ctb = 0,
+            total_hits_mania = 0,
+            unrestricted_pp = 0,
+            level_std = 0,
+            level_taiko = 0,
+            level_ctb = 0,
+            level_mania = 0,
+            playtime_std = 0,
+            playtime_taiko = 0,
+            playtime_ctb = 0,
+            playtime_mania = 0,
+            avg_accuracy_std = 0.000000000000,
+            avg_accuracy_taiko = 0.000000000000,
+            avg_accuracy_ctb = 0.000000000000,
+            avg_accuracy_mania = 0.000000000000,
+            pp_std = 0,
+            pp_taiko = 0,
+            pp_ctb = 0,
+            pp_mania = 0
+        WHERE
+            id = %s
+    """, (AccId,))
+
     if UserConfig["HasRelax"]:
-        mycursor.execute("UPDATE user_stats SET ranked_score_std = 0, playcount_std = 0, total_score_std = 0, replays_watched_std = 0, ranked_score_taiko = 0, playcount_taiko = 0, total_score_taiko = 0, replays_watched_taiko = 0, ranked_score_ctb = 0, playcount_ctb = 0, total_score_ctb = 0, replays_watched_ctb = 0, ranked_score_mania = 0, playcount_mania = 0, total_score_mania = 0, replays_watched_mania = 0, total_hits_std = 0, total_hits_taiko = 0, total_hits_ctb = 0, total_hits_mania = 0, unrestricted_pp = 0, level_std = 0, level_taiko = 0, level_ctb = 0, level_mania = 0, playtime_std = 0. playtime_taiko = 0, playtime_ctb = 0, playtime_mania = 0, avg_accuracy_std = 0.000000000000, avg_accuracy_taiko = 0.000000000000, avg_accuracy_ctb = 0.000000000000, avg_accuracy_mania = 0.000000000000, pp_std = 0, pp_taiko = 0, pp_ctb = 0, pp_mania = 0 WHERE id = %s", (AccId,))
+        mycursor.execute("""UPDATE
+                rx_stats
+            SET
+                ranked_score_std = 0,
+                playcount_std = 0,
+                total_score_std = 0,
+                replays_watched_std = 0,
+                ranked_score_taiko = 0,
+                playcount_taiko = 0,
+                total_score_taiko = 0,
+                replays_watched_taiko = 0,
+                ranked_score_ctb = 0,
+                playcount_ctb = 0,
+                total_score_ctb = 0,
+                replays_watched_ctb = 0,
+                ranked_score_mania = 0,
+                playcount_mania = 0,
+                total_score_mania = 0,
+                replays_watched_mania = 0,
+                total_hits_std = 0,
+                total_hits_taiko = 0,
+                total_hits_ctb = 0,
+                total_hits_mania = 0,
+                unrestricted_pp = 0,
+                level_std = 0,
+                level_taiko = 0,
+                level_ctb = 0,
+                level_mania = 0,
+                playtime_std = 0,
+                playtime_taiko = 0,
+                playtime_ctb = 0,
+                playtime_mania = 0,
+                avg_accuracy_std = 0.000000000000,
+                avg_accuracy_taiko = 0.000000000000,
+                avg_accuracy_ctb = 0.000000000000,
+                avg_accuracy_mania = 0.000000000000,
+                pp_std = 0,
+                pp_taiko = 0,
+                pp_ctb = 0,
+                pp_mania = 0
+            WHERE
+                id = %s
+        """, (AccId,))
+    if UserConfig["HasAutopilot"]:
+        mycursor.execute("""UPDATE
+                ap_stats
+            SET
+                ranked_score_std = 0,
+                playcount_std = 0,
+                total_score_std = 0,
+                replays_watched_std = 0,
+                ranked_score_taiko = 0,
+                playcount_taiko = 0,
+                total_score_taiko = 0,
+                replays_watched_taiko = 0,
+                ranked_score_ctb = 0,
+                playcount_ctb = 0,
+                total_score_ctb = 0,
+                replays_watched_ctb = 0,
+                ranked_score_mania = 0,
+                playcount_mania = 0,
+                total_score_mania = 0,
+                replays_watched_mania = 0,
+                total_hits_std = 0,
+                total_hits_taiko = 0,
+                total_hits_ctb = 0,
+                total_hits_mania = 0,
+                unrestricted_pp = 0,
+                level_std = 0,
+                level_taiko = 0,
+                level_ctb = 0,
+                level_mania = 0,
+                playtime_std = 0,
+                playtime_taiko = 0,
+                playtime_ctb = 0,
+                playtime_mania = 0,
+                avg_accuracy_std = 0.000000000000,
+                avg_accuracy_taiko = 0.000000000000,
+                avg_accuracy_ctb = 0.000000000000,
+                avg_accuracy_mania = 0.000000000000,
+                pp_std = 0,
+                pp_taiko = 0,
+                pp_ctb = 0,
+                pp_mania = 0
+            WHERE
+                id = %s
+        """, (AccId,))
+    
     mydb.commit()
 
 def ResUnTrict(id : int):
@@ -1132,7 +1268,7 @@ def GiveSupporter(AccountID : int, Duration = 1):
     if CurrentPriv & 4:
         #already has supporter, extending
         mycursor.execute("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
-        ToEnd = mycursor.execute()[0][0]
+        ToEnd = mycursor.fetchall()[0][0]
         ToEnd += 2.628e+6 * Duration
         mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
         mydb.commit()
@@ -1407,6 +1543,8 @@ def RemoveFromLeaderboard(UserID: int):
         if UserConfig["HasRelax"]:
             #removes from relax leaderboards
             r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
+        if UserConfig["HasAutopilot"]:
+            r.zrem(f"ripple:leaderboard_ap:{mode}", UserID)
 
         #removing from country leaderboards
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
@@ -1415,6 +1553,8 @@ def RemoveFromLeaderboard(UserID: int):
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
             if UserConfig["HasRelax"]:
                 r.zrem(f"ripple:leaderboard_relax:{mode}:{Country}", UserID)
+            if UserConfig["HasAutopilot"]:
+                r.zrem(f"ripple:leaderboard_ap:{mode}:{Country}", UserID)
 
 def UpdateBanStatus(UserID: int):
     """Updates the ban statuses in bancho."""
@@ -1609,3 +1749,47 @@ def DeleteBmapReq(Req):
     """Deletes the beatmap request."""
     mycursor.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
     mydb.commit()
+
+def UserPageCount():
+    """Gets the amount of pages for users."""
+    #i made it separate, fite me
+    mycursor.execute("SELECT count(*) FROM users")
+    TheNumber = mycursor.fetchall()[0][0]
+    #working with page number (this is a mess...)
+    TheNumber /= UserConfig["PageSize"]
+    #if not single digit, round up
+    if len(str(TheNumber)) != 0:
+        NewNumber = round(TheNumber)
+        #if number was rounded down
+        if NewNumber == round(int(str(TheNumber).split(".")[0])):
+            NewNumber += 1
+        TheNumber = NewNumber
+    #makign page dict
+    Pages = []
+    while TheNumber != 0:
+        Pages.append(TheNumber)
+        TheNumber -= 1
+    Pages.reverse()
+    return Pages
+
+def RapLogCount():
+    """Gets the amount of pages for rap logs."""
+    #i made it separate, fite me
+    mycursor.execute("SELECT count(*) FROM rap_logs")
+    TheNumber = mycursor.fetchall()[0][0]
+    #working with page number (this is a mess...)
+    TheNumber /= UserConfig["PageSize"]
+    #if not single digit, round up
+    if len(str(TheNumber)) != 0:
+        NewNumber = round(TheNumber)
+        #if number was rounded down
+        if NewNumber == round(int(str(TheNumber).split(".")[0])):
+            NewNumber += 1
+        TheNumber = NewNumber
+    #makign page dict
+    Pages = []
+    while TheNumber != 0:
+        Pages.append(TheNumber)
+        TheNumber -= 1
+    Pages.reverse()
+    return Pages
