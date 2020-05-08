@@ -146,23 +146,27 @@ def LoginHandler(username, password):
         PassHash = User[1]
         IsBanned = User[2]
         Privilege = User[3]
-        id = User = User[4]
+        UserID = User[4]
         
         #Converts IsBanned to bool
         if IsBanned == "0" or not IsBanned:
             IsBanned = False
         else:
             IsBanned = True
+        
+        #dont  allow the bot account to log in (in case the server has a MASSIVE loophole)
+        if UserID == 999:
+            return [False, "You may not log into the bot account."]
 
         #shouldve been done during conversion but eh
         if IsBanned:
             return [False, "You are banned... Awkward..."]
         else:
-            if HasPrivilege(id):
+            if HasPrivilege(UserID):
                 if checkpw(PassHash, password):
                     return [True, "You have been logged in!", { #creating session
                         "LoggedIn" : True,
-                        "AccountId" : id,
+                        "AccountId" : UserID,
                         "AccountName" : Username,
                         "Privilege" : Privilege,
                         "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=2) #so the token expires
