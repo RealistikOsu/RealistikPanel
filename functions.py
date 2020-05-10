@@ -803,7 +803,7 @@ def GetCFullName(ISO3166):
 
 def GetPrivileges():
     """Gets list of privileges."""
-    mycursor.execute("SELECT * FROM privileges_groups")
+    mycursor.execute("SELECT IFNULL(*, '') FROM privileges_groups")
     priv = mycursor.fetchall()
     if len(priv) == 0:
         return []
