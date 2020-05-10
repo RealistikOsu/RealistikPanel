@@ -694,20 +694,20 @@ def GetUser(id):
         "Country" : User[3]
     }
 
-def UserData(id):
+def UserData(UserID):
     """Gets data for user. (specialised for user edit page)"""
-    Data = GetUser(id)
-    mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
+    Data = GetUser(UserID)
+    mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchall()
     if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
         return False
     Data1 = Data1[0]
-    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchall()[0]
     #Fetches the IP
-    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (id,))
+    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
+    Ip = mycursor.fetchall()
     try:
-        Ip = mycursor.fetchall()
         if len(Ip) == 0:
             Ip = "0.0.0.0"
         else:
@@ -731,7 +731,7 @@ def UserData(id):
     Data["DonorExpire"] = Data2[4]
     Data["SilenceEnd"] = Data2[5]
     Data["SilenceReason"] = Data2[6]
-    Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
+    Data["Avatar"] = UserConfig["AvatarServer"] + str(UserID)
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0][0]
