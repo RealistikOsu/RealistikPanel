@@ -343,7 +343,7 @@ def RankReq(Page):
 @app.route("/clans/<Page>")
 def ClanRoute(Page):
     if HasPrivilege(session["AccountId"], 15):
-        return render_template("clansview.html", data=DashData(), session=session, title="Clans", config=UserConfig, page = int(Page), Clans = GetClans(Page))
+        return render_template("clansview.html", data=DashData(), session=session, title="Clans", config=UserConfig, page = int(Page), Clans = GetClans(Page), Pages = GetClanPages())
     else:
         return NoPerm(session)
 
