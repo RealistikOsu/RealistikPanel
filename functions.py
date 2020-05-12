@@ -1793,3 +1793,23 @@ def RapLogCount():
         TheNumber -= 1
     Pages.reverse()
     return Pages
+
+def GetClans(Page: int = 1):
+    """Gets a list of all clans (v1)."""
+    #offsets and limits
+    Page -=1
+    Offset = UserConfig["PageSize"] * Page
+    #the sql part
+    mycursor.execute("SELECT id, name, description, icon, tag FROM clans LIMIT %s OFFSET %s", (UserConfig["PageSize"], Offset))
+    ClansDB = mycursor.fetchall()
+    #making cool, easy to work with dicts and arrays!
+    Clans = []
+    for Clan in ClansDB:
+        Clans.append({
+            "ID" : Clan[0],
+            "Name" : Clan[1],
+            "Description" : Clan[2],
+            "Icon": Clan[3],
+            "Tag" : Clan[4]
+        })
+    return Clans
