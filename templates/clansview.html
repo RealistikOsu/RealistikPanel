@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="section-title">Clans</h2>
+<p class="section-lead">View, edit and manage user-made clans!</p>
+
+<div class="card">
+    <div class="card-header">
+        Badges
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for Clan in Clans %}
+                <tr>
+                    <td>{{ Clan["ID"] }}</td>
+                    <td>[{{ Clan["Tag"] }}] {{ Clan["Name"] }}</td>
+                    <td>{{ Clan["Description"] }}</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
+
+{% include 'pagination.html' %}
+{% endblock %}

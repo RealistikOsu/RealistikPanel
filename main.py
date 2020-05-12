@@ -339,6 +339,14 @@ def RankReq(Page):
         return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = int(Page))
     else:
         return NoPerm(session)
+
+@app.route("/clans/<Page>")
+def ClanRoute(Page):
+    if HasPrivilege(session["AccountId"], 15):
+        return render_template("clansview.html", data=DashData(), session=session, title="Clans", config=UserConfig, page = int(Page), Clans = GetClans(Page))
+    else:
+        return NoPerm(session)
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):

@@ -349,6 +349,8 @@ def GetBmapInfo(id):
 
 def HasPrivilege(UserID : int, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
+    #tbh i shouldve done it where you pass the priv enum instead
+
     # 0 = no verification
     # 1 = Only registration required
     # 2 = RAP Access Required
@@ -364,6 +366,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 12 = Kick users required
     # 13 = Manage Privileges
     # 14 = View RealistikPanel error/console logs
+    # 15 = Manage Clans (RealistikPanel specific permission)
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -393,20 +396,18 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPNominateAccept = 2 << 24
     RPOverwatch = 2 << 25
     RPErrorLogs = 2 << 26
+    RPManageClans = 2 << 27
 
     if ReqPriv == 0: #dont use this like at all
         return True
 
     #gets users privilege
-    try:
-        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
-        Privilege = mycursor.fetchall()
-        if len(Privilege) == 0:
-            Privilege = 0
-        else:
-            Privilege = Privilege[0][0]
-    except Exception:
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
+    Privilege = mycursor.fetchall()
+    if len(Privilege) == 0:
         Privilege = 0
+    else:
+        Privilege = Privilege[0][0]
 
     if ReqPriv == 1:
         result = Privilege & UserNormal
@@ -436,6 +437,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & ManagePrivileges
     elif ReqPriv == 14:
         result = Privilege & RPErrorLogs
+    elif ReqPriv == 15:
+        result = Privilege & RPManageClans
     
     if result >= 1:
         return True
