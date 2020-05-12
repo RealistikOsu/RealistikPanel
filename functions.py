@@ -1800,7 +1800,7 @@ def RapLogCount():
 def GetClans(Page: int = 1):
     """Gets a list of all clans (v1)."""
     #offsets and limits
-    Page -=1
+    Page = int(Page) - 1
     Offset = UserConfig["PageSize"] * Page
     #the sql part
     mycursor.execute("SELECT id, name, description, icon, tag FROM clans LIMIT %s OFFSET %s", (UserConfig["PageSize"], Offset))
