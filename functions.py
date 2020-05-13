@@ -1841,3 +1841,30 @@ def GetClanPages():
 def GetAccuracy(count300, count100, count50, countMiss):
     """Converts 300, 100, 50 and miss count into osu accuracy."""
     return (50*count50 + 100*count100 + 300*count300) / (3*(countMiss + count50 + count100 + count300))
+
+def GetClanMembers(ClanID: int):
+    """Returns a list of clan members."""
+    #ok so we assume the list isnt going to be too long
+    mycursor.execute("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    ClanUsers = mycursor.fetchall()
+    if len(ClanUsers) == 0:
+        return []
+    Conditions = ""
+    #this is so we can use one long query rather than a bunch of small ones
+    for ClanUser in ClanUsers:
+        Conditions += f"id = {ClanUser[0]} OR "
+    Conditions = Conditions[:-4] #remove the OR
+    
+    #getting the users
+    mycursor.execute(f"SELECT username, id, register_datetime FROM users WHERE {Conditions}") #here i use format as the conditions are a trusted input
+    UserData = mycursor.fetchall()
+    #turning the data into a dictionary list
+    ReturnList = []
+    for User in UserData:
+        ReturnList.append({
+            "AccountID" : User[1],
+            "Username" : User[0],
+            "RegisterTimestamp" : User[2],
+            "RegisterAgo" : TimeToTimeAgo(User[2])
+        })
+    return ReturnList
