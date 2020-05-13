@@ -678,7 +678,7 @@ def FetchUsers(page = 0):
 def GetUser(id):
     """Gets data for user. (universal)"""
     mycursor.execute("SELECT id, username, pp_std, country FROM users_stats WHERE id = %s LIMIT 1", (id,))
-    User = mycursor.fetchall()
+    User = mycursor.fetchone()
     if len(User) == 0:
         #if no one found
         return {
@@ -688,7 +688,6 @@ def GetUser(id):
             "IsOnline" : False,
             "Country" : "GB" #RULE BRITANNIA
         }
-    User = User[0]
     return {
         "Id" : User[0],
         "Username" : User[1],
@@ -701,12 +700,11 @@ def UserData(UserID):
     """Gets data for user. (specialised for user edit page)"""
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
-    Data1 = mycursor.fetchall()
+    Data1 = mycursor.fetchone()
     if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
         return False
-    Data1 = Data1[0]
     mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
-    Data2 = mycursor.fetchall()[0]
+    Data2 = mycursor.fetchone()
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
     Ip = mycursor.fetchall()
