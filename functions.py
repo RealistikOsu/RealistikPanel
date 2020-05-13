@@ -63,7 +63,7 @@ try:
         passwd=UserConfig["SQLPassword"]
     ) #connects to database
     print(f"{Fore.GREEN} Successfully connected to MySQL!")
-    mydb.autocommit(True)
+    mydb.autocommit = True
 except Exception as e:
     print(f"{Fore.RED} Failed connecting to MySQL! Abandoning!\n Error: {e}{Fore.RESET}")
     ConsoleLog("Failed to connect to MySQL", f"{e}", 3)
