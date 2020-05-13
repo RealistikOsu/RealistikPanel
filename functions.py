@@ -702,17 +702,17 @@ def UserData(UserID):
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchone()
-    if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
+    if Data1 == None: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
         return False
     mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchone()
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
-    Ip = mycursor.fetchall()
-    if len(Ip) == 0:
+    Ip = mycursor.fetchone()
+    if Ip == None:
         Ip = "0.0.0.0"
     else:
-        Ip = Ip[0][0]
+        Ip = Ip[0]
     #gets privilege name
     mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
     PrivData = mycursor.fetchall()
