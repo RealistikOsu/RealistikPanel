@@ -680,7 +680,7 @@ def GetUser(id):
     """Gets data for user. (universal)"""
     mycursor.execute("SELECT id, username, pp_std, country FROM users_stats WHERE id = %s LIMIT 1", (id,))
     User = mycursor.fetchone()
-    if len(User) == 0:
+    if User == None:
         #if no one found
         return {
             "Id" : 0,
