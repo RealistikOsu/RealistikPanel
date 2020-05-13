@@ -715,8 +715,8 @@ def UserData(UserID):
         Ip = Ip[0]
     #gets privilege name
     mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
-    PrivData = mycursor.fetchall()
-    if len(PrivData) == 0:
+    PrivData = mycursor.fetchone()
+    if PrivData == None:
         PrivData = [[f"Unknown ({Data2[2]})"]]
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
@@ -733,7 +733,7 @@ def UserData(UserID):
     Data["Avatar"] = UserConfig["AvatarServer"] + str(UserID)
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
-    Data["PrivName"] = PrivData[0][0]
+    Data["PrivName"] = PrivData[0]
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
@@ -830,6 +830,10 @@ def ApplyUserEdit(form, session):
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername = SafeUsername.replace(" ", "_")
+
+    #fixing crash bug
+    if UserPage == "":
+        UserPage = None
 
     #stop people ascending themselves
     #OriginalPriv = int(session["Privilege"])
@@ -1833,3 +1837,7 @@ def GetClanPages():
         TheNumber -= 1
     Pages.reverse()
     return Pages
+
+def GetAccuracy(count300, count100, count50, countMiss):
+    """Converts 300, 100, 50 and miss count into osu accuracy."""
+    return (50*count50 + 100*count100 + 300*count300) / (3*(countMiss + count50 + count100 + count300))

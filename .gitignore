@@ -1,6 +1,6 @@
 __pycache__/
-config.py
 config.json
 cache.json
 realistikpanel.log
 rpusers.json
+test.py
