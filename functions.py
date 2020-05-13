@@ -710,13 +710,10 @@ def UserData(UserID):
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
     Ip = mycursor.fetchall()
-    try:
-        if len(Ip) == 0:
-            Ip = "0.0.0.0"
-        else:
-            Ip = Ip[0][0]
-    except Exception:
+    if len(Ip) == 0:
         Ip = "0.0.0.0"
+    else:
+        Ip = Ip[0][0]
     #gets privilege name
     mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
     PrivData = mycursor.fetchall()
