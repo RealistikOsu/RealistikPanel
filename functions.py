@@ -81,6 +81,17 @@ mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql 
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
+#fix potential crashes
+#have to do it this way as the crash issue is a connector module issue
+mycursor.execute("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
+BadUserCount = mycursor.fetchone()[0]
+if BadUserCount > 0:
+    print(f"{Fore.RED} Found {BadUserCount} users with potentially problematic data!{Fore.RESET}")
+    print(" Fixing...", end="")#end = "" means it doesnt do a newline
+    mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = ''")
+    mydb.commit()
+    print(" Done!")
+
 #public variables
 PlayerCount = [] # list of players 
 CachedStore = {}

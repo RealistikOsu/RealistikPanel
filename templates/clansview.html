@@ -22,9 +22,14 @@
                 {% for Clan in Clans %}
                 <tr>
                     <td>{{ Clan["ID"] }}</td>
-                    <td>[{{ Clan["Tag"] }}] {{ Clan["Name"] }}</td>
+                    <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
                     <td>{{ Clan["Description"] }}</td>
-                    <td></td>
+                    <td>
+                        <div class="buttons">
+                            <a class="btn btn-warning" href="/clan/edit/{{ Clan['ID'] }}">Edit</a>
+                            <a class="btn btn-danger" href="/clan/confirmdelete/{{ Clan['ID'] }}">Disband</a>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
