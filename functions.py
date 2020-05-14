@@ -1879,3 +1879,22 @@ def GetClanMembers(ClanID: int):
             "RegisterAgo" : TimeToTimeAgo(User[2])
         })
     return ReturnList
+
+def GetClan(ClanID: int):
+    """Gets information for a specified clan."""
+    mycursor.execute("SELECT id, name, description, icon, tag, mlimit FROM clans WHERE id = %s LIMIT 1", (ClanID,))
+    Clan = mycursor.fetchone()
+    if Clan == None:
+        return False
+    #getting current member count
+    mycursor.execute("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
+    MemberCount = mycursor.fetchone()[0]
+    return {
+        "ID" : Clan[0],
+        "Name" : Clan[1],
+        "Description" : Clan[2],
+        "Icon" : Clan[3],
+        "Tag" : Clan[4],
+        "MemberLimit" : Clan[5],
+        "MemberCount" : MemberCount
+    }
