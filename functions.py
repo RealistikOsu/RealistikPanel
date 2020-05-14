@@ -1898,3 +1898,8 @@ def GetClan(ClanID: int):
         "MemberLimit" : Clan[5],
         "MemberCount" : MemberCount
     }
+
+def GetClanOwner(ClanID: int):
+    """Gets user info for the owner of a clan."""
+    #will do tmw. im tired
+    return {}

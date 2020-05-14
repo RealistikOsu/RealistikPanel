@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        {% if Clan["Icon"] %}
+        <img alt="image" src="{{ Clan['Icon'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        {% endif %}
+        <h4><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</h4>
+    </div>
+    <div class="card-body">
+        <b>{{ Clan["Description"] }}</b><br>
+        This clan currently has {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
+    </div>
+    <div class="card-footer">
+        Owned by <b>{{ ClanOwner["Name"] }}</b>
+    </div>
+</div>
+{% endblock %}

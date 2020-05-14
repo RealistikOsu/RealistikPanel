@@ -347,6 +347,13 @@ def ClanRoute(Page):
     else:
         return NoPerm(session)
 
+@app.route("/clan/<ClanID>", methods = ["GET", "POST"])
+def ClanEditRoute(ClanID):
+    if HasPrivilege(session["AccountId"], 15):
+        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=GetClanMembers(ClanID), ClanOwner = GetClanOwner(ClanID))
+    else:
+        return NoPerm(session)
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
