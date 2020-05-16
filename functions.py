@@ -63,6 +63,7 @@ try:
         passwd=UserConfig["SQLPassword"]
     ) #connects to database
     print(f"{Fore.GREEN} Successfully connected to MySQL!")
+    mydb.autocommit = True
 except Exception as e:
     print(f"{Fore.RED} Failed connecting to MySQL! Abandoning!\n Error: {e}{Fore.RESET}")
     ConsoleLog("Failed to connect to MySQL", f"{e}", 3)
@@ -79,6 +80,17 @@ except Exception as e:
 mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
 mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+#fix potential crashes
+#have to do it this way as the crash issue is a connector module issue
+mycursor.execute("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
+BadUserCount = mycursor.fetchone()[0]
+if BadUserCount > 0:
+    print(f"{Fore.RED} Found {BadUserCount} users with potentially problematic data!{Fore.RESET}")
+    print(" Fixing...", end="")#end = "" means it doesnt do a newline
+    mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = ''")
+    mydb.commit()
+    print(" Done!")
 
 #public variables
 PlayerCount = [] # list of players 
@@ -349,6 +361,8 @@ def GetBmapInfo(id):
 
 def HasPrivilege(UserID : int, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
+    #tbh i shouldve done it where you pass the priv enum instead
+
     # 0 = no verification
     # 1 = Only registration required
     # 2 = RAP Access Required
@@ -364,6 +378,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 12 = Kick users required
     # 13 = Manage Privileges
     # 14 = View RealistikPanel error/console logs
+    # 15 = Manage Clans (RealistikPanel specific permission)
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -393,20 +408,18 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPNominateAccept = 2 << 24
     RPOverwatch = 2 << 25
     RPErrorLogs = 2 << 26
+    RPManageClans = 2 << 27
 
     if ReqPriv == 0: #dont use this like at all
         return True
 
     #gets users privilege
-    try:
-        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
-        Privilege = mycursor.fetchall()
-        if len(Privilege) == 0:
-            Privilege = 0
-        else:
-            Privilege = Privilege[0][0]
-    except Exception:
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
+    Privilege = mycursor.fetchall()
+    if len(Privilege) == 0:
         Privilege = 0
+    else:
+        Privilege = Privilege[0][0]
 
     if ReqPriv == 1:
         result = Privilege & UserNormal
@@ -436,6 +449,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & ManagePrivileges
     elif ReqPriv == 14:
         result = Privilege & RPErrorLogs
+    elif ReqPriv == 15:
+        result = Privilege & RPManageClans
     
     if result >= 1:
         return True
@@ -466,7 +481,6 @@ def Webhook(BeatmapId, ActionName, session):
     if URL == "":
         #if no webhook is set, dont do anything
         return
-    headers = {'Content-Type': 'application/json'}
     mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (BeatmapId,))
     mapa = mycursor.fetchall()
     mapa = mapa[0]
@@ -675,8 +689,8 @@ def FetchUsers(page = 0):
 def GetUser(id):
     """Gets data for user. (universal)"""
     mycursor.execute("SELECT id, username, pp_std, country FROM users_stats WHERE id = %s LIMIT 1", (id,))
-    User = mycursor.fetchall()
-    if len(User) == 0:
+    User = mycursor.fetchone()
+    if User == None:
         #if no one found
         return {
             "Id" : 0,
@@ -685,7 +699,6 @@ def GetUser(id):
             "IsOnline" : False,
             "Country" : "GB" #RULE BRITANNIA
         }
-    User = User[0]
     return {
         "Id" : User[0],
         "Username" : User[1],
@@ -694,30 +707,27 @@ def GetUser(id):
         "Country" : User[3]
     }
 
-def UserData(id):
+def UserData(UserID):
     """Gets data for user. (specialised for user edit page)"""
-    Data = GetUser(id)
-    mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (id,))# Req 1
-    Data1 = mycursor.fetchall()
-    if len(Data1) == 0: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
-        return False
-    Data1 = Data1[0]
-    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (id,))
-    Data2 = mycursor.fetchall()[0]
+    #fix badbad data
+    mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s", (UserID,))
+    mydb.commit()
+    Data = GetUser(UserID)
+    mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
+    Data1 = mycursor.fetchone()
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
+    Data2 = mycursor.fetchone()
     #Fetches the IP
-    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (id,))
-    try:
-        Ip = mycursor.fetchall()
-        if len(Ip) == 0:
-            Ip = "0.0.0.0"
-        else:
-            Ip = Ip[0][0]
-    except Exception:
+    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
+    Ip = mycursor.fetchone()
+    if Ip == None:
         Ip = "0.0.0.0"
+    else:
+        Ip = Ip[0]
     #gets privilege name
     mycursor.execute("SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1", (Data2[2],))
-    PrivData = mycursor.fetchall()
-    if len(PrivData) == 0:
+    PrivData = mycursor.fetchone()
+    if PrivData == None:
         PrivData = [[f"Unknown ({Data2[2]})"]]
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
@@ -731,10 +741,10 @@ def UserData(id):
     Data["DonorExpire"] = Data2[4]
     Data["SilenceEnd"] = Data2[5]
     Data["SilenceReason"] = Data2[6]
-    Data["Avatar"] = UserConfig["AvatarServer"] + str(id)
+    Data["Avatar"] = UserConfig["AvatarServer"] + str(UserID)
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
-    Data["PrivName"] = PrivData[0][0]
+    Data["PrivName"] = PrivData[0]
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
@@ -831,6 +841,10 @@ def ApplyUserEdit(form, session):
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername = SafeUsername.replace(" ", "_")
+
+    #fixing crash bug
+    if UserPage == "":
+        UserPage = None
 
     #stop people ascending themselves
     #OriginalPriv = int(session["Privilege"])
@@ -1264,11 +1278,11 @@ def GiveSupporter(AccountID : int, Duration = 1):
     #checking if person already has supporter
     #also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
-    CurrentPriv = mycursor.fetchall()[0][0]
+    CurrentPriv = mycursor.fetchone()[0]
     if CurrentPriv & 4:
         #already has supporter, extending
         mycursor.execute("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
-        ToEnd = mycursor.fetchall()[0][0]
+        ToEnd = mycursor.fetchone()[0]
         ToEnd += 2.628e+6 * Duration
         mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
         mydb.commit()
@@ -1281,7 +1295,7 @@ def GiveSupporter(AccountID : int, Duration = 1):
 def RemoveSupporter(AccountID: int):
     """Removes supporter from the target user."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
-    CurrentPriv = mycursor.fetchall()[0][0]
+    CurrentPriv = mycursor.fetchone()[0]
     #checking if they dont have it so privs arent messed up
     if CurrentPriv & 4:
         return
@@ -1309,7 +1323,7 @@ def DeleteBadge(BadgeId : int):
 def GetBadge(BadgeID:int):
     """Gets data of given badge."""
     mycursor.execute("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
-    BadgeData = mycursor.fetchall()[0]
+    BadgeData = mycursor.fetchone()
     return {
         "Id" : BadgeData[0],
         "Name" : BadgeData[1],
@@ -1354,12 +1368,12 @@ def CreateBadge():
     mydb.commit()
     #checking the ID
     mycursor.execute("SELECT id FROM badges ORDER BY id DESC LIMIT 1")
-    return mycursor.fetchall()[0][0]
+    return mycursor.fetchone()[0]
 
 def GetPriv(PrivID: int):
     """Gets the priv data from ID."""
     mycursor.execute("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
-    Priv = mycursor.fetchall()[0]
+    Priv = mycursor.fetchone()
     return {
         "Id" : Priv[0],
         "Name" : Priv[1],
@@ -1376,7 +1390,7 @@ def UpdatePriv(Form):
     """Updates the privilege from form."""
     #Get previous privilege number
     mycursor.execute("SELECT privileges FROM privileges_groups WHERE id = %s", (Form['id'],))
-    PrevPriv = mycursor.fetchall()[0][0]
+    PrevPriv = mycursor.fetchone()[0]
     #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
@@ -1386,7 +1400,7 @@ def UpdatePriv(Form):
 def GetMostPlayed():
     """Gets the beatmap with the highest playcount."""
     mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1")
-    Beatmap = mycursor.fetchall()[0]
+    Beatmap = mycursor.fetchone()
     return {
         "BeatmapId" : Beatmap[0],
         "SongName" : Beatmap[1],
@@ -1522,11 +1536,22 @@ def GetStore():
 
     return TheList
 
-def SplitList(TheList : list):
+def SplitListTrue(TheList : list):
     """Splits list into 2 halves (thanks stackoverflow)."""
     length = len(TheList)
     return [ TheList[i*length // 2: (i+1)*length // 2] 
             for i in range(2) ]
+
+def SplitList(TheList: list):
+    """Splits list and ensures the 1st list is the longer one"""
+    SplitLists = SplitListTrue(TheList)
+    List1 = SplitLists[0]
+    List2 = SplitLists[1]
+    if len(List2) > len(List1):
+        LastElement = List2[-1]
+        List2.remove(LastElement)
+        List1.append(LastElement)
+    return [List1, List2]
 
 def TimeToTimeAgo(Timestamp: int):
     """Converts a seconds timestamp to a timeago string."""
@@ -1548,7 +1573,7 @@ def RemoveFromLeaderboard(UserID: int):
 
         #removing from country leaderboards
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
-        Country = mycursor.fetchall()[0][0]
+        Country = mycursor.fetchone()[0]
         if Country != "XX": #check if the country is not set
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
             if UserConfig["HasRelax"]:
@@ -1574,7 +1599,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
         TitleText = "loved"
     
     mycursor.execute("SELECT song_name, beatmap_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
-    MapData = mycursor.fetchall()[0]
+    MapData = mycursor.fetchone()
     #Getting bmap name without diff
     BmapName = MapData[0].split("[")[0] #¯\_(ツ)_/¯ might work
     #webhook, didnt use webhook function as it was too adapted for single map webhook
@@ -1629,7 +1654,7 @@ def FindUserByUsername(User: str, Page):
         for yuser in Users:
             #country query
             mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (yuser[0],))
-            Country = mycursor.fetchall()[0][0]
+            Country = mycursor.fetchone()[0]
             Dict = {
                 "Id" : yuser[0],
                 "Name" : yuser[1],
@@ -1754,7 +1779,7 @@ def UserPageCount():
     """Gets the amount of pages for users."""
     #i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM users")
-    TheNumber = mycursor.fetchall()[0][0]
+    TheNumber = mycursor.fetchone()[0]
     #working with page number (this is a mess...)
     TheNumber /= UserConfig["PageSize"]
     #if not single digit, round up
@@ -1776,7 +1801,7 @@ def RapLogCount():
     """Gets the amount of pages for rap logs."""
     #i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM rap_logs")
-    TheNumber = mycursor.fetchall()[0][0]
+    TheNumber = mycursor.fetchone()[0]
     #working with page number (this is a mess...)
     TheNumber /= UserConfig["PageSize"]
     #if not single digit, round up
@@ -1793,3 +1818,131 @@ def RapLogCount():
         TheNumber -= 1
     Pages.reverse()
     return Pages
+
+def GetClans(Page: int = 1):
+    """Gets a list of all clans (v1)."""
+    #offsets and limits
+    Page = int(Page) - 1
+    Offset = UserConfig["PageSize"] * Page
+    #the sql part
+    mycursor.execute("SELECT id, name, description, icon, tag FROM clans LIMIT %s OFFSET %s", (UserConfig["PageSize"], Offset))
+    ClansDB = mycursor.fetchall()
+    #making cool, easy to work with dicts and arrays!
+    Clans = []
+    for Clan in ClansDB:
+        Clans.append({
+            "ID" : Clan[0],
+            "Name" : Clan[1],
+            "Description" : Clan[2],
+            "Icon": Clan[3],
+            "Tag" : Clan[4]
+        })
+    return Clans
+
+def GetClanPages():
+    """Gets amount of pages for clans."""
+    mycursor.execute("SELECT count(*) FROM clans")
+    TheNumber = mycursor.fetchone()[0]
+    #working with page number (this is a mess...)
+    TheNumber /= UserConfig["PageSize"]
+    #if not single digit, round up
+    if len(str(TheNumber)) != 0:
+        NewNumber = round(TheNumber)
+        #if number was rounded down
+        if NewNumber == round(int(str(TheNumber).split(".")[0])):
+            NewNumber += 1
+        TheNumber = NewNumber
+    #makign page dict
+    Pages = []
+    while TheNumber != 0:
+        Pages.append(TheNumber)
+        TheNumber -= 1
+    Pages.reverse()
+    return Pages
+
+def GetAccuracy(count300, count100, count50, countMiss):
+    """Converts 300, 100, 50 and miss count into osu accuracy."""
+    return (50*count50 + 100*count100 + 300*count300) / (3*(countMiss + count50 + count100 + count300))
+
+def GetClanMembers(ClanID: int):
+    """Returns a list of clan members."""
+    #ok so we assume the list isnt going to be too long
+    mycursor.execute("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    ClanUsers = mycursor.fetchall()
+    if len(ClanUsers) == 0:
+        return []
+    Conditions = ""
+    #this is so we can use one long query rather than a bunch of small ones
+    for ClanUser in ClanUsers:
+        Conditions += f"id = {ClanUser[0]} OR "
+    Conditions = Conditions[:-4] #remove the OR
+    
+    #getting the users
+    mycursor.execute(f"SELECT username, id, register_datetime FROM users WHERE {Conditions}") #here i use format as the conditions are a trusted input
+    UserData = mycursor.fetchall()
+    #turning the data into a dictionary list
+    ReturnList = []
+    for User in UserData:
+        ReturnList.append({
+            "AccountID" : User[1],
+            "Username" : User[0],
+            "RegisterTimestamp" : User[2],
+            "RegisterAgo" : TimeToTimeAgo(User[2])
+        })
+    return ReturnList
+
+def GetClan(ClanID: int):
+    """Gets information for a specified clan."""
+    mycursor.execute("SELECT id, name, description, icon, tag, mlimit FROM clans WHERE id = %s LIMIT 1", (ClanID,))
+    Clan = mycursor.fetchone()
+    if Clan == None:
+        return False
+    #getting current member count
+    mycursor.execute("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
+    MemberCount = mycursor.fetchone()[0]
+    return {
+        "ID" : Clan[0],
+        "Name" : Clan[1],
+        "Description" : Clan[2],
+        "Icon" : Clan[3],
+        "Tag" : Clan[4],
+        "MemberLimit" : Clan[5],
+        "MemberCount" : MemberCount
+    }
+
+def GetClanOwner(ClanID: int):
+    """Gets user info for the owner of a clan."""
+    #wouldve been done quicker but i decided to play jawbreaker and only got up to 81%
+    mycursor.execute("SELECT user FROM user_clans WHERE clan = %s and perms = 8", (ClanID,))
+    AccountID = mycursor.fetchone()[0] #assuming there is an owner and clan exists
+    #getting account info
+    mycursor.execute("SELECT username FROM users WHERE id = %s", (AccountID,)) #will add more info maybe
+    #assuming user exists
+    User = mycursor.fetchone()
+    return {
+        "AccountID" : AccountID,
+        "Username" : User[0]
+    }
+
+def ApplyClanEdit(Form, session):
+    """Uses the post request to set new clan settings."""
+    ClanID = Form["id"]
+    ClanName = Form["name"]
+    ClanDesc = Form["desc"]
+    ClanTag = Form["tag"]
+    ClanIcon = Form["icon"]
+    MemberLimit = Form["limit"]
+    mycursor.execute("UPDATE clans SET name=%s, description=%s, tag=%s, mlimit=%s, icon=%s WHERE id = %s LIMIT 1", (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID))
+    mydb.commit()
+    RAPLog(session["AccountId"], f"edited the clan {ClanName} ({ClanID})")
+
+def NukeClan(ClanID: int, session):
+    """Deletes a clan from the face of the earth."""
+    Clan = GetClan(ClanID)
+    if not Clan:
+        return
+    
+    mycursor.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
+    mycursor.execute("DELETE FROM user_clans WHERE clan=%s", (ClanID,))
+    mydb.commit()
+    RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")

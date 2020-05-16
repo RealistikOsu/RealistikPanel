@@ -339,6 +339,36 @@ def RankReq(Page):
         return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = int(Page))
     else:
         return NoPerm(session)
+
+@app.route("/clans/<Page>")
+def ClanRoute(Page):
+    if HasPrivilege(session["AccountId"], 15):
+        return render_template("clansview.html", data=DashData(), session=session, title="Clans", config=UserConfig, page = int(Page), Clans = GetClans(Page), Pages = GetClanPages())
+    else:
+        return NoPerm(session)
+
+@app.route("/clan/<ClanID>", methods = ["GET", "POST"])
+def ClanEditRoute(ClanID):
+    if HasPrivilege(session["AccountId"], 15):
+        if request.method == "GET":
+            return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID))
+        ApplyClanEdit(request.form, session)
+        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), success="Clan edited successfully!")
+    else:
+        return NoPerm(session)
+
+@app.route("/clan/delete/<ClanID>")
+def ClanFinalDelete(ClanID):
+    NukeClan(ClanID, session)
+    return redirect("/clans/1")
+
+@app.route("/clan/confirmdelete/<ClanID>")
+def ClanDeleteConfirm(ClanID):
+    if HasPrivilege(session["AccountId"], 15):
+        Clan = GetClan(ClanID)
+        return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f" delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
+    return NoPerm(session)
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
