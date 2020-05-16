@@ -12,8 +12,8 @@
         This clan currently has {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
     </div>
     <div class="card-footer">
-        img alt="image" src="{{ config['AvatarServer'] }}{{ ClanOwner["AccountID"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        This clan is led by <b>{{ ClanOwner["Name"] }}</b>
+        <img alt="image" src="{{ config['AvatarServer'] }}{{ ClanOwner['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        This clan is led by <b>{{ ClanOwner["Username"] }}</b>
     </div>
 </div>
 <div class="card">
@@ -24,19 +24,19 @@
         <form action="/clan/{{ Clan['ID'] }}" method="post">
             <div class="form-group">
                 <label>Clan Name</label>
-                <input type="text" class="form-control" name="email" value="{{ Clan['Name'] }}">
+                <input type="text" class="form-control" name="name" value="{{ Clan['Name'] }}">
             </div>
             <div class="form-group">
                 <label>Clan Tag</label>
-                <input type="text" class="form-control" name="email" value="{{ Clan['Tag'] }}">
+                <input type="text" class="form-control" name="tag" value="{{ Clan['Tag'] }}">
             </div>
             <div class="form-group">
                 <label>Clan Icon</label>
-                <input type="text" class="form-control" name="email" value="{{ Clan['Icon'] }}">
+                <input type="text" class="form-control" name="icon" value="{{ Clan['Icon'] }}">
             </div>
             <div class="form-group">
                 <label>Member Limit</label>
-                <input type="number" class="form-control" name="email" value="{{ Clan['Icon'] }}">
+                <input type="number" class="form-control" name="limit" value="{{ Clan['Icon'] }}">
             </div>
             <button class="btn btn-success" type="submit" name="">Apply!</button>
         </form>
