@@ -364,5 +364,28 @@ Changelogs = [
                 "Content" : "Disallowed the logging into the bot account."
             }
         ]
+    },
+    {
+        "Build" : 1589636106,
+        "Type" : 1,
+        "Summary" : "This build's primary objectives are the addition of a clan management system, new privileges and the fix of major bugs.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added clan management, allowing for the viewing, edition and deletion of user clans."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Adjusted list splitting."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Optimised backend SQL cursor fetches."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed specific users causing the whole SQL connection to break."
+            }
+        ]
     }
 ]
