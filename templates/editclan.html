@@ -42,4 +42,34 @@
         </form>
     </div>
 </div>
+<h2 class="section-title">Clan Members</h2>
+<div class="row">
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for Member in Members[0] %}
+        <div class="card">
+            <div class="card-header">
+                <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+                {{ Member["Username"] }}
+            </div>
+            <div class="card-body">
+                They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for Member in Members[1] %}
+        <div class="card">
+            <div class="card-header">
+                <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+                {{ Member["Username"] }}
+            </div>
+            <div class="card-body">
+                They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}

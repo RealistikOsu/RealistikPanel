@@ -350,7 +350,7 @@ def ClanRoute(Page):
 @app.route("/clan/<ClanID>", methods = ["GET", "POST"])
 def ClanEditRoute(ClanID):
     if HasPrivilege(session["AccountId"], 15):
-        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=GetClanMembers(ClanID), ClanOwner = GetClanOwner(ClanID))
+        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID))
     else:
         return NoPerm(session)
 
