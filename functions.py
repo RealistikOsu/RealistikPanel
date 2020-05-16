@@ -1922,3 +1922,15 @@ def GetClanOwner(ClanID: int):
         "AccountID" : AccountID,
         "Username" : User[0]
     }
+
+def ApplyClanEdit(Form, session):
+    """Uses the post request to set new clan settings."""
+    ClanID = Form["id"]
+    ClanName = Form["name"]
+    ClanDesc = Form["desc"]
+    ClanTag = Form["tag"]
+    ClanIcon = Form["icon"]
+    MemberLimit = Form["limit"]
+    mycursor.execute("UPDATE clans SET name=%s, description=%s, tag=%s, mlimit=%s, icon=%s WHERE id = %s LIMIT 1", (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID))
+    mydb.commit()
+    RAPLog(session["AccountId"], f"edited the clan {ClanName} ({ClanID})")

@@ -23,12 +23,20 @@
     <div class="card-body">
         <form action="/clan/{{ Clan['ID'] }}" method="post">
             <div class="form-group">
+                <label>Clan ID</label>
+                <input type="text" class="form-control" name="id" value="{{ Clan['ID'] }}">
+            </div>
+            <div class="form-group">
                 <label>Clan Name</label>
                 <input type="text" class="form-control" name="name" value="{{ Clan['Name'] }}">
             </div>
             <div class="form-group">
                 <label>Clan Tag</label>
                 <input type="text" class="form-control" name="tag" value="{{ Clan['Tag'] }}">
+            </div>
+            <div class="form-group">
+                <label>Clan Description</label>
+                <input type="text" class="form-control" name="desc" value="{{ Clan['Description'] }}">
             </div>
             <div class="form-group">
                 <label>Clan Icon</label>
