@@ -1536,11 +1536,22 @@ def GetStore():
 
     return TheList
 
-def SplitList(TheList : list):
+def SplitListTrue(TheList : list):
     """Splits list into 2 halves (thanks stackoverflow)."""
     length = len(TheList)
     return [ TheList[i*length // 2: (i+1)*length // 2] 
             for i in range(2) ]
+
+def SplitList(TheList: list):
+    """Splits list and ensures the 1st list is the longer one"""
+    SplitLists = SplitListTrue(TheList)
+    List1 = SplitLists[0]
+    List2 = SplitLists[1]
+    if len(List2) > len(List1):
+        LastElement = List2[-1]
+        List2.remove(LastElement)
+        List1.append(LastElement)
+    return [List1, List2]
 
 def TimeToTimeAgo(Timestamp: int):
     """Converts a seconds timestamp to a timeago string."""
