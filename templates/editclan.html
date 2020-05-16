@@ -49,7 +49,7 @@
         <div class="card">
             <div class="card-header">
                 <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-                {{ Member["Username"] }}
+                <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
             </div>
             <div class="card-body">
                 They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
@@ -62,7 +62,7 @@
         <div class="card">
             <div class="card-header">
                 <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-                {{ Member["Username"] }}
+                <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
             </div>
             <div class="card-body">
                 They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
