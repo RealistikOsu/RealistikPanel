@@ -12,7 +12,34 @@
         This clan currently has {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
     </div>
     <div class="card-footer">
-        Owned by <b>{{ ClanOwner["Name"] }}</b>
+        img alt="image" src="{{ config['AvatarServer'] }}{{ ClanOwner["AccountID"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        This clan is led by <b>{{ ClanOwner["Name"] }}</b>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        Clan Options
+    </div>
+    <div class="card-body">
+        <form action="/clan/{{ Clan['ID'] }}" method="post">
+            <div class="form-group">
+                <label>Clan Name</label>
+                <input type="text" class="form-control" name="email" value="{{ Clan['Name'] }}">
+            </div>
+            <div class="form-group">
+                <label>Clan Tag</label>
+                <input type="text" class="form-control" name="email" value="{{ Clan['Tag'] }}">
+            </div>
+            <div class="form-group">
+                <label>Clan Icon</label>
+                <input type="text" class="form-control" name="email" value="{{ Clan['Icon'] }}">
+            </div>
+            <div class="form-group">
+                <label>Member Limit</label>
+                <input type="number" class="form-control" name="email" value="{{ Clan['Icon'] }}">
+            </div>
+            <button class="btn btn-success" type="submit" name="">Apply!</button>
+        </form>
     </div>
 </div>
 {% endblock %}

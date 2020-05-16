@@ -1901,5 +1901,14 @@ def GetClan(ClanID: int):
 
 def GetClanOwner(ClanID: int):
     """Gets user info for the owner of a clan."""
-    #will do tmw. im tired
-    return {}
+    #wouldve been done quicker but i decided to play jawbreaker and only got up to 81%
+    mycursor.execute("SELECT user FROM user_clans WHERE clan = %s and perms = 8", (ClanID,))
+    AccountID = mycursor.fetchone()[0] #assuming there is an owner and clan exists
+    #getting account info
+    mycursor.execute("SELECT username FROM users WHERE id = %s", (AccountID,)) #will add more info maybe
+    #assuming user exists
+    User = mycursor.fetchone()
+    return {
+        "AccountID" : AccountID,
+        "Username" : User[0]
+    }
