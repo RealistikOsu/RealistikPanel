@@ -352,7 +352,7 @@ def ClanEditRoute(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         if request.method == "GET":
             return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID))
-        ApplyClanEdit(request, session)
+        ApplyClanEdit(request.form, session)
         return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), success="Clan edited successfully!")
     else:
         return NoPerm(session)
