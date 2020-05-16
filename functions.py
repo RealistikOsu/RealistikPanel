@@ -481,7 +481,6 @@ def Webhook(BeatmapId, ActionName, session):
     if URL == "":
         #if no webhook is set, dont do anything
         return
-    headers = {'Content-Type': 'application/json'}
     mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (BeatmapId,))
     mapa = mycursor.fetchall()
     mapa = mapa[0]
@@ -1278,11 +1277,11 @@ def GiveSupporter(AccountID : int, Duration = 1):
     #checking if person already has supporter
     #also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
-    CurrentPriv = mycursor.fetchall()[0][0]
+    CurrentPriv = mycursor.fetchone()[0]
     if CurrentPriv & 4:
         #already has supporter, extending
         mycursor.execute("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
-        ToEnd = mycursor.fetchall()[0][0]
+        ToEnd = mycursor.fetchone()[0]
         ToEnd += 2.628e+6 * Duration
         mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
         mydb.commit()
@@ -1295,7 +1294,7 @@ def GiveSupporter(AccountID : int, Duration = 1):
 def RemoveSupporter(AccountID: int):
     """Removes supporter from the target user."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
-    CurrentPriv = mycursor.fetchall()[0][0]
+    CurrentPriv = mycursor.fetchone()[0]
     #checking if they dont have it so privs arent messed up
     if CurrentPriv & 4:
         return
@@ -1323,7 +1322,7 @@ def DeleteBadge(BadgeId : int):
 def GetBadge(BadgeID:int):
     """Gets data of given badge."""
     mycursor.execute("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
-    BadgeData = mycursor.fetchall()[0]
+    BadgeData = mycursor.fetchone()
     return {
         "Id" : BadgeData[0],
         "Name" : BadgeData[1],
@@ -1368,12 +1367,12 @@ def CreateBadge():
     mydb.commit()
     #checking the ID
     mycursor.execute("SELECT id FROM badges ORDER BY id DESC LIMIT 1")
-    return mycursor.fetchall()[0][0]
+    return mycursor.fetchone()[0]
 
 def GetPriv(PrivID: int):
     """Gets the priv data from ID."""
     mycursor.execute("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
-    Priv = mycursor.fetchall()[0]
+    Priv = mycursor.fetchone()
     return {
         "Id" : Priv[0],
         "Name" : Priv[1],
@@ -1390,7 +1389,7 @@ def UpdatePriv(Form):
     """Updates the privilege from form."""
     #Get previous privilege number
     mycursor.execute("SELECT privileges FROM privileges_groups WHERE id = %s", (Form['id'],))
-    PrevPriv = mycursor.fetchall()[0][0]
+    PrevPriv = mycursor.fetchone()[0]
     #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
@@ -1400,7 +1399,7 @@ def UpdatePriv(Form):
 def GetMostPlayed():
     """Gets the beatmap with the highest playcount."""
     mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1")
-    Beatmap = mycursor.fetchall()[0]
+    Beatmap = mycursor.fetchone()
     return {
         "BeatmapId" : Beatmap[0],
         "SongName" : Beatmap[1],
@@ -1573,7 +1572,7 @@ def RemoveFromLeaderboard(UserID: int):
 
         #removing from country leaderboards
         mycursor.execute("SELECT country FROM users_stats WHERE id = %s LIMIT 1", (UserID,))
-        Country = mycursor.fetchall()[0][0]
+        Country = mycursor.fetchone()[0]
         if Country != "XX": #check if the country is not set
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
             if UserConfig["HasRelax"]:
@@ -1599,7 +1598,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
         TitleText = "loved"
     
     mycursor.execute("SELECT song_name, beatmap_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
-    MapData = mycursor.fetchall()[0]
+    MapData = mycursor.fetchone()
     #Getting bmap name without diff
     BmapName = MapData[0].split("[")[0] #¯\_(ツ)_/¯ might work
     #webhook, didnt use webhook function as it was too adapted for single map webhook
@@ -1654,7 +1653,7 @@ def FindUserByUsername(User: str, Page):
         for yuser in Users:
             #country query
             mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (yuser[0],))
-            Country = mycursor.fetchall()[0][0]
+            Country = mycursor.fetchone()[0]
             Dict = {
                 "Id" : yuser[0],
                 "Name" : yuser[1],
@@ -1779,7 +1778,7 @@ def UserPageCount():
     """Gets the amount of pages for users."""
     #i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM users")
-    TheNumber = mycursor.fetchall()[0][0]
+    TheNumber = mycursor.fetchone()[0]
     #working with page number (this is a mess...)
     TheNumber /= UserConfig["PageSize"]
     #if not single digit, round up
@@ -1801,7 +1800,7 @@ def RapLogCount():
     """Gets the amount of pages for rap logs."""
     #i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM rap_logs")
-    TheNumber = mycursor.fetchall()[0][0]
+    TheNumber = mycursor.fetchone()[0]
     #working with page number (this is a mess...)
     TheNumber /= UserConfig["PageSize"]
     #if not single digit, round up
@@ -1842,7 +1841,7 @@ def GetClans(Page: int = 1):
 def GetClanPages():
     """Gets amount of pages for clans."""
     mycursor.execute("SELECT count(*) FROM clans")
-    TheNumber = mycursor.fetchall()[0][0]
+    TheNumber = mycursor.fetchone()[0]
     #working with page number (this is a mess...)
     TheNumber /= UserConfig["PageSize"]
     #if not single digit, round up
