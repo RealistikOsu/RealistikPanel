@@ -366,7 +366,7 @@ def ClanFinalDelete(ClanID):
 def ClanDeleteConfirm(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         Clan = GetClan(ClanID)
-        return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f"delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
+        return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f" delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
     return NoPerm(session)
 
 #API for js
