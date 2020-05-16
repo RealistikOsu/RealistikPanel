@@ -709,11 +709,12 @@ def GetUser(id):
 
 def UserData(UserID):
     """Gets data for user. (specialised for user edit page)"""
+    #fix badbad data
+    mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s", (UserID,))
+    mydb.commit()
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchone()
-    if Data1 == None: #check for stupid bugs THAT SOMEHOW BREAK THE ENTIRE PANEL LIEK WTF
-        return False
     mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchone()
     #Fetches the IP
