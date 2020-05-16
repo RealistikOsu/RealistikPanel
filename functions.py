@@ -1935,3 +1935,14 @@ def ApplyClanEdit(Form, session):
     mycursor.execute("UPDATE clans SET name=%s, description=%s, tag=%s, mlimit=%s, icon=%s WHERE id = %s LIMIT 1", (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID))
     mydb.commit()
     RAPLog(session["AccountId"], f"edited the clan {ClanName} ({ClanID})")
+
+def NukeClan(ClanID: int, session):
+    """Deletes a clan from the face of the earth."""
+    Clan = GetClan(ClanID)
+    if not Clan:
+        return
+    
+    mycursor.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
+    mycursor.execute("DELETE FROM user_clans WHERE clan=%s", (ClanID,))
+    mydb.commit()
+    RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")

@@ -357,6 +357,18 @@ def ClanEditRoute(ClanID):
     else:
         return NoPerm(session)
 
+@app.route("/clan/delete/<ClanID>")
+def ClanFinalDelete(ClanID):
+    NukeClan(ClanID, session)
+    return redirect("/clans/1")
+
+@app.route("/clan/confirmdelete/<ClanID>")
+def ClanDeleteConfirm(ClanID):
+    if HasPrivilege(session["AccountId"], 15):
+        Clan = GetClan(ClanID)
+        return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f"delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
+    return NoPerm(session)
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
