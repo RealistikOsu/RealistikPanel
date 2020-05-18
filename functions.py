@@ -1537,10 +1537,23 @@ def GetStore():
     return TheList
 
 def SplitListTrue(TheList : list):
-    """Splits list into 2 halves (thanks stackoverflow)."""
+    """Splits list into 2 halves."""
+    """
     length = len(TheList)
     return [ TheList[i*length // 2: (i+1)*length // 2] 
             for i in range(2) ]
+    """
+    Cool = 0
+    List1 = []
+    List2 = []
+    for Thing in TheList:
+        if Cool == 0:
+            List1.append(Thing)
+            Cool = 1
+        else:
+            List2.append(Thing)
+            Cool = 0
+    return [List1, List2]
 
 def SplitList(TheList: list):
     """Splits list and ensures the 1st list is the longer one"""
