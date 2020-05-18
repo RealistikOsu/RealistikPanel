@@ -43,7 +43,7 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     }
     if not os.path.exists("realistikpanel.log"):
         #if doesnt exist
-        with open("realistikpanel.log", 'w') as json_file:
+        with open("realistikpanel.log", "w+") as json_file:
             json.dump([], json_file, indent=4)
     
     #gets current log
