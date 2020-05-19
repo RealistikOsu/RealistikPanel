@@ -28,6 +28,7 @@ Everyday tons of new features
 - Editing users
 - Creating and assigning badges
 - Management of clans
+
 Almost everything RAP has to offer and more!
 
 # Support
