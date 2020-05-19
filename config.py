@@ -15,6 +15,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "RedisHost" : "localhost",
     "RedisPort" : 6379,
     "RedisDb" : 0,
+    "RedisPassword" : "",
     #Server Settings
     "ServerName" : "RealistikOsu!",
     "ServerURL" : "https://ussr.pl/",
