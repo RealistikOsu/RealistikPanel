@@ -38,7 +38,8 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "DevBuild": False, #for developers only to create a new buildinfo.json code
     "UserCountFetchRate" : 5, #In minutes. The interval between grabbing the player count
     "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel", #AGPL requirement i believe
-    "CurrentIP" : "95.179.225.194" #the IP for the /current.json (ripple based switchers)
+    "CurrentIP" : "95.179.225.194", #the IP for the /current.json (ripple based switchers)
+    "TimezoneOffset" : 1 #offset for hours, can be negative
 }
 
 class JsonFile:

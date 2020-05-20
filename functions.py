@@ -191,6 +191,7 @@ def LoginHandler(username, password):
 def TimestampConverter(timestamp, NoDate=1):
     """Converts timestamps into readable time."""
     date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
+    date += timedelta(hours=UserConfig["TimezoneOffset"]) #adding timezone offset to current time
     #so we avoid things like 21:6
     #hour = str(date.hour)
     #minute = str(date.minute)
