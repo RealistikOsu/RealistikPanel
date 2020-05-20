@@ -262,7 +262,7 @@ def RecentPlays():
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
         Dicti["Time"] = TimestampConverter(x[3])
-        Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]))
+        Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
     
     ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
