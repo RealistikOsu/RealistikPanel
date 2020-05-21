@@ -171,7 +171,7 @@ def EditUser(id):
             try:
                 ApplyUserEdit(request.form, session)
                 RAPLog(session["AccountId"], f"has edited the user {request.form.get('username', 'NOT FOUND')}")
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!")
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
