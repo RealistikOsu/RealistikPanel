@@ -594,7 +594,6 @@ def ApplySystemSettings(DataArray, Session):
 
 def IsOnline(AccountId: int):
     """Checks if given user is online."""
-    return True
     Online = requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()
     if Online["status"] == 200:
         return Online["result"]
