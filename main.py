@@ -169,19 +169,8 @@ def EditUser(id):
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             try:
-                UserId = request.form.get("userid", False)
-                Username = request.form.get("username", False)
-                Aka = request.form.get("aka", False)
-                Email = request.form.get("email", False)
-                Country = request.form.get("country", False)
-                UserPage = request.form.get("userpage", False)
-                Notes = request.form.get("notes", False)
-                Privilege = request.form.get("privilege", False)
-
-                print([UserId, Username, Aka, Email, Country, UserPage, Notes, Privilege])
-                
                 ApplyUserEdit(request.form, session)
-                RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
+                RAPLog(session["AccountId"], f"has edited the user {request.form.get('username', 'NOT FOUND')}")
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
             except Exception as e:
                 print(e)
