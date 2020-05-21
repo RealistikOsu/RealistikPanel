@@ -384,7 +384,7 @@ def LetsStatus():
     return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status").json()) #this url to provide a predictable result
 @app.route("/js/status/bancho")
 def BanchoStatus():
-    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus")) #this url to provide a predictable result
+    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
 
 #actions
 @app.route("/actions/wipe/<id>")
