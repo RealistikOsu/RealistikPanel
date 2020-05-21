@@ -594,6 +594,7 @@ def ApplySystemSettings(DataArray, Session):
 
 def IsOnline(AccountId: int):
     """Checks if given user is online."""
+    return True
     Online = requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()
     if Online["status"] == 200:
         return Online["result"]
@@ -832,14 +833,17 @@ def GetPrivileges():
 def ApplyUserEdit(form, session):
     """Apples the user settings."""
     #getting variables from form
-    UserId = form["userid"]
-    Username = form["username"]
-    Aka = form["aka"]
-    Email = form["email"]
-    Country = form["country"]
-    UserPage = form["userpage"]
-    Notes = form["notes"]
-    Privilege = form["privilege"]
+    UserId = form.get("userid", False)
+    Username = form.get("username", False)
+    Aka = form.get("aka", False)
+    Email = form.get("email", False)
+    Country = form.get("country", False)
+    UserPage = form.get("userpage", False)
+    Notes = form.get("notes", False)
+    Privilege = form.get("privilege", False)
+    if not UserId or not Username:
+        print("Yo you seriously messed up the form")
+        raise NameError
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername = SafeUsername.replace(" ", "_")
@@ -861,7 +865,8 @@ def ApplyUserEdit(form, session):
             return
 
     #Badges
-    BadgeList = [int(form["Badge1"]), int(form["Badge2"]), int(form["Badge3"]), int(form["Badge4"]), int(form["Badge5"]), int(form["Badge6"])]
+
+    BadgeList = [int(form.get("Badge1", 0)), int(form.get("Badge2", 0)), int(form.get("Badge3", 0)), int(form.get("Badge4", 0)), int(form.get("Badge5", 0)), int(form.get("Badge6", 0))]
     SetUserBadges(UserId, BadgeList)
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))

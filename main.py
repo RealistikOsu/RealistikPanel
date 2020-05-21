@@ -169,6 +169,17 @@ def EditUser(id):
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             try:
+                UserId = request.form.get("userid", False)
+                Username = request.form.get("username", False)
+                Aka = request.form.get("aka", False)
+                Email = request.form.get("email", False)
+                Country = request.form.get("country", False)
+                UserPage = request.form.get("userpage", False)
+                Notes = request.form.get("notes", False)
+                Privilege = request.form.get("privilege", False)
+
+                print([UserId, Username, Aka, Email, Country, UserPage, Notes, Privilege])
+                
                 ApplyUserEdit(request.form, session)
                 RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
@@ -381,10 +392,10 @@ def ApiStatus():
     return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/users/rxfull?id=1000").json()) #this url to provide a predictable result
 @app.route("/js/status/lets")
 def LetsStatus():
-    return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/pp?b=1058295").json()) #this url to provide a predictable result
+    return jsonify({"status":200}) #this url to provide a predictable result
 @app.route("/js/status/bancho")
 def BanchoStatus():
-    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/isOnline?id=1000").json()) #this url to provide a predictable result
+    return jsonify({"status":200}) #this url to provide a predictable result
 
 #actions
 @app.route("/actions/wipe/<id>")
