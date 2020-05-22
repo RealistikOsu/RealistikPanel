@@ -1172,7 +1172,6 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_stats WHERE id = %s", (id,))
-    mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     if UserConfig["HasRelax"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
         mycursor.execute("DELETE FROM rx_stats WHERE id = %s", (id,))
