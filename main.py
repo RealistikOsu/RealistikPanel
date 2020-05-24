@@ -402,10 +402,44 @@ def Wipe(id: int):
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(id)
         WipeAccount(id)
-        RAPLog(session["AccountId"], f"has wiped account {Account['Username']} ({id})")
+        RAPLog(session["AccountId"], f"has wiped the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+        return NoPerm(session)
+
+@app.route("/actions/wipeap/<AccountID>")
+def WipeAPRoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeAutopilot(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the autopilot statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
+@app.route("/actions/wiperx/<AccountID>")
+def WipeRXRoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeRelax(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the relax statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
+@app.route("/actions/wipeva/<AccountID>")
+def WipeRXRoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeVanilla(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the vanilla statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
 @app.route("/actions/restrict/<id>")
 def Restrict(id: int):
     """The wipe action."""
