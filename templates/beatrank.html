@@ -141,7 +141,7 @@
         .then((out) => {
         console.log("Got json hopefully ", out);
         // doing things
-        document.getElementById("pp-"+BeatmapNr).innerHTML = out["pp"] + "pp"
+        document.getElementById("pp-"+BeatmapNr).innerHTML = "No Mod: " + out["pp"] + "pp | DT: " + out["dtpp"]
         })
         .catch(err => { throw err }); 
     }

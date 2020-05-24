@@ -605,6 +605,11 @@ def CalcPP(BmapID):
     reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
+def CalcPPDT(BmapID):
+    """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
+    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}&m=128").json()
+    return round(reqjson["pp"][0], 2)
+
 def Unique(Alist):
     """Returns list of unique elements of list."""
     Uniques = []

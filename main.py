@@ -384,7 +384,8 @@ def ClanDeleteConfirm(ClanID):
 @app.route("/js/pp/<id>")
 def PPApi(id):
     return jsonify({
-        "pp" : str(round(CalcPP(id), 2))
+        "pp" : str(round(CalcPP(id), 2)),
+        "dtpp" : str(round(CalcPPDT(id), 2))
     })
 #api mirrors
 @app.route("/js/status/api")
