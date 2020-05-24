@@ -1316,7 +1316,7 @@ def RemoveSupporter(AccountID: int, session):
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     CurrentPriv = mycursor.fetchone()[0]
     #checking if they dont have it so privs arent messed up
-    if CurrentPriv & 4:
+    if not CurrentPriv & 4:
         return
     CurrentPriv -= 4
     mycursor.execute("UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s", (CurrentPriv, AccountID,))
