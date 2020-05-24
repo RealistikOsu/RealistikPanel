@@ -387,5 +387,53 @@ Changelogs = [
                 "Content" : "Fixed specific users causing the whole SQL connection to break."
             }
         ]
+    },
+    {
+        "Build" : 1590359400,
+        "Type" : 2,
+        "Summary" : "This update focuses on improving the functionality and the quality of life of RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added an improved ranking UI, featuring a more compact design and Double Time PP calculation.",
+                "Image" : "/static/img/changelog/rank-newui.png"
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added accuracy to recent plays."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added a global time offset to config that will offset all times in the panel by a specified amount."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added separate wipes for the relax, vanilla and autopilot gamemodes."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added donor remove that will both remove donor privileges, remove custom badge privileges and remove the donor badge."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Made donor award automatically give the user the donor badge."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added the ability to kick users from clans via the panel."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Used much faster endpoints for server status checks."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Decreased likeliness of user edit causing 400 errors."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Removed duplicate queries from user deletion."
+            }
+        ]
     }
 ]

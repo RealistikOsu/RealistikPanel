@@ -96,16 +96,16 @@ def BanchoSettings():
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
         if request.method == "GET":
-            return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, Id= id)
+            return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=SplitList(GetBmapInfo(id)), config=UserConfig, Id= id)
         if request.method == "POST":
             try:
                 BeatmapNumber = request.form["beatmapnumber"]
                 RankBeatmap(BeatmapNumber, request.form[f"bmapid-{BeatmapNumber}"], request.form[f"rankstatus-{BeatmapNumber}"], session)
-                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, success=f"Successfully ranked beatmap {request.form['beatmapnumber']}!", Id= id)
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=SplitList(GetBmapInfo(id)), config=UserConfig, success=f"Successfully ranked beatmap {request.form['BeatmapId']}!", Id= id)
             except Exception as e:
                 print(e)
                 ConsoleLog(f"Error while ranking beatmap ({id})!", f"{e}", 3)
-                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.", Id= id)
+                return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=SplitList(GetBmapInfo(id)), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.", Id= id)
     else:
          return NoPerm(session)
 
@@ -170,8 +170,8 @@ def EditUser(id):
         if HasPrivilege(session["AccountId"], 6):
             try:
                 ApplyUserEdit(request.form, session)
-                RAPLog(session["AccountId"], f"has edited the user {request.form['username']}")
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form['username']} has been successfully edited!")
+                RAPLog(session["AccountId"], f"has edited the user {request.form.get('username', 'NOT FOUND')}")
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!")
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
@@ -333,6 +333,15 @@ def DonorAward(AccountID):
     else:
         return NoPerm(session)
 
+@app.route("/donorremove/<AccountID>")
+def RemoveDonorRoute(AccountID):
+    if HasPrivilege(session["AccountId"], 6):
+        RemoveSupporter(AccountID, session)
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return NoPerm(session)
+
+
 @app.route("/rankreq/<Page>")
 def RankReq(Page):
     if HasPrivilege(session["AccountId"], 3):
@@ -359,8 +368,10 @@ def ClanEditRoute(ClanID):
 
 @app.route("/clan/delete/<ClanID>")
 def ClanFinalDelete(ClanID):
-    NukeClan(ClanID, session)
-    return redirect("/clans/1")
+    if HasPrivilege(session["AccountId"], 15):
+        NukeClan(ClanID, session)
+        return redirect("/clans/1")
+    return NoPerm(session)
 
 @app.route("/clan/confirmdelete/<ClanID>")
 def ClanDeleteConfirm(ClanID):
@@ -373,18 +384,19 @@ def ClanDeleteConfirm(ClanID):
 @app.route("/js/pp/<id>")
 def PPApi(id):
     return jsonify({
-        "pp" : str(round(CalcPP(id), 2))
+        "pp" : str(round(CalcPP(id), 2)),
+        "dtpp" : str(round(CalcPPDT(id), 2))
     })
 #api mirrors
 @app.route("/js/status/api")
 def ApiStatus():
-    return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/users/rxfull?id=1000").json()) #this url to provide a predictable result
+    return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping").json())
 @app.route("/js/status/lets")
 def LetsStatus():
-    return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/pp?b=1058295").json()) #this url to provide a predictable result
+    return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status").json()) #this url to provide a predictable result
 @app.route("/js/status/bancho")
 def BanchoStatus():
-    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/isOnline?id=1000").json()) #this url to provide a predictable result
+    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
 
 #actions
 @app.route("/actions/wipe/<id>")
@@ -393,10 +405,44 @@ def Wipe(id: int):
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(id)
         WipeAccount(id)
-        RAPLog(session["AccountId"], f"has wiped account {Account['Username']} ({id})")
+        RAPLog(session["AccountId"], f"has wiped the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+        return NoPerm(session)
+
+@app.route("/actions/wipeap/<AccountID>")
+def WipeAPRoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeAutopilot(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the autopilot statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
+@app.route("/actions/wiperx/<AccountID>")
+def WipeRXRoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeRelax(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the relax statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
+@app.route("/actions/wipeva/<AccountID>")
+def WipeVARoute(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeVanilla(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the vanilla statistics for the account {Account['Username']} ({id})")
+        return redirect(f"/user/edit/{id}")
+    else:
+        return NoPerm(session)
+
 @app.route("/actions/restrict/<id>")
 def Restrict(id: int):
     """The wipe action."""
@@ -515,6 +561,13 @@ def MarkRequestAsDone(ReqID):
         return redirect("/rankreq/1")
     else:
         return NoPerm(session)
+
+@app.route("/action/kickclan/<AccountID>")
+def KickClanRoute(AccountID):
+    if HasPrivilege(session["AccountId"], 15):
+        KickFromClan(AccountID)
+        return redirect("/clans/1")
+    return NoPerm(session)
 
 #error handlers
 @app.errorhandler(404)

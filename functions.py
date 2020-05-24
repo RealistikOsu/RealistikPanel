@@ -70,7 +70,7 @@ except Exception as e:
     exit()
 
 try:
-    r = redis.Redis(host=UserConfig["RedisHost"], port=UserConfig["RedisPort"], db=UserConfig["RedisDb"]) #establishes redis connection
+    r = redis.Redis(host=UserConfig["RedisHost"], port=UserConfig["RedisPort"], password=UserConfig["RedisPassword"], db=UserConfig["RedisDb"]) #establishes redis connection
     print(f"{Fore.GREEN} Successfully connected to Redis!")
 except Exception as e:
     print(f"{Fore.RED} Failed connecting to Redis! Abandoning!\n Error: {e}{Fore.RESET}")
@@ -191,6 +191,7 @@ def LoginHandler(username, password):
 def TimestampConverter(timestamp, NoDate=1):
     """Converts timestamps into readable time."""
     date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
+    date += datetime.timedelta(hours=UserConfig["TimezoneOffset"]) #adding timezone offset to current time
     #so we avoid things like 21:6
     #hour = str(date.hour)
     #minute = str(date.minute)
@@ -214,11 +215,11 @@ def RecentPlays():
     if UserConfig["HasAutopilot"]:
         DivBy += 1
     PerGamemode = round(TotalPlays/DivBy)
-    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT %s", (PerGamemode,))
+    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT %s", (PerGamemode,))
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT %s", (PerGamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -226,7 +227,7 @@ def RecentPlays():
             plays.append(plays_rx)
     if UserConfig["HasAutopilot"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 ORDER BY scores_ap.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 ORDER BY scores_ap.time DESC LIMIT %s", (PerGamemode,))
         playx_ap = mycursor.fetchall()
         for plays_ap in playx_ap:
             #addint them to the list
@@ -262,6 +263,7 @@ def RecentPlays():
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
         Dicti["Time"] = TimestampConverter(x[3])
+        Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
     
     ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
@@ -603,6 +605,11 @@ def CalcPP(BmapID):
     reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
+def CalcPPDT(BmapID):
+    """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
+    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}&m=128").json()
+    return round(reqjson["pp"][0], 2)
+
 def Unique(Alist):
     """Returns list of unique elements of list."""
     Uniques = []
@@ -830,14 +837,17 @@ def GetPrivileges():
 def ApplyUserEdit(form, session):
     """Apples the user settings."""
     #getting variables from form
-    UserId = form["userid"]
-    Username = form["username"]
-    Aka = form["aka"]
-    Email = form["email"]
-    Country = form["country"]
-    UserPage = form["userpage"]
-    Notes = form["notes"]
-    Privilege = form["privilege"]
+    UserId = form.get("userid", False)
+    Username = form.get("username", False)
+    Aka = form.get("aka", False)
+    Email = form.get("email", False)
+    Country = form.get("country", False)
+    UserPage = form.get("userpage", False)
+    Notes = form.get("notes", False)
+    Privilege = form.get("privilege", False)
+    if not UserId or not Username:
+        print("Yo you seriously messed up the form")
+        raise NameError
     #Creating safe username
     SafeUsername = Username.lower()
     SafeUsername = SafeUsername.replace(" ", "_")
@@ -859,7 +869,8 @@ def ApplyUserEdit(form, session):
             return
 
     #Badges
-    BadgeList = [int(form["Badge1"]), int(form["Badge2"]), int(form["Badge3"]), int(form["Badge4"]), int(form["Badge5"]), int(form["Badge6"])]
+
+    BadgeList = [int(form.get("Badge1", 0)), int(form.get("Badge2", 0)), int(form.get("Badge3", 0)), int(form.get("Badge4", 0)), int(form.get("Badge5", 0)), int(form.get("Badge6", 0))]
     SetUserBadges(UserId, BadgeList)
     #SQL Queries
     mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s WHERE id = %s", (Email, Notes, Username, SafeUsername,Privilege, UserId,))
@@ -950,8 +961,14 @@ def WipeAccount(AccId):
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
     if UserConfig["HasAutopilot"]:
         mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
-    #no stat reset until i fix it
-    #now we reset stats... thats a bit of a query if i say so myself
+    WipeVanilla(AccId)
+    if UserConfig["HasRelax"]:
+        WipeRelax(AccId)
+    if UserConfig["HasAutopilot"]:
+        WipeAutopilot(AccId)
+
+def WipeVanilla(AccId):
+    """Wiped vanilla scores for user."""
     mycursor.execute("""UPDATE
             users_stats
         SET
@@ -995,96 +1012,100 @@ def WipeAccount(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mydb.commit()
 
-    if UserConfig["HasRelax"]:
-        mycursor.execute("""UPDATE
-                rx_stats
-            SET
-                ranked_score_std = 0,
-                playcount_std = 0,
-                total_score_std = 0,
-                replays_watched_std = 0,
-                ranked_score_taiko = 0,
-                playcount_taiko = 0,
-                total_score_taiko = 0,
-                replays_watched_taiko = 0,
-                ranked_score_ctb = 0,
-                playcount_ctb = 0,
-                total_score_ctb = 0,
-                replays_watched_ctb = 0,
-                ranked_score_mania = 0,
-                playcount_mania = 0,
-                total_score_mania = 0,
-                replays_watched_mania = 0,
-                total_hits_std = 0,
-                total_hits_taiko = 0,
-                total_hits_ctb = 0,
-                total_hits_mania = 0,
-                unrestricted_pp = 0,
-                level_std = 0,
-                level_taiko = 0,
-                level_ctb = 0,
-                level_mania = 0,
-                playtime_std = 0,
-                playtime_taiko = 0,
-                playtime_ctb = 0,
-                playtime_mania = 0,
-                avg_accuracy_std = 0.000000000000,
-                avg_accuracy_taiko = 0.000000000000,
-                avg_accuracy_ctb = 0.000000000000,
-                avg_accuracy_mania = 0.000000000000,
-                pp_std = 0,
-                pp_taiko = 0,
-                pp_ctb = 0,
-                pp_mania = 0
-            WHERE
-                id = %s
-        """, (AccId,))
-    if UserConfig["HasAutopilot"]:
-        mycursor.execute("""UPDATE
-                ap_stats
-            SET
-                ranked_score_std = 0,
-                playcount_std = 0,
-                total_score_std = 0,
-                replays_watched_std = 0,
-                ranked_score_taiko = 0,
-                playcount_taiko = 0,
-                total_score_taiko = 0,
-                replays_watched_taiko = 0,
-                ranked_score_ctb = 0,
-                playcount_ctb = 0,
-                total_score_ctb = 0,
-                replays_watched_ctb = 0,
-                ranked_score_mania = 0,
-                playcount_mania = 0,
-                total_score_mania = 0,
-                replays_watched_mania = 0,
-                total_hits_std = 0,
-                total_hits_taiko = 0,
-                total_hits_ctb = 0,
-                total_hits_mania = 0,
-                unrestricted_pp = 0,
-                level_std = 0,
-                level_taiko = 0,
-                level_ctb = 0,
-                level_mania = 0,
-                playtime_std = 0,
-                playtime_taiko = 0,
-                playtime_ctb = 0,
-                playtime_mania = 0,
-                avg_accuracy_std = 0.000000000000,
-                avg_accuracy_taiko = 0.000000000000,
-                avg_accuracy_ctb = 0.000000000000,
-                avg_accuracy_mania = 0.000000000000,
-                pp_std = 0,
-                pp_taiko = 0,
-                pp_ctb = 0,
-                pp_mania = 0
-            WHERE
-                id = %s
-        """, (AccId,))
-    
+def WipeRelax(AccId):
+    """Wipes the relax user data."""
+    mycursor.execute("""UPDATE
+            rx_stats
+        SET
+            ranked_score_std = 0,
+            playcount_std = 0,
+            total_score_std = 0,
+            replays_watched_std = 0,
+            ranked_score_taiko = 0,
+            playcount_taiko = 0,
+            total_score_taiko = 0,
+            replays_watched_taiko = 0,
+            ranked_score_ctb = 0,
+            playcount_ctb = 0,
+            total_score_ctb = 0,
+            replays_watched_ctb = 0,
+            ranked_score_mania = 0,
+            playcount_mania = 0,
+            total_score_mania = 0,
+            replays_watched_mania = 0,
+            total_hits_std = 0,
+            total_hits_taiko = 0,
+            total_hits_ctb = 0,
+            total_hits_mania = 0,
+            unrestricted_pp = 0,
+            level_std = 0,
+            level_taiko = 0,
+            level_ctb = 0,
+            level_mania = 0,
+            playtime_std = 0,
+            playtime_taiko = 0,
+            playtime_ctb = 0,
+            playtime_mania = 0,
+            avg_accuracy_std = 0.000000000000,
+            avg_accuracy_taiko = 0.000000000000,
+            avg_accuracy_ctb = 0.000000000000,
+            avg_accuracy_mania = 0.000000000000,
+            pp_std = 0,
+            pp_taiko = 0,
+            pp_ctb = 0,
+            pp_mania = 0
+        WHERE
+            id = %s
+    """, (AccId,))
+    mydb.commit()
+
+def WipeAutopilot(AccId):
+    """Wipes the autopilot user data."""
+    mycursor.execute("""UPDATE
+            ap_stats
+        SET
+            ranked_score_std = 0,
+            playcount_std = 0,
+            total_score_std = 0,
+            replays_watched_std = 0,
+            ranked_score_taiko = 0,
+            playcount_taiko = 0,
+            total_score_taiko = 0,
+            replays_watched_taiko = 0,
+            ranked_score_ctb = 0,
+            playcount_ctb = 0,
+            total_score_ctb = 0,
+            replays_watched_ctb = 0,
+            ranked_score_mania = 0,
+            playcount_mania = 0,
+            total_score_mania = 0,
+            replays_watched_mania = 0,
+            total_hits_std = 0,
+            total_hits_taiko = 0,
+            total_hits_ctb = 0,
+            total_hits_mania = 0,
+            unrestricted_pp = 0,
+            level_std = 0,
+            level_taiko = 0,
+            level_ctb = 0,
+            level_mania = 0,
+            playtime_std = 0,
+            playtime_taiko = 0,
+            playtime_ctb = 0,
+            playtime_mania = 0,
+            avg_accuracy_std = 0.000000000000,
+            avg_accuracy_taiko = 0.000000000000,
+            avg_accuracy_ctb = 0.000000000000,
+            avg_accuracy_mania = 0.000000000000,
+            pp_std = 0,
+            pp_taiko = 0,
+            pp_ctb = 0,
+            pp_mania = 0
+        WHERE
+            id = %s
+    """, (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int):
@@ -1166,7 +1187,6 @@ def DeleteAccount(id : int):
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_stats WHERE id = %s", (id,))
-    mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     if UserConfig["HasRelax"]:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
         mycursor.execute("DELETE FROM rx_stats WHERE id = %s", (id,))
@@ -1290,17 +1310,28 @@ def GiveSupporter(AccountID : int, Duration = 1):
         EndTimestamp = round(time.time()) + (2.628e+6 * Duration)
         CurrentPriv += 4 #adding donor perms
         mycursor.execute("UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s", (CurrentPriv, EndTimestamp, AccountID,))
+        #allowing them to set custom badges
+        mycursor.execute("UPDATE users_stats SET can_custom_badge = 1 WHERE id = %s LIMIT 1", (AccountID,))
+        #now we give them the badge
+        mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, UserConfig["DonorBadgeID"]))
         mydb.commit()
 
-def RemoveSupporter(AccountID: int):
+def RemoveSupporter(AccountID: int, session):
     """Removes supporter from the target user."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     CurrentPriv = mycursor.fetchone()[0]
     #checking if they dont have it so privs arent messed up
-    if CurrentPriv & 4:
+    if not CurrentPriv & 4:
         return
     CurrentPriv -= 4
     mycursor.execute("UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s", (CurrentPriv, AccountID,))
+    #remove custom badge perms and hide custom badge
+    mycursor.execute("UPDATE users_stats SET can_custom_badge = 0, show_custom_badge = 0 WHERE id = %s LIMIT 1", (AccountID,))
+    #removing el donor badge
+    mycursor.execute("DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1", (AccountID, UserConfig["DonorBadgeID"]))
+    mydb.commit()
+    User = GetUser(AccountID)
+    RAPLog(session["AccountId"], f"deleted the supporter role for {User['Username']} ({AccountID})")
 
 def GetBadges():
     """Gets all the badges."""
@@ -1537,10 +1568,23 @@ def GetStore():
     return TheList
 
 def SplitListTrue(TheList : list):
-    """Splits list into 2 halves (thanks stackoverflow)."""
+    """Splits list into 2 halves."""
+    """
     length = len(TheList)
     return [ TheList[i*length // 2: (i+1)*length // 2] 
             for i in range(2) ]
+    """
+    Cool = 0
+    List1 = []
+    List2 = []
+    for Thing in TheList:
+        if Cool == 0:
+            List1.append(Thing)
+            Cool = 1
+        else:
+            List2.append(Thing)
+            Cool = 0
+    return [List1, List2]
 
 def SplitList(TheList: list):
     """Splits list and ensures the 1st list is the longer one"""
@@ -1946,3 +1990,8 @@ def NukeClan(ClanID: int, session):
     mycursor.execute("DELETE FROM user_clans WHERE clan=%s", (ClanID,))
     mydb.commit()
     RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")
+
+def KickFromClan(AccountID):
+    """Kicks user from all clans (supposed to be only one)."""
+    mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
+    mydb.commit()

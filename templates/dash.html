@@ -97,7 +97,7 @@
         <tr>
             <td>{{ play["Time"] }}</td>
             <td><a href="{{ config['ServerURL'] }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
-            <td>{{ play["SongName"] }}</td>
+            <td>{{ play["SongName"] }}  <i>({{ play["Accuracy"] }}%)</i></td>
             <td>{{ play["Score"] }}</td>
             <td>{{ play["pp"] }}</td>
         </tr>
@@ -171,7 +171,7 @@ var BanchoURL = "https://"+ window.location.host +"/js/status/bancho"
 fetch(LetsAPI)
 .then(res => res.json())
 .then((out) => {
-    if (out["status"] == 200) {
+    if (out["server_status"] == 1) {
         document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
     } else {
         document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
@@ -181,9 +181,13 @@ fetch(LetsAPI)
 fetch(BanchoURL)
 .then(res => res.json())
 .then((out) => {
-    if (out["status"] == 200) {
+    if (out["result"] == 1) {
         document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
-    } else {
+    }
+    else if (out["result"] == -1){
+        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-warning"><div><h3>Restarting</h3></div><div>Bancho</div></div>'
+    }
+    else {
         document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
     }
 })
