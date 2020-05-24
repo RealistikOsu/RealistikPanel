@@ -11,3 +11,11 @@
     text-align: center;
     margin-bottom: 10px;
 }
+
+.leftrem {
+    margin-left: 1rem;
+}
+
+.rightrem {
+    margin-right: 1rem;
+}

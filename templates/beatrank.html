@@ -141,7 +141,7 @@
         .then((out) => {
         console.log("Got json hopefully ", out);
         // doing things
-        document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-info' style='color: white;'>No Mod: " + out["pp"] + "pp</a><a class='badge badge-danger' style='color: white;'>DT: " + out["dtpp"] + "pp</a>"
+        document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-info rightrem' style='color: white;'>No Mod: " + out["pp"] + "pp</a><a class='badge badge-danger leftrem' style='color: white;'>DT: " + out["dtpp"] + "pp</a>"
         })
         .catch(err => { throw err }); 
     }
