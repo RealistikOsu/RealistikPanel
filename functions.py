@@ -1305,6 +1305,10 @@ def GiveSupporter(AccountID : int, Duration = 1):
         EndTimestamp = round(time.time()) + (2.628e+6 * Duration)
         CurrentPriv += 4 #adding donor perms
         mycursor.execute("UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s", (CurrentPriv, EndTimestamp, AccountID,))
+        #allowing them to set custom badges
+        mycursor.execute("UPDATE users_stats SET can_custom_badge = 1 WHERE id = %s LIMIT 1", (AccountID,))
+        #now we give them the badge
+        mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, UserConfig["DonorBadgeID"]))
         mydb.commit()
 
 def RemoveSupporter(AccountID: int):
@@ -1316,6 +1320,11 @@ def RemoveSupporter(AccountID: int):
         return
     CurrentPriv -= 4
     mycursor.execute("UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s", (CurrentPriv, AccountID,))
+    #remove custom badge perms and hide custom badge
+    mycursor.execute("UPDATE users_stats SET can_custom_badge = 0, show_custom_badge = 0 WHERE id = %s LIMIT 1", (AccountID,))
+    #removing el donor badge
+    mycursor.execute("DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1", (AccountID, UserConfig["DonorBadgeID"]))
+    mydb.commit()
 
 def GetBadges():
     """Gets all the badges."""
