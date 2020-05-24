@@ -96,7 +96,7 @@ def BanchoSettings():
 def RankMap(id):
     if HasPrivilege(session["AccountId"], 3):
         if request.method == "GET":
-            return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=GetBmapInfo(id), config=UserConfig, Id= id)
+            return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=SplitList(GetBmapInfo(id)), config=UserConfig, Id= id)
         if request.method == "POST":
             try:
                 BeatmapNumber = request.form["beatmapnumber"]
