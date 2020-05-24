@@ -42,9 +42,9 @@ Dashboard
 User List
 ![Beatmap Ranking](https://i.imgur.com/lWcGDpi.png)
 User Edit
-![Beatmap Ranking](https://i.imgur.com/j1VnY7p.png)
+![User Edit](https://i.imgur.com/j1VnY7p.png)
 Beatmap Ranking
-![Beatmap Ranking](https://i.imgur.com/egk94hI.png)
+![Beatmap Ranking](https://i.imgur.com/wtwHn6E.png)
 Bancho Settings
 ![Bancho Settings](https://i.imgur.com/kxmhkRr.png)
 System Settings
@@ -53,3 +53,5 @@ Admin Logs
 ![Admin Logs](https://i.imgur.com/zArbrB7.png)
 Privilege Groups
 ![Admin Logs](https://i.imgur.com/P310vDI.png)
+Clan Management
+![Clan Management](https://i.imgur.com/0VomZxS.png)
