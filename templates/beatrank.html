@@ -61,7 +61,7 @@
                     </select>
                     <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
                     <p></p> <!--Seperator-->
-                    <div id="pp-{{ beatmap['BmapNumber'] }}">
+                    <div id="pp-{{ beatmap['BmapNumber'] }}" class="pptext">
                         <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
                     </div>
                     <div class="article-cta">
@@ -107,7 +107,7 @@
                     </select>
                     <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
                     <p></p> <!--Seperator-->
-                    <div id="pp-{{ beatmap['BmapNumber'] }}">
+                    <div id="pp-{{ beatmap['BmapNumber'] }}" class="pptext">
                         <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
                     </div>
                     <div class="article-cta">
@@ -141,7 +141,7 @@
         .then((out) => {
         console.log("Got json hopefully ", out);
         // doing things
-        document.getElementById("pp-"+BeatmapNr).innerHTML = "No Mod: " + out["pp"] + "pp | DT: " + out["dtpp"]
+        document.getElementById("pp-"+BeatmapNr).innerHTML = "No Mod: " + out["pp"] + "pp | DT: " + out["dtpp"] + "pp"
         })
         .catch(err => { throw err }); 
     }
