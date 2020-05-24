@@ -336,7 +336,7 @@ def DonorAward(AccountID):
 @app.route("/donorremove/<AccountID>")
 def RemoveDonorRoute(AccountID):
     if HasPrivilege(session["AccountId"], 6):
-        RemoveSupporter(AccountID)
+        RemoveSupporter(AccountID, session)
         return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
