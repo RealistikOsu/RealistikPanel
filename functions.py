@@ -1311,7 +1311,7 @@ def GiveSupporter(AccountID : int, Duration = 1):
         mycursor.execute("INSERT INTO user_badges (user, badge) VALUES (%s, %s)", (AccountID, UserConfig["DonorBadgeID"]))
         mydb.commit()
 
-def RemoveSupporter(AccountID: int):
+def RemoveSupporter(AccountID: int, session):
     """Removes supporter from the target user."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     CurrentPriv = mycursor.fetchone()[0]
@@ -1325,6 +1325,8 @@ def RemoveSupporter(AccountID: int):
     #removing el donor badge
     mycursor.execute("DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1", (AccountID, UserConfig["DonorBadgeID"]))
     mydb.commit()
+    User = GetUser(AccountID)
+    RAPLog(session["AccountId"], f"deleted the supporter role for {User['Username']} ({AccountID})")
 
 def GetBadges():
     """Gets all the badges."""
