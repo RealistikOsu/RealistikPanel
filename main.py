@@ -333,6 +333,15 @@ def DonorAward(AccountID):
     else:
         return NoPerm(session)
 
+@app.route("/donorremove/<AccountID>", methods =["POST"])
+def RemoveDonorRoute(AccountID):
+    if HasPrivilege(session["AccountId"], 6):
+        RemoveSupporter(AccountID)
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return NoPerm(session)
+
+
 @app.route("/rankreq/<Page>")
 def RankReq(Page):
     if HasPrivilege(session["AccountId"], 3):

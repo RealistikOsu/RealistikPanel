@@ -127,6 +127,9 @@
             <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
             <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning">Change Password</a>
             <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning">Award Donor</a>
+            {% if UserData["HasSupporter"] %}
+            <a href="/donorremove/{{ UserData['Id'] }}" class="btn btn-warning">Remove Donor</a>
+            {% end %}
         </div>
         <div class="buttons">
             <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
