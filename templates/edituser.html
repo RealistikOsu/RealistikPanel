@@ -132,12 +132,21 @@
             {% endif %}
         </div>
         <div class="buttons">
-            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
             <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
             <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger" id="ban">Ban/Unban</a>
             <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
             <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
             <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
+            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
+            {% if config["HasRelax"] or config["HasAutopilot"] %}
+            <a href="/actions/wipeva/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Vanilla</a>
+            {% endif %}
+            {% if config["HasRelax"] %}
+            <a href="/actions/wiperx/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Relax</a>
+            {% endif %}
+            {% if config["HasAutopilot"] %}
+            <a href="/actions/wipeap/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Autopilot</a>
+            {% endif %}
         </div>
     </div>
     <div class="card-footer">
