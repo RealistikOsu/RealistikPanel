@@ -1985,3 +1985,8 @@ def NukeClan(ClanID: int, session):
     mycursor.execute("DELETE FROM user_clans WHERE clan=%s", (ClanID,))
     mydb.commit()
     RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")
+
+def KickFromClan(AccountID):
+    """Kicks user from all clans (supposed to be only one)."""
+    mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
+    mydb.commit()

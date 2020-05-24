@@ -64,6 +64,9 @@
             </div>
             <div class="card-body">
                 They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
+                <div class="buttons">
+                    <a class="btn btn-danger" href="/action/kickclan/{{ Member['AccountID'] }}">Kick from Clan</a>
+                </div>
             </div>
         </div>
         {% endfor %}

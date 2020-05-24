@@ -368,8 +368,10 @@ def ClanEditRoute(ClanID):
 
 @app.route("/clan/delete/<ClanID>")
 def ClanFinalDelete(ClanID):
-    NukeClan(ClanID, session)
-    return redirect("/clans/1")
+    if HasPrivilege(session["AccountId"], 15):
+        NukeClan(ClanID, session)
+        return redirect("/clans/1")
+    return NoPerm(session)
 
 @app.route("/clan/confirmdelete/<ClanID>")
 def ClanDeleteConfirm(ClanID):
@@ -558,6 +560,13 @@ def MarkRequestAsDone(ReqID):
         return redirect("/rankreq/1")
     else:
         return NoPerm(session)
+
+@app.route("/action/kickclan/<AccountID>")
+def KickClanRoute(AccountID):
+    if HasPrivilege(session["AccountId"], 15):
+        KickFromClan(AccountID)
+        return redirect("/clans/1")
+    return NoPerm(session)
 
 #error handlers
 @app.errorhandler(404)
