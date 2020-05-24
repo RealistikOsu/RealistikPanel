@@ -430,7 +430,7 @@ def WipeRXRoute(AccountID: int):
         return NoPerm(session)
 
 @app.route("/actions/wipeva/<AccountID>")
-def WipeRXRoute(AccountID: int):
+def WipeVARoute(AccountID: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(AccountID)
