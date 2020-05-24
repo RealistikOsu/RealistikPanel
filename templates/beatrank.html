@@ -25,50 +25,100 @@
         RealistikPanel
     </div>
 </div>
-{% for beatmap in beatdata %}
-<article class="article">
-    <div class="article-header">
-        <div class="article-image" data-background="{{ beatmap['Cover'] }}" style="background-image: url(&quot;{{ beatmap['Cover'] }}&quot;);">
-        </div>
-        <div class="article-title">
-            <h2><a href="{{ config['ServerURL'] }}b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
-        </div>
-    </div>
-    <div class="article-details">
-        <p>Change the ranking status for this song!</p>
-        <form action="/rank/{{ Id }}" method="post">
-            <label>Beatmap ID</label>
-            <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' readonly="readonly">
-            <label>Status</label>
-            <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
-                {% if beatmap["Ranked"] == 0 %}
-                    <option selected>Unranked</option>
-                {% else %}
-                    <option>Unranked</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 5 %}
-                    <option selected>Loved</option>
-                {% else %}
-                    <option>Loved</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 2 %}
-                    <option selected>Ranked</option>
-                {% else %}
-                    <option>Ranked</option>
-                {% endif %}
-            </select>
-            <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
-            <p></p> <!--Seperator-->
-            <div id="pp-{{ beatmap['BmapNumber'] }}">
-                <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
+<div class="row">
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for beatmap in beatdata[0] %}
+        <article class="article">
+            <div class="article-header">
+                <div class="article-image" data-background="{{ beatmap['Cover'] }}" style="background-image: url(&quot;{{ beatmap['Cover'] }}&quot;);">
+                </div>
+                <div class="article-title">
+                    <h2><a href="{{ config['ServerURL'] }}b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
+                </div>
             </div>
-            <div class="article-cta">
-                <button class="btn btn-success" type="submit" name="">Apply!</button>
+            <div class="article-details">
+                <p>Change the ranking status for this song!</p>
+                <form action="/rank/{{ Id }}" method="post">
+                    <label>Beatmap ID</label>
+                    <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' readonly="readonly">
+                    <label>Status</label>
+                    <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
+                        {% if beatmap["Ranked"] == 0 %}
+                            <option selected>Unranked</option>
+                        {% else %}
+                            <option>Unranked</option>
+                        {% endif %}
+                        {% if beatmap["Ranked"] == 5 %}
+                            <option selected>Loved</option>
+                        {% else %}
+                            <option>Loved</option>
+                        {% endif %}
+                        {% if beatmap["Ranked"] == 2 %}
+                            <option selected>Ranked</option>
+                        {% else %}
+                            <option>Ranked</option>
+                        {% endif %}
+                    </select>
+                    <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
+                    <p></p> <!--Seperator-->
+                    <div id="pp-{{ beatmap['BmapNumber'] }}">
+                        <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
+                    </div>
+                    <div class="article-cta">
+                        <button class="btn btn-success" type="submit" name="">Apply!</button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </article>
+        {% endfor %}
     </div>
-</article>
-{% endfor %}
+    <div class="col-12 col-md-6 col-lg-6">
+        {% for beatmap in beatdata[1] %}
+        <article class="article">
+            <div class="article-header">
+                <div class="article-image" data-background="{{ beatmap['Cover'] }}" style="background-image: url(&quot;{{ beatmap['Cover'] }}&quot;);">
+                </div>
+                <div class="article-title">
+                    <h2><a href="{{ config['ServerURL'] }}b/{{ beatmap['BeatmapId'] }}">{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a></h2>
+                </div>
+            </div>
+            <div class="article-details">
+                <p>Change the ranking status for this song!</p>
+                <form action="/rank/{{ Id }}" method="post">
+                    <label>Beatmap ID</label>
+                    <input type="text" class="form-control" value="{{ beatmap['BeatmapId'] }}" name='bmapid-{{ beatmap["BmapNumber"] }}' readonly="readonly">
+                    <label>Status</label>
+                    <select class="form-control" name='rankstatus-{{ beatmap["BmapNumber"] }}'>
+                        {% if beatmap["Ranked"] == 0 %}
+                            <option selected>Unranked</option>
+                        {% else %}
+                            <option>Unranked</option>
+                        {% endif %}
+                        {% if beatmap["Ranked"] == 5 %}
+                            <option selected>Loved</option>
+                        {% else %}
+                            <option>Loved</option>
+                        {% endif %}
+                        {% if beatmap["Ranked"] == 2 %}
+                            <option selected>Ranked</option>
+                        {% else %}
+                            <option>Ranked</option>
+                        {% endif %}
+                    </select>
+                    <input type="hidden" name="beatmapnumber" value='{{ beatmap["BmapNumber"] }}'>
+                    <p></p> <!--Seperator-->
+                    <div id="pp-{{ beatmap['BmapNumber'] }}">
+                        <a onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')" class="btn btn-primary" style="color: white;">Calculate PP</a>
+                    </div>
+                    <div class="article-cta">
+                        <button class="btn btn-success" type="submit" name="">Apply!</button>
+                    </div>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</div>
 <script>
     //for playing and stopping bmap music
     var audio = document.getElementById("BeatmapAudio"); 
