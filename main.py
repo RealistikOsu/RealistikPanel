@@ -333,7 +333,7 @@ def DonorAward(AccountID):
     else:
         return NoPerm(session)
 
-@app.route("/donorremove/<AccountID>", methods =["POST"])
+@app.route("/donorremove/<AccountID>")
 def RemoveDonorRoute(AccountID):
     if HasPrivilege(session["AccountId"], 6):
         RemoveSupporter(AccountID)
