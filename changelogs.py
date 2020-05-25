@@ -438,6 +438,7 @@ Changelogs = [
     },
     {
         "Build" : 1590437250,
+        "Type" : 3,
         "Summary" : "The purpose of this build is to quickly fix a few minor bugs with RealistikPanel.",
         "Changes" : [
             {
