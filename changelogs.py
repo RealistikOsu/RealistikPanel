@@ -435,5 +435,20 @@ Changelogs = [
                 "Content" : "Removed duplicate queries from user deletion."
             }
         ]
+    },
+    {
+        "Build" : 1590437250,
+        "Type" : 3,
+        "Summary" : "The purpose of this build is to quickly fix a few minor bugs with RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 5,
+                "Content" : "Fix rank all, love all and unrank all buttons not working (due to recent changes)."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed individual rank difficulties not working (due to recent changes)."
+            }
+        ]
     }
 ]
