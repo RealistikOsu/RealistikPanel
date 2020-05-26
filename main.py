@@ -135,13 +135,14 @@ def Users(page = 1):
 @app.route("/index.php")
 def LegacyIndex():
     """For implementing RAP funcions."""
-    if request.args.get("p") == "124":
+    Page = request.args.get("p")
+    if Page == "124":
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
-    elif request.args.get("p") == "100" and HasPrivilege(session["AccountId"]): #hanayo link
-        return redirect(url_for("dash"))
-    else:
-        return redirect(url_for("dash")) #take them to the root
+    elif Page == "103": #hanayo link
+        Account = request.args.get("id")
+        return redirect(f"/user/edit/{Account}")
+    return redirect(url_for("dash")) #take them to the root
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
