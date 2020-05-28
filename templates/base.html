@@ -4,6 +4,7 @@
     <title>RealistikPanel! - {{ title }}</title>
     <!--Icon kit things-->
     <script src="https://kit.fontawesome.com/e9bdb24827.js" crossorigin="anonymous"></script>
+    {% block head %}{% endblock %}
     <!-- General CSS Files -->
     <link rel="stylesheet" href="/static/modules/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/modules/fontawesome/css/all.min.css">
@@ -35,8 +36,6 @@
     <!--Pace loading abr thing-->
     <script src="/static/js/pace.min.js"></script>
     <link href="/static/css/loadingbar.css" rel="stylesheet" />
-
-    {% block head %}{% endblock %}
 </head>
 
 <body>
