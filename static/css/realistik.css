@@ -19,3 +19,9 @@
 .rightrem {
     margin-right: 1rem;
 }
+
+.selectize-input {
+    height: 42px;
+    padding: 11px 12px;
+    padding: 0 !important;
+}
