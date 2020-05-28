@@ -6,10 +6,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
 
 <script>
-    $(document).ready(function () {
-        $('select').selectize({
-            sortField: 'text'
-        });
+    document.addEventListener('DOMContentLoaded', function(event) {
+        $('#countryselect').selectize({
+			create: true,
+			sortField: {
+				field: 'text',
+				direction: 'asc'
+			},
+			dropdownParent: 'body'
+		});
     });
 </script>
 {% endblock %}
