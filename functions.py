@@ -1995,3 +1995,38 @@ def KickFromClan(AccountID):
     """Kicks user from all clans (supposed to be only one)."""
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
     mydb.commit()
+
+def GetUsersRegisteredBetween(Offset:int = 0, Ahead:int = 24):
+    """Gets how many players registered during a given time period (variables are in hours)."""
+    #convert the hours to secconds
+    Offset *= 3600
+    Ahead *= 3600
+
+    CurrentTime = round(time.time())
+    #now we get the time - offset
+    OffsetTime = CurrentTime - Offset
+    AheadTime = OffsetTime - Ahead
+
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE register_datetime > %s AND register_datetime < %s", (AheadTime, OffsetTime))
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
+
+def GetUsersActiveBetween(Offset:int = 0, Ahead:int = 24):
+    """Gets how many players were active during a given time period (variables are in hours)."""
+    #yeah this is a reuse of the last function.
+    #convert the hours to secconds
+    Offset *= 3600
+    Ahead *= 3600
+
+    CurrentTime = round(time.time())
+    #now we get the time - offset
+    OffsetTime = CurrentTime - Offset
+    AheadTime = OffsetTime - Ahead
+
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE latest_activity > %s AND latest_activity < %s", (AheadTime, OffsetTime))
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
