@@ -849,8 +849,7 @@ def ApplyUserEdit(form, session):
         print("Yo you seriously messed up the form")
         raise NameError
     #Creating safe username
-    SafeUsername = Username.lower()
-    SafeUsername = SafeUsername.replace(" ", "_")
+    SafeUsername = RippleSafeUsername(Username)
 
     #fixing crash bug
     if UserPage == "":
@@ -2030,3 +2029,7 @@ def GetUsersActiveBetween(Offset:int = 0, Ahead:int = 24):
     if Count == None:
         return 0
     return Count[0]
+
+def RippleSafeUsername(Username):
+    """Generates a ripple-style safe username."""
+    return Username.lower().replace(" ", "_")
