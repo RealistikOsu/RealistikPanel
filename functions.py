@@ -760,7 +760,7 @@ def UserData(UserID):
     Data["BannedTime"] = Data2[7]
     Data["BanedAgo"] = TimeToTimeAgo(int(Data2[7]))
     Data["IsSilenced"] =  int(Data["SilenceEnd"]) < round(time.time())
-    Date["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
+    Data["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
