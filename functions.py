@@ -2048,3 +2048,5 @@ def GetSuggestedRank():
             "Cover" : f"https://assets.ppy.sh/beatmaps/{TopBeatmap[2]}/covers/cover.jpg",
             "Playcount" : TopBeatmap[3]
         })
+
+    return BeatmapList
