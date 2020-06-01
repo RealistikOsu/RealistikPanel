@@ -951,7 +951,6 @@ def ModToText(mod: int):
 
 def WipeAccount(AccId):
     """Wipes the account with the given id."""
-    mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : AccId,
         "reason" : "Your account has been wiped! F"
@@ -1011,6 +1010,7 @@ def WipeVanilla(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def WipeRelax(AccId):
@@ -1058,6 +1058,7 @@ def WipeRelax(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores_rx WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def WipeAutopilot(AccId):
@@ -1105,6 +1106,7 @@ def WipeAutopilot(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int):
