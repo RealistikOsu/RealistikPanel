@@ -48,7 +48,7 @@
         <br>
         <span style="color: #eb4034;">They are currently silenced for the reason: <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced {{ UserData["SilenceEndAgo"] }}.</span>
         {% endif %}
-        {% if UserData["BannedTime"] %}
+        {% if UserData["IsBanned"] %}
         <br>
         <span style="color: #eb4034;">They were banned {{ UserData["BanedAgo"] }}</span>
         {% endif %}

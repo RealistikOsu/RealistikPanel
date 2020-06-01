@@ -757,7 +757,7 @@ def UserData(UserID):
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
 
     #now for silences and ban times
-    Data["BannedTime"] = Data2[7]
+    Data["IsBanned"] = int(Data2[7]) < round(time.time())
     Data["BanedAgo"] = TimeToTimeAgo(int(Data2[7]))
     Data["IsSilenced"] =  int(Data["SilenceEnd"]) < round(time.time())
     Data["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
