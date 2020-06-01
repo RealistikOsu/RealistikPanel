@@ -715,14 +715,14 @@ def GetUser(id):
     }
 
 def UserData(UserID):
-    """Gets data for user. (specialised for user edit page)"""
+    """Gets data for user (specialised for user edit page)."""
     #fix badbad data
     mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s", (UserID,))
     mydb.commit()
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchone()
-    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchone()
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
@@ -755,6 +755,10 @@ def UserData(UserID):
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
+
+    #now for silences and ban times
+    Data["BanedAgo"] = TimeToTimeAgo(Data2[7])
+    Data["IsSilenced"] =  Data["SilenceEnd"] < round(time.time())
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:

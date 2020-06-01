@@ -44,6 +44,14 @@
         <br>
         <span style="color: #e8b923;">Their Donor rank expires <b>{{ UserData["DonorExpireStr"] }}</b>.</span>
         {% endif %}
+        {% if UserData["IsSilenced"] %}
+        <br>
+        <span style="color: #eb4034;">They are currently silenced for the reason: <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced {{ UserData["SilenceEndAgo"] }}.</span>
+        {% endif %}
+        {% if UserData["BannedTime"] %}
+        <br>
+        <span style="color: #eb4034;">They were banned {{ UserData["BanedAgo"] }}</span>
+        {% endif %}
     </div>
     <div class="card-footer">
         RealistikPanel
