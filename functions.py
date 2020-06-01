@@ -2035,3 +2035,16 @@ def GetUsersActiveBetween(Offset:int = 0, Ahead:int = 24):
 def RippleSafeUsername(Username):
     """Generates a ripple-style safe username."""
     return Username.lower().replace(" ", "_")
+
+def GetSuggestedRank():
+    """Gets suggested maps to rank (based on play count)."""
+    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 4")
+    Beatmaps = mycursor.fetchall()
+    BeatmapList = []
+    for TopBeatmap in Beatmaps:
+        BeatmapList.append({
+            "BeatmapId" : TopBeatmap[0],
+            "SongName" : TopBeatmap[1],
+            "Cover" : f"https://assets.ppy.sh/beatmaps/{TopBeatmap[2]}/covers/cover.jpg",
+            "Playcount" : TopBeatmap[3]
+        })

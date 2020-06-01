@@ -113,7 +113,7 @@ def RankMap(id):
 def RankFrom():
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 3):
-            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig)
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig, SuggestedBmaps = SplitList(GetSuggestedRank()))
         else:
              return NoPerm(session)
     else:
