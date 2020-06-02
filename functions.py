@@ -759,7 +759,7 @@ def UserData(UserID):
     #now for silences and ban times
     Data["IsBanned"] = int(Data2[7]) > 0
     Data["BanedAgo"] = TimeToTimeAgo(int(Data2[7]))
-    Data["IsSilenced"] =  int(Data2[5]) < round(time.time())
+    Data["IsSilenced"] =  int(Data2[5]) > round(time.time())
     Data["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
 
     #removing "None" from user page and admin notes
