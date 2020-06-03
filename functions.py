@@ -1356,6 +1356,7 @@ def GetBadges():
 def DeleteBadge(BadgeId : int):
     """"Delets the badge with the gived id."""
     mycursor.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
+    mycursor.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
     mydb.commit()
 
 def GetBadge(BadgeID:int):
