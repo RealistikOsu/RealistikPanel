@@ -267,7 +267,7 @@ def Console():
 @app.route("/changelogs")
 def ChangeLogs():
     if HasPrivilege(session["AccountId"]):
-        return render_template("changelog.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=Changelogs)
+        return render_template("changelog.html", data=DashData(), session=session, title="Change Logs", config=UserConfig, logs=Changelogs)
     else:
          return NoPerm(session)
 
