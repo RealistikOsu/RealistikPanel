@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+{% endblock %}
+
 {% block content %}
 <h2 class="section-title">Server Statistics</h2>
 <p class="section-lead">View and explore that data and statistcs side of your server.</p>
@@ -54,7 +59,7 @@
                     <input type="number" class="form-control" name="mainpp" min="0" value="{{ MinPP }}">
                 </div>
                 <div class="col-12 col-md-6 col-lg-6">
-                    <button class="btn btn-success" type="submit" name="">Filter</button>
+                    <button class="btn btn-success" type="submit" name="" style="margin-top: 3px;">Filter</button>
                 </div>
             </div>
         </form>
