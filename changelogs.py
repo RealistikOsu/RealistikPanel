@@ -450,5 +450,32 @@ Changelogs = [
                 "Content" : "Fixed individual rank difficulties not working (due to recent changes)."
             }
         ]
+    },
+    {
+        "Build" : 1591390400,
+        "Type" : 1,
+        "Summary" : "This update prioritises in improving the statistics shown by the panel.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added a statistics page on the panel that displays daily registrations, recent 500 plays and more."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added rank suggestions to the rank form that fints the top played unranked maps."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added a notice on user edit that shows whether they are currently banned or silenced."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Using username_safe for logins again."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Deleting a badge now deletes all assignations of the badge."
+            }
+        ]
     }
 ]

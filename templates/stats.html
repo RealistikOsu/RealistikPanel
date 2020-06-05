@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+{% endblock %}
+
+{% block content %}
+<h2 class="section-title">Server Statistics</h2>
+<p class="section-lead">View and explore that data and statistcs side of your server.</p>
+<div class="buttons">
+    <div class="btn btn-primary">
+        <div>
+            <h3>{{ StatData["ActiveToday"] }}</h3>
+        </div>
+        <div>
+            Active Today
+        </div>
+    </div>
+    <div class="btn btn-danger">
+        <div>
+            <h3>{{ StatData["DisallowedCount"] }}</h3>
+        </div>
+        <div>
+            Banned Users
+        </div>
+    </div>
+</div>
+<h2 class="section-title">Activity Graphs</h2>
+<div class="row">
+    <div class="col-12 col-md-6 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Registrations</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="RegisterChart" height="50"></canvas>
+            </div>
+            <div class="card-footer">
+                RealistikPanel
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-6">
+        <!--To Be Done-->
+    </div>
+</div>
+<h2 class="section-title">Extended recent plays graph</h2>
+<p class="section-lead">Rather than viewing the usual 20 recent plays in the dash, this shows the 500 most recent plays.</p>
+<div class="card">
+    <div class="card-header">
+        <h4>Recent Plays</h4>
+    </div>
+    <div class="card-body">
+        <h3>Filters</h3>
+        Choose the minimum PP value that plays are required to have to appear on the list. The current value is <b>{{ MinPP }}</b>.
+        <form action="/stats" method="post">
+            <div class="row">
+                <div class="col-12 col-md-6 col-lg-6">
+                    <input type="number" class="form-control" name="minpp" min="0" value="{{ MinPP }}" style="margin-top: 5px; margin-bottom: 10px;">
+                </div>
+                <div class="col-12 col-md-6 col-lg-6">
+                    <button class="btn btn-success" type="submit" name="" style="margin-top: 8px;">Filter</button>
+                </div>
+            </div>
+        </form>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Player</th>
+                    <th scope="col">Song</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">PP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for play in StatData["RecentPlays"] %}
+                <tr>
+                    <td>{{ play["Time"] }}</td>
+                    <td><a href="{{ config['ServerURL'] }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
+                    <td>{{ play["SongName"] }}  <i>({{ play["Accuracy"] }}%)</i></td>
+                    <td>{{ play["Score"] }}</td>
+                    <td>{{ play["pp"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        RealistikPanel
+    </div>
+</div>
+<script>
+    //js is spooky
+    var labels = {{ StatData["RegisterGraph"]["DateList"]|safe }};
+    var data = {{ StatData["RegisterGraph"]["RegisterList"]|safe }};
+    var ctx = document.getElementById("RegisterChart").getContext('2d');
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels, 
+        datasets: [{
+        label: 'Online Players',
+        data: data,
+        borderWidth: 2,
+        backgroundColor: 'rgba(63,82,227,.8)',
+        borderWidth: 0,
+        borderColor: 'transparent',
+        pointBorderWidth: 0,
+        pointRadius: 3.5,
+        pointBackgroundColor: 'transparent',
+        pointHoverBackgroundColor: 'rgba(63,82,227,.8)',
+        }]
+    },
+    options: {
+        legend: {
+        display: false
+        },
+        scales: {
+        yAxes: [{
+            gridLines: {
+            drawBorder: false,
+            color: '#f2f2f2',
+            },
+            ticks: {
+            beginAtZero: true,
+            stepSize: 200,
+            callback: function(value, index, values) {
+                return value;
+            }
+            }
+        }],
+        xAxes: [{
+            gridLines: {
+            display: false,
+            tickMarkLength: 15,
+            }
+        }]
+        },
+    }
+    });
+</script>
+{% endblock %}

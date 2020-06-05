@@ -113,7 +113,7 @@ def RankMap(id):
 def RankFrom():
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 3):
-            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig)
+            return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig, SuggestedBmaps = SplitList(GetSuggestedRank()))
         else:
              return NoPerm(session)
     else:
@@ -135,13 +135,14 @@ def Users(page = 1):
 @app.route("/index.php")
 def LegacyIndex():
     """For implementing RAP funcions."""
-    if request.args.get("p") == "124":
+    Page = request.args.get("p")
+    if Page == "124":
         #ranking page
         return redirect(f"/rank/{request.args.get('bsid')}")
-    elif request.args.get("p") == "100" and HasPrivilege(session["AccountId"]): #hanayo link
-        return redirect(url_for("dash"))
-    else:
-        return redirect(url_for("dash")) #take them to the root
+    elif Page == "103": #hanayo link
+        Account = request.args.get("id")
+        return redirect(f"/user/edit/{Account}")
+    return redirect(url_for("dash")) #take them to the root
 
 @app.route("/system/settings", methods = ["GET", "POST"])
 def SystemSettings():
@@ -266,7 +267,7 @@ def Console():
 @app.route("/changelogs")
 def ChangeLogs():
     if HasPrivilege(session["AccountId"]):
-        return render_template("changelog.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=Changelogs)
+        return render_template("changelog.html", data=DashData(), session=session, title="Change Logs", config=UserConfig, logs=Changelogs)
     else:
          return NoPerm(session)
 
@@ -378,6 +379,13 @@ def ClanDeleteConfirm(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         Clan = GetClan(ClanID)
         return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f" delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
+    return NoPerm(session)
+
+@app.route("/stats", methods = ["GET", "POST"])
+def StatsRoute():
+    if HasPrivilege(session["AccountId"]):
+        MinPP = request.form.get("minpp", 0)
+        return render_template("stats.html", data=DashData(), session=session, title="Server Statistics", config=UserConfig, StatData = GetStatistics(MinPP), MinPP = MinPP)
     return NoPerm(session)
 
 #API for js

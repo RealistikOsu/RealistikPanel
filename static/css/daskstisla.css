@@ -101,3 +101,17 @@ body.sidebar-mini .main-sidebar:after {
 .page-link {
     background-color: #2d2d2d;
 }
+
+/*Ok here are some things for selectize.js*/
+
+.selectize-control.single .selectize-input, .selectize-control.single .selectize-input input {
+    background-color: #444444;
+}
+
+.selectize-dropdown, .selectize-input, .selectize-input input {
+    color: #dadada;
+}
+
+.selectize-input {
+    border: 1px solid #797979;
+}

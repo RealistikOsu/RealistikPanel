@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+{% endblock %}
+
 {% block content %}
 <h2 class="section-title">Dashboard</h2>
 <p class="section-lead">This is the RealistikPanel dashboard! The home of RealistikPanel!</p>
@@ -104,7 +108,6 @@
         {% endfor %}
     </tbody>
 </table>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <script>
 //Dash data
 var labels = {{ Graph["IntervalList"]|safe }};

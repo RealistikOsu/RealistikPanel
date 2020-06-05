@@ -4,6 +4,7 @@
     <title>RealistikPanel! - {{ title }}</title>
     <!--Icon kit things-->
     <script src="https://kit.fontawesome.com/e9bdb24827.js" crossorigin="anonymous"></script>
+    {% block head %}{% endblock %}
     <!-- General CSS Files -->
     <link rel="stylesheet" href="/static/modules/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/modules/fontawesome/css/all.min.css">
@@ -24,8 +25,8 @@
     </style>
     {% endif %}
     <!--JS Modules-->
-    <script src="/static/js/stisla.js"></script>
     <script src="/static/modules/jquery.min.js"></script>
+    <script src="/static/js/stisla.js"></script>
     <script src="/static/modules/popper.js"></script>
     <script src="/static/modules/tooltip.js"></script>
     <script src="/static/modules/bootstrap/js/bootstrap.min.js"></script>
@@ -33,10 +34,8 @@
     <script src="/static/modules/moment.min.js"></script>
     <script src="/static/js/scripts.js"></script>
     <!--Pace loading abr thing-->
-    <head>
-        <script src="/static/js/pace.min.js"></script>
-        <link href="/static/css/loadingbar.css" rel="stylesheet" />
-    </head>
+    <script src="/static/js/pace.min.js"></script>
+    <link href="/static/css/loadingbar.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -76,6 +75,7 @@
                     <li class="menu-header">Information</li>
                     <a href="/dash" class="nav-link AccessRAP"><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a>
                     <a href="/users/1" class="nav-link ManageUsers"><i class="fas fa-users"></i><span> Users</span></a>
+                    <a href="/stats" class="nav-link ManageUsers"><i class="fas fa-chart-area"></i><span> Statistics</span></a>
                     <a href="/logs/1" class="nav-link ViewRAPLogs"><i class="fas fa-calendar"></i><span> Logs</span></a>
                     <a href="/console" class="nav-link RPErrorLogs"><i class="fas fa-terminal"></i><span> Console Logs</span></a>
                     <li class="menu-header">Actions</li>

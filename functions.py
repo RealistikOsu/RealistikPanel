@@ -146,7 +146,7 @@ def DashData():
 
 def LoginHandler(username, password):
     """Checks the passwords and handles the sessions."""
-    mycursor.execute("SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE LOWER(username) = %s", (username.lower(),))
+    mycursor.execute("SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = %s", (RippleSafeUsername(username),))
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
@@ -205,21 +205,20 @@ def TimestampConverter(timestamp, NoDate=1):
     if NoDate == 2:
         return date.strftime("%H:%M %d/%m/%Y")
 
-def RecentPlays():
+def RecentPlays(TotalPlays = 20, MinPP = 0):
     """Returns recent plays."""
     #this is probably really bad
     DivBy = 1
-    TotalPlays = 20 #feel free to change it, dont think its necessary in the config
     if UserConfig["HasRelax"]:
         DivBy += 1
     if UserConfig["HasAutopilot"]:
         DivBy += 1
     PerGamemode = round(TotalPlays/DivBy)
-    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT %s", (PerGamemode,))
+    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 AND scores.pp >= %s ORDER BY scores.time DESC LIMIT %s", (MinPP, PerGamemode,))
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 AND scores_relax.pp >= %s ORDER BY scores_relax.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -227,7 +226,7 @@ def RecentPlays():
             plays.append(plays_rx)
     if UserConfig["HasAutopilot"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 ORDER BY scores_ap.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 AND scores_ap.pp >= %s ORDER BY scores_ap.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_ap = mycursor.fetchall()
         for plays_ap in playx_ap:
             #addint them to the list
@@ -715,14 +714,14 @@ def GetUser(id):
     }
 
 def UserData(UserID):
-    """Gets data for user. (specialised for user edit page)"""
+    """Gets data for user (specialised for user edit page)."""
     #fix badbad data
     mycursor.execute("UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s", (UserID,))
     mydb.commit()
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchone()
-    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchone()
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
@@ -755,6 +754,12 @@ def UserData(UserID):
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
+
+    #now for silences and ban times
+    Data["IsBanned"] = int(Data2[7]) > 0
+    Data["BanedAgo"] = TimeToTimeAgo(int(Data2[7]))
+    Data["IsSilenced"] =  int(Data2[5]) > round(time.time())
+    Data["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
@@ -849,8 +854,7 @@ def ApplyUserEdit(form, session):
         print("Yo you seriously messed up the form")
         raise NameError
     #Creating safe username
-    SafeUsername = Username.lower()
-    SafeUsername = SafeUsername.replace(" ", "_")
+    SafeUsername = RippleSafeUsername(Username)
 
     #fixing crash bug
     if UserPage == "":
@@ -952,7 +956,6 @@ def ModToText(mod: int):
 
 def WipeAccount(AccId):
     """Wipes the account with the given id."""
-    mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
         "userID" : AccId,
         "reason" : "Your account has been wiped! F"
@@ -1012,6 +1015,7 @@ def WipeVanilla(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def WipeRelax(AccId):
@@ -1059,6 +1063,7 @@ def WipeRelax(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def WipeAutopilot(AccId):
@@ -1106,6 +1111,7 @@ def WipeAutopilot(AccId):
         WHERE
             id = %s
     """, (AccId,))
+    mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int):
@@ -1349,6 +1355,7 @@ def GetBadges():
 def DeleteBadge(BadgeId : int):
     """"Delets the badge with the gived id."""
     mycursor.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
+    mycursor.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
     mydb.commit()
 
 def GetBadge(BadgeID:int):
@@ -1995,3 +2002,91 @@ def KickFromClan(AccountID):
     """Kicks user from all clans (supposed to be only one)."""
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
     mydb.commit()
+
+def GetUsersRegisteredBetween(Offset:int = 0, Ahead:int = 24):
+    """Gets how many players registered during a given time period (variables are in hours)."""
+    #convert the hours to secconds
+    Offset *= 3600
+    Ahead *= 3600
+
+    CurrentTime = round(time.time())
+    #now we get the time - offset
+    OffsetTime = CurrentTime - Offset
+    AheadTime = OffsetTime - Ahead
+
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE register_datetime > %s AND register_datetime < %s", (AheadTime, OffsetTime))
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
+
+def GetUsersActiveBetween(Offset:int = 0, Ahead:int = 24):
+    """Gets how many players were active during a given time period (variables are in hours)."""
+    #yeah this is a reuse of the last function.
+    #convert the hours to secconds
+    Offset *= 3600
+    Ahead *= 3600
+
+    CurrentTime = round(time.time())
+    #now we get the time - offset
+    OffsetTime = CurrentTime - Offset
+    AheadTime = OffsetTime - Ahead
+
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE latest_activity > %s AND latest_activity < %s", (AheadTime, OffsetTime))
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
+
+def RippleSafeUsername(Username):
+    """Generates a ripple-style safe username."""
+    return Username.lower().replace(" ", "_")
+
+def GetSuggestedRank():
+    """Gets suggested maps to rank (based on play count)."""
+    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 8")
+    Beatmaps = mycursor.fetchall()
+    BeatmapList = []
+    for TopBeatmap in Beatmaps:
+        BeatmapList.append({
+            "BeatmapId" : TopBeatmap[0],
+            "SongName" : TopBeatmap[1],
+            "Cover" : f"https://assets.ppy.sh/beatmaps/{TopBeatmap[2]}/covers/cover.jpg",
+            "Playcount" : TopBeatmap[3]
+        })
+
+    return BeatmapList
+
+def CountRestricted():
+    """Calculates the amount of restricted or banned users."""
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE NOT privileges & 1")
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
+
+def GetStatistics(MinPP = 0):
+    """Gets statistics for the stats page and is incredibly slow...."""
+    #this is going to be a wild one
+    # TODO: REWRITE or look into caching this
+    MinPP = int(MinPP)
+    Days = 7
+    RegisterList = []
+    DateList = []
+    while Days != -1:
+        DateList.append(f"{Days+1}d")
+        RegisterList.append(GetUsersRegisteredBetween(24*Days))
+        Days -= 1
+    UsersActiveToday = GetUsersActiveBetween()
+    RecentPlay = RecentPlays(TotalPlays = 500, MinPP=MinPP) #this MIGHT kill performance
+    ResctictedCount = CountRestricted()
+
+    return {
+        "RegisterGraph" : {
+            "RegisterList" : RegisterList,
+            "DateList" : DateList
+        },
+        "ActiveToday" : UsersActiveToday,
+        "RecentPlays": RecentPlay,
+        "DisallowedCount" : ResctictedCount
+    }
