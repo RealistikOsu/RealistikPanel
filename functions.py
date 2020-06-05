@@ -226,7 +226,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
             plays.append(plays_rx)
     if UserConfig["HasAutopilot"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 AND scores.pp > %s ORDER BY scores_ap.time DESC LIMIT %s", (MinPP, PerGamemode,))
+        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 AND scores_ap.pp > %s ORDER BY scores_ap.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_ap = mycursor.fetchall()
         for plays_ap in playx_ap:
             #addint them to the list
