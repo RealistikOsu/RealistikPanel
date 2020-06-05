@@ -381,6 +381,13 @@ def ClanDeleteConfirm(ClanID):
         return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f" delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
     return NoPerm(session)
 
+@app.route("/stats", methods = ["GET", "POST"])
+def StatsRoute(ClanID):
+    if HasPrivilege(session["AccountId"]):
+        MinPP = request.form.get("minpp", 0)
+        return render_template("stats.html", data=DashData(), session=session, title="Server Statistics", config=UserConfig, StatData = GetStatistics(MinPP), MinPP = MinPP)
+    return NoPerm(session)
+
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):

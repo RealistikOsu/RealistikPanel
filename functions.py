@@ -205,21 +205,20 @@ def TimestampConverter(timestamp, NoDate=1):
     if NoDate == 2:
         return date.strftime("%H:%M %d/%m/%Y")
 
-def RecentPlays():
+def RecentPlays(TotalPlays = 20, MinPP = 0):
     """Returns recent plays."""
     #this is probably really bad
     DivBy = 1
-    TotalPlays = 20 #feel free to change it, dont think its necessary in the config
     if UserConfig["HasRelax"]:
         DivBy += 1
     if UserConfig["HasAutopilot"]:
         DivBy += 1
     PerGamemode = round(TotalPlays/DivBy)
-    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 ORDER BY scores.time DESC LIMIT %s", (PerGamemode,))
+    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 AND scores.pp > %s ORDER BY scores.time DESC LIMIT %s", (MinPP, PerGamemode,))
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 ORDER BY scores_relax.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 AND scores_rx.pp > %s ORDER BY scores_relax.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -227,7 +226,7 @@ def RecentPlays():
             plays.append(plays_rx)
     if UserConfig["HasAutopilot"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 ORDER BY scores_ap.time DESC LIMIT %s", (PerGamemode,))
+        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 AND scores.pp > %s ORDER BY scores_ap.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_ap = mycursor.fetchall()
         for plays_ap in playx_ap:
             #addint them to the list
@@ -2045,7 +2044,7 @@ def RippleSafeUsername(Username):
 
 def GetSuggestedRank():
     """Gets suggested maps to rank (based on play count)."""
-    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 4")
+    mycursor.execute("SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 8")
     Beatmaps = mycursor.fetchall()
     BeatmapList = []
     for TopBeatmap in Beatmaps:
@@ -2057,3 +2056,37 @@ def GetSuggestedRank():
         })
 
     return BeatmapList
+
+def CountRestricted():
+    """Calculates the amount of restricted or banned users."""
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE NOT privileges & 1")
+    Count = mycursor.fetchone()
+    if Count == None:
+        return 0
+    return Count[0]
+
+def GetStatistics(MinPP = 0):
+    """Gets statistics for the stats page and is incredibly slow...."""
+    #this is going to be a wild one
+    # TODO: REWRITE or look into caching this
+    MinPP = int(MinPP)
+    Days = 7
+    RegisterList = []
+    DateList = []
+    while Days != -1:
+        DateList.append(f"{Days+1}d")
+        RegisterList.append(GetUsersRegisteredBetween(24*Days))
+        Days -= 1
+    UsersActiveToday = GetUsersActiveBetween()
+    RecentPlay = RecentPlays(TotalPlays = 200) #this MIGHT kill performance
+    ResctictedCount = CountRestricted()
+
+    return {
+        "RegisterGraph" : {
+            "RegisterList" : RegisterList,
+            "DateList" : DateList
+        },
+        "ActiveToday" : UsersActiveToday,
+        "RecentPlays": RecentPlay,
+        "DisallowedCount" : ResctictedCount
+    }
