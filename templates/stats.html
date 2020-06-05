@@ -57,6 +57,17 @@
                     <button class="btn btn-success" type="submit" name="">Filter</button>
                 </div>
             </div>
+        </form>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Player</th>
+                    <th scope="col">Song</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">PP</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for play in StatData["RecentPlays"] %}
                 <tr>
@@ -68,7 +79,7 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </form>
+        </table>
     </div>
     <div class="card-footer">
         RealistikPanel
@@ -78,7 +89,7 @@
     //js is spooky
     var labels = {{ StatData["RegisterGraph"]["DateList"]|safe }};
     var data = {{ StatData["RegisterGraph"]["RegisterList"]|safe }};
-    var ctx = document.getElementById("PlayerChart").getContext('2d');
+    var ctx = document.getElementById("RegisterChart").getContext('2d');
     var myChart = new Chart(ctx, {
     type: 'line',
     data: {
