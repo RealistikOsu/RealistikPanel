@@ -45,7 +45,7 @@
     </div>
 </div>
 <h2 class="section-title">Extended recent plays graph</h2>
-<p class="section-lead">Rather than viewing the usual 20 recent plays in the dash, this shows the 200 most recent plays.</p>
+<p class="section-lead">Rather than viewing the usual 20 recent plays in the dash, this shows the 500 most recent plays.</p>
 <div class="card">
     <div class="card-header">
         <h4>Recent Plays</h4>
@@ -56,7 +56,7 @@
         <form action="/stats" method="post">
             <div class="row">
                 <div class="col-12 col-md-6 col-lg-6">
-                    <input type="number" class="form-control" name="mainpp" min="0" value="{{ MinPP }}">
+                    <input type="number" class="form-control" name="minpp" min="0" value="{{ MinPP }}">
                 </div>
                 <div class="col-12 col-md-6 col-lg-6">
                     <button class="btn btn-success" type="submit" name="" style="margin-top: 3px;">Filter</button>
