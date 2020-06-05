@@ -382,7 +382,7 @@ def ClanDeleteConfirm(ClanID):
     return NoPerm(session)
 
 @app.route("/stats", methods = ["GET", "POST"])
-def StatsRoute(ClanID):
+def StatsRoute():
     if HasPrivilege(session["AccountId"]):
         MinPP = request.form.get("minpp", 0)
         return render_template("stats.html", data=DashData(), session=session, title="Server Statistics", config=UserConfig, StatData = GetStatistics(MinPP), MinPP = MinPP)
