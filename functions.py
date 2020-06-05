@@ -218,7 +218,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 AND scores_rx.pp > %s ORDER BY scores_relax.time DESC LIMIT %s", (MinPP, PerGamemode,))
+        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 AND scores_relax.pp > %s ORDER BY scores_relax.time DESC LIMIT %s", (MinPP, PerGamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -1063,7 +1063,7 @@ def WipeRelax(AccId):
         WHERE
             id = %s
     """, (AccId,))
-    mycursor.execute("DELETE FROM scores_rx WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
     mydb.commit()
 
 def WipeAutopilot(AccId):
