@@ -139,9 +139,13 @@
         fetch(url)
         .then(res => res.json())
         .then((out) => {
-        console.log("Got json hopefully ", out);
         // doing things
-        document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-info rightrem' style='color: white;'>No Mod: " + out["pp"] + "pp</a><a class='badge badge-danger leftrem' style='color: white;'>DT: " + out["dtpp"] + "pp</a>"
+        if (out["code"] == 200) {
+            document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-info rightrem' style='color: white;'>No Mod: " + out["pp"] + "pp</a><a class='badge badge-danger leftrem' style='color: white;'>DT: " + out["dtpp"] + "pp</a>"
+        }
+        else {
+            document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-danger leftrem' style='color: white;'>Calculation Error!</a>"
+        }
         })
         .catch(err => { throw err }); 
     }

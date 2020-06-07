@@ -391,10 +391,14 @@ def StatsRoute():
 #API for js
 @app.route("/js/pp/<id>")
 def PPApi(id):
-    return jsonify({
-        "pp" : str(round(CalcPP(id), 2)),
-        "dtpp" : str(round(CalcPPDT(id), 2))
-    })
+    try:
+        return jsonify({
+            "pp" : str(round(CalcPP(id), 2)),
+            "dtpp" : str(round(CalcPPDT(id), 2)),
+            "code" : 200
+        })
+    except:
+        return jsonify({"code" : 500})
 #api mirrors
 @app.route("/js/status/api")
 def ApiStatus():

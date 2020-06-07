@@ -484,6 +484,10 @@ Changelogs = [
         "Summary" : "This build fixes a single beatmap ranking bug.",
         "Changes" : [
             {
+                "Type" : 2,
+                "Content" : "Made PP calc errors show up rather than load infinitely."
+            },
+            {
                 "Type" : 5,
                 "Content" : "Fixed the Double Time PP calculation request (before it was requesting with relax)."
             }
