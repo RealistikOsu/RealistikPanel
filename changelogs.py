@@ -482,10 +482,10 @@ Changelogs = [
         "Build" : 1591494903,
         "Type" : 3,
         "Summary" : "This build fixes a single beatmap ranking bug.",
-        "Changes" [
+        "Changes" : [
             {
                 "Type" : 5,
-                "Content" : "Fixed the Double Time PP calculation request (before it was requesting  with relax)."
+                "Content" : "Fixed the Double Time PP calculation request (before it was requesting with relax)."
             }
         ]
     }
