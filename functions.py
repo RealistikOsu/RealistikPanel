@@ -1433,7 +1433,9 @@ def UpdatePriv(Form):
     #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
-    mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
+    Form['privilege'] = int(Form['privilege'])
+    if Form['privilege'] != 0 and Form['privilege'] != 3 and Form['privilege'] != 2: #i accidentally modded everyone because of this....
+        mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
     mydb.commit()
 
 def GetMostPlayed():
@@ -2094,7 +2096,7 @@ def GetStatistics(MinPP = 0):
 
 def CreatePrivilege():
     """Creates a new default privilege."""
-    mycursor.execute("INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 3, '')")
+    mycursor.execute("INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 0, '')")
     mydb.commit()
     #checking the ID
     mycursor.execute("SELECT id FROM privileges_groups ORDER BY id DESC LIMIT 1")
