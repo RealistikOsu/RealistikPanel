@@ -253,6 +253,7 @@ def EditPrivilege(Privilege: int):
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing privilege!", f"{e}", 3)
+                Priv = GetPriv(Privilege)
                 return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, error="An internal error has occured while editing the privileges! An error has been logged to the console.")
     else:
          return NoPerm(session)

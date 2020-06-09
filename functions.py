@@ -1433,9 +1433,9 @@ def UpdatePriv(Form):
     #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
-    Form['privilege'] = int(Form['privilege'])
-    if Form['privilege'] != 0 and Form['privilege'] != 3 and Form['privilege'] != 2: #i accidentally modded everyone because of this....
-        mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
+    TheFormPriv = int(Form['privilege'])
+    if TheFormPriv != 0 and TheFormPriv != 3 and TheFormPriv != 2: #i accidentally modded everyone because of this....
+        mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, TheFormPriv,))
     mydb.commit()
 
 def GetMostPlayed():
