@@ -529,6 +529,14 @@ def CreateBadgeAction():
     else:
          return NoPerm(session)
 
+@app.route("/actions/createprivilege")
+def CreatePrivilegeAction():
+    if HasPrivilege(session["AccountId"], 13):
+        PrivID = CreatePrivilege()
+        RAPLog(session["AccountId"], f"Created a new privilege group with the ID of {PrivID}")
+        return redirect(f"/privilege/edit/{PrivID}")
+    return NoPerm(session)
+
 @app.route("/actions/deletepriv/<PrivID>")
 def PrivDeath(PrivID:int):
     if HasPrivilege(session["AccountId"], 13):

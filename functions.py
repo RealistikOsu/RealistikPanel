@@ -2091,3 +2091,11 @@ def GetStatistics(MinPP = 0):
         "RecentPlays": RecentPlay,
         "DisallowedCount" : ResctictedCount
     }
+
+def CreatePrivilege():
+    """Creates a new default privilege."""
+    mycursor.execute("INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 3, '')")
+    mydb.commit()
+    #checking the ID
+    mycursor.execute("SELECT id FROM privileges_groups ORDER BY id DESC LIMIT 1")
+    return mycursor.fetchone()[0]
