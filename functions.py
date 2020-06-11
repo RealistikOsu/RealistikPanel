@@ -1017,6 +1017,7 @@ def WipeVanilla(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def WipeRelax(AccId):
@@ -1065,6 +1066,7 @@ def WipeRelax(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM rx_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def WipeAutopilot(AccId):
@@ -1113,6 +1115,7 @@ def WipeAutopilot(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int):
