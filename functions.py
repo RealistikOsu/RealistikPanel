@@ -60,17 +60,20 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     if Type == 1: #this makes me wish python had native switch statements
         Colour = "4360181"
         TypeText = "log"
+        Icon = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
     if Type == 2:
         Colour = "16562691"
         TypeText = "warning"
+        Icon = "https://icon2.cleanpng.com/20180626/kiy/kisspng-warning-sign-computer-icons-clip-art-warning-icon-5b31bd67368be5.4827407215299864072234.jpg"
     if Type == 3:
         Colour = "15417396"
         TypeText = "error"
+        Icon = "https://freeiconshop.com/wp-content/uploads/edd/error-flat.png"
     
     #I promise to redo this, this is just proof of concept
     webhook = DiscordWebhook(url=UserConfig["ConsoleLogWebhook"])
     embed = DiscordEmbed(description=f"{Info}\n{Additional}", color=Colour)
-    embed.set_author(name=f"RealistikPanel {TypeText}!")
+    embed.set_author(name=f"RealistikPanel {TypeText}!", icon_url=Icon)
     embed.set_footer(text="RealistikPanel Log")
     webhook.add_embed(embed)
     webhook.execute()
