@@ -504,7 +504,7 @@ Changelogs = [
             },
             {
                 "Type" : 4,
-                "Content" : "Added safety percaution so that if a group with the privileges of 0 (banned) or 3 (regular user) is changed, all users with those privileges will not have them updated."
+                "Content" : "Added safety precaution so that if a group with the privileges of 0 (banned) or 3 (regular user) is changed, all users with those privileges will not have them updated."
             },
             {
                 "Type" : 4,
