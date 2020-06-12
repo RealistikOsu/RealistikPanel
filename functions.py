@@ -55,6 +55,26 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     with open("realistikpanel.log", 'w') as json_file:
         json.dump(Log, json_file, indent=4)
 
+    #webhook
+    #first we get embed colour so it isnt mixed with the actual webhook
+    if Type == 1: #this makes me wish python had native switch statements
+        Colour = "4287f5"
+        TypeText = "log"
+    if Type == 2:
+        Colour = "fcba03"
+        TypeText = "warning"
+    if Type == 3:
+        Colour = "eb4034"
+        TypeText = "error"
+    
+    #I promise to redo this, this is just proof of concept
+    webhook = DiscordWebhook(url=UserConfig["ConsoleLogWebhook"])
+    embed = DiscordEmbed(description=f"{Info}\n{Additional}", color=Colour)
+    embed.set_author(name=f"RealistikPanel {TypeText}!")
+    embed.set_footer(text="RealistikPanel Log")
+    webhook.add_embed(embed)
+    webhook.execute()
+
 
 try:
     mydb = mysql.connector.connect(
