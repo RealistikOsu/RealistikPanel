@@ -558,7 +558,7 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
         webhook = DiscordWebhook(UserConfig["AdminLogWebhook"])
         embed = DiscordEmbed(description=f"{Username} {Text}", color=242424)
         embed.set_footer(text="RealistikPanel Admin Logs")
-        embed.set_author(name=f"New action done by {Username}!", url=f"{UserConfig['ServerURL']}u/{UserID}", icon_url = f"{UserColour['AvatarServer']}{AccountID}")
+        embed.set_author(name=f"New action done by {Username}!", url=f"{UserConfig['ServerURL']}u/{UserID}", icon_url = f"{UserConfig['AvatarServer']}{UserID}")
         webhook.add_embed(embed)
         webhook.execute()
 
