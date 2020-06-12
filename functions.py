@@ -58,13 +58,13 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     #webhook
     #first we get embed colour so it isnt mixed with the actual webhook
     if Type == 1: #this makes me wish python had native switch statements
-        Colour = "4287f5"
+        Colour = "4360181"
         TypeText = "log"
     if Type == 2:
-        Colour = "fcba03"
+        Colour = "16562691"
         TypeText = "warning"
     if Type == 3:
-        Colour = "eb4034"
+        Colour = "15417396"
         TypeText = "error"
     
     #I promise to redo this, this is just proof of concept
