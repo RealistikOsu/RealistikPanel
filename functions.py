@@ -71,12 +71,13 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
         Icon = "https://freeiconshop.com/wp-content/uploads/edd/error-flat.png"
     
     #I promise to redo this, this is just proof of concept
-    webhook = DiscordWebhook(url=UserConfig["ConsoleLogWebhook"])
-    embed = DiscordEmbed(description=f"{Info}\n{Additional}", color=Colour)
-    embed.set_author(name=f"RealistikPanel {TypeText}!", icon_url=Icon)
-    embed.set_footer(text="RealistikPanel Log")
-    webhook.add_embed(embed)
-    webhook.execute()
+    if UserConfig["ConsoleLogWebhook"] != "":
+        webhook = DiscordWebhook(url=UserConfig["ConsoleLogWebhook"])
+        embed = DiscordEmbed(description=f"{Info}\n{Additional}", color=Colour)
+        embed.set_author(name=f"RealistikPanel {TypeText}!", icon_url=Icon)
+        embed.set_footer(text="RealistikPanel Console Log")
+        webhook.add_embed(embed)
+        webhook.execute()
 
 
 try:
@@ -531,7 +532,7 @@ def Webhook(BeatmapId, ActionName, session):
     #}
     #requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
     embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
-    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"https://ussr.pl/b/{BeatmapId}", icon_url=f"https://a.ussr.pl/{session['AccountId']}")
+    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"{UserConfig['ServerURL']}b/{BeatmapId}", icon_url=f"{UserColour['AvatarServer']}{session['AccountId']}")
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
     webhook.add_embed(embed)
@@ -551,6 +552,15 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     #now we putting that in oh yea
     mycursor.execute("INSERT INTO rap_logs (userid, text, datetime, through) VALUES (%s, %s, %s, 'RealistikPanel!')", (UserID, Text, Timestamp,))
     mydb.commit()
+    #webhook time
+    if UserConfig["AdminLogWebhook"] != "":
+        Username = GetUser(UserID)["Username"]
+        webhook = DiscordWebhook(UserConfig["AdminLogWebhook"])
+        embed = DiscordEmbed(description=f"{Username} {Text}", color=242424)
+        embed.set_footer(text="RealistikPanel Admin Logs")
+        embed.set_author(name=f"New action done by {Username}!", url=f"{UserConfig['ServerURL']}u/{UserID}", icon_url = f"{UserColour['AvatarServer']}{AccountID}")
+        webhook.add_embed(embed)
+        webhook.execute()
 
 def checkpw(dbpassword, painpassword):
     """
