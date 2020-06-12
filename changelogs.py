@@ -492,5 +492,40 @@ Changelogs = [
                 "Content" : "Fixed the Double Time PP calculation request (before it was requesting with relax)."
             }
         ]
+    },
+    {
+        "Build" : 1591992477,
+        "Type" : 2,
+        "Summary" : "This release aims at making RealistikPanel a much more complete piece of software.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Added privilege creation (finally) so new groups can now be created from within the panel."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added safety percaution so that if a group with the privileges of 0 (banned) or 3 (regular user) is changed, all users with those privileges will not have them updated."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Wipes now will also clear the user's playcount."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added optional webhooks for admin logs and RealistikPanel console logs."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed pagination on clans."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed registered users being called online users on the stats page."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed the redirects on gamemode wipes."
+            }
+        ]
     }
 ]
