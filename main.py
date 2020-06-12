@@ -253,6 +253,7 @@ def EditPrivilege(Privilege: int):
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing privilege!", f"{e}", 3)
+                Priv = GetPriv(Privilege)
                 return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, error="An internal error has occured while editing the privileges! An error has been logged to the console.")
     else:
          return NoPerm(session)
@@ -411,14 +412,14 @@ def BanchoStatus():
     return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
 
 #actions
-@app.route("/actions/wipe/<id>")
-def Wipe(id: int):
+@app.route("/actions/wipe/<AccountID>")
+def Wipe(AccountID: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(id)
-        WipeAccount(id)
-        RAPLog(session["AccountId"], f"has wiped the account {Account['Username']} ({id})")
-        return redirect(f"/user/edit/{id}")
+        Account = GetUser(AccountID)
+        WipeAccount(AccountID)
+        RAPLog(session["AccountId"], f"has wiped the account {Account['Username']} ({AccountID})")
+        return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
 
@@ -428,8 +429,8 @@ def WipeAPRoute(AccountID: int):
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(AccountID)
         WipeAutopilot(AccountID)
-        RAPLog(session["AccountId"], f"has wiped the autopilot statistics for the account {Account['Username']} ({id})")
-        return redirect(f"/user/edit/{id}")
+        RAPLog(session["AccountId"], f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})")
+        return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
 
@@ -439,8 +440,8 @@ def WipeRXRoute(AccountID: int):
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(AccountID)
         WipeRelax(AccountID)
-        RAPLog(session["AccountId"], f"has wiped the relax statistics for the account {Account['Username']} ({id})")
-        return redirect(f"/user/edit/{id}")
+        RAPLog(session["AccountId"], f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})")
+        return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
 
@@ -450,8 +451,8 @@ def WipeVARoute(AccountID: int):
     if HasPrivilege(session["AccountId"], 11):
         Account = GetUser(AccountID)
         WipeVanilla(AccountID)
-        RAPLog(session["AccountId"], f"has wiped the vanilla statistics for the account {Account['Username']} ({id})")
-        return redirect(f"/user/edit/{id}")
+        RAPLog(session["AccountId"], f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})")
+        return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
 
@@ -528,6 +529,14 @@ def CreateBadgeAction():
         return redirect(f"/badge/edit/{Badge}")
     else:
          return NoPerm(session)
+
+@app.route("/actions/createprivilege")
+def CreatePrivilegeAction():
+    if HasPrivilege(session["AccountId"], 13):
+        PrivID = CreatePrivilege()
+        RAPLog(session["AccountId"], f"Created a new privilege group with the ID of {PrivID}")
+        return redirect(f"/privilege/edit/{PrivID}")
+    return NoPerm(session)
 
 @app.route("/actions/deletepriv/<PrivID>")
 def PrivDeath(PrivID:int):

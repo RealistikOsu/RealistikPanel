@@ -55,6 +55,30 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
     with open("realistikpanel.log", 'w') as json_file:
         json.dump(Log, json_file, indent=4)
 
+    #webhook
+    #first we get embed colour so it isnt mixed with the actual webhook
+    if Type == 1: #this makes me wish python had native switch statements
+        Colour = "4360181"
+        TypeText = "log"
+        Icon = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
+    if Type == 2:
+        Colour = "16562691"
+        TypeText = "warning"
+        Icon = "https://icon2.cleanpng.com/20180626/kiy/kisspng-warning-sign-computer-icons-clip-art-warning-icon-5b31bd67368be5.4827407215299864072234.jpg"
+    if Type == 3:
+        Colour = "15417396"
+        TypeText = "error"
+        Icon = "https://freeiconshop.com/wp-content/uploads/edd/error-flat.png"
+    
+    #I promise to redo this, this is just proof of concept
+    if UserConfig["ConsoleLogWebhook"] != "":
+        webhook = DiscordWebhook(url=UserConfig["ConsoleLogWebhook"])
+        embed = DiscordEmbed(description=f"{Info}\n{Additional}", color=Colour)
+        embed.set_author(name=f"RealistikPanel {TypeText}!", icon_url=Icon)
+        embed.set_footer(text="RealistikPanel Console Log")
+        webhook.add_embed(embed)
+        webhook.execute()
+
 
 try:
     mydb = mysql.connector.connect(
@@ -261,11 +285,12 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
         Dicti["PlayerId"] = x[2]
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5])
+        Dicti["Timestamp"] = x[3]
         Dicti["Time"] = TimestampConverter(x[3])
         Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
     
-    ReadableArray = sorted(ReadableArray, key=lambda k: k["Time"]) #sorting by time
+    ReadableArray = sorted(ReadableArray, key=lambda k: k["Timestamp"]) #sorting by time
     ReadableArray.reverse()
     return ReadableArray
 
@@ -507,7 +532,7 @@ def Webhook(BeatmapId, ActionName, session):
     #}
     #requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
     embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
-    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"https://ussr.pl/b/{BeatmapId}", icon_url=f"https://a.ussr.pl/{session['AccountId']}")
+    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"{UserConfig['ServerURL']}b/{BeatmapId}", icon_url=f"{UserColour['AvatarServer']}{session['AccountId']}")
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
     webhook.add_embed(embed)
@@ -527,6 +552,15 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     #now we putting that in oh yea
     mycursor.execute("INSERT INTO rap_logs (userid, text, datetime, through) VALUES (%s, %s, %s, 'RealistikPanel!')", (UserID, Text, Timestamp,))
     mydb.commit()
+    #webhook time
+    if UserConfig["AdminLogWebhook"] != "":
+        Username = GetUser(UserID)["Username"]
+        webhook = DiscordWebhook(UserConfig["AdminLogWebhook"])
+        embed = DiscordEmbed(description=f"{Username} {Text}", color=242424)
+        embed.set_footer(text="RealistikPanel Admin Logs")
+        embed.set_author(name=f"New action done by {Username}!", url=f"{UserConfig['ServerURL']}u/{UserID}", icon_url = f"{UserConfig['AvatarServer']}{UserID}")
+        webhook.add_embed(embed)
+        webhook.execute()
 
 def checkpw(dbpassword, painpassword):
     """
@@ -1016,6 +1050,7 @@ def WipeVanilla(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def WipeRelax(AccId):
@@ -1064,6 +1099,7 @@ def WipeRelax(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM rx_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def WipeAutopilot(AccId):
@@ -1112,6 +1148,7 @@ def WipeAutopilot(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
+    mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int):
@@ -1432,7 +1469,9 @@ def UpdatePriv(Form):
     #Update group
     mycursor.execute("UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1", (Form['name'], Form['privilege'], Form['colour'], Form['id']))
     #update privs for users
-    mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, Form['privilege'],))
+    TheFormPriv = int(Form['privilege'])
+    if TheFormPriv != 0 and TheFormPriv != 3 and TheFormPriv != 2: #i accidentally modded everyone because of this....
+        mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, TheFormPriv,))
     mydb.commit()
 
 def GetMostPlayed():
@@ -2090,3 +2129,11 @@ def GetStatistics(MinPP = 0):
         "RecentPlays": RecentPlay,
         "DisallowedCount" : ResctictedCount
     }
+
+def CreatePrivilege():
+    """Creates a new default privilege."""
+    mycursor.execute("INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 0, '')")
+    mydb.commit()
+    #checking the ID
+    mycursor.execute("SELECT id FROM privileges_groups ORDER BY id DESC LIMIT 1")
+    return mycursor.fetchone()[0]

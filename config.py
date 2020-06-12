@@ -40,7 +40,9 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "GitHubRepo" : "https://github.com/RealistikOsu/RealistikPanel", #AGPL requirement i believe
     "CurrentIP" : "95.179.225.194", #the IP for the /current.json (ripple based switchers)
     "TimezoneOffset" : 1, #offset for hours, can be negative
-    "DonorBadgeID" : 1002 #This badge will be awarded to new donors!
+    "DonorBadgeID" : 1002, #This badge will be awarded to new donors!
+    "ConsoleLogWebhook" : "", #if set, all console logs will be sent to that webhook
+    "AdminLogWebhook" : "" #if set, all admin logs (aka rap logs) will be sent to that webhook
 }
 
 class JsonFile:
