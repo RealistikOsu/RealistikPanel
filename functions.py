@@ -532,7 +532,7 @@ def Webhook(BeatmapId, ActionName, session):
     #}
     #requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
     embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
-    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"{UserConfig['ServerURL']}b/{BeatmapId}", icon_url=f"{UserColour['AvatarServer']}{session['AccountId']}")
+    embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"{UserConfig['ServerURL']}b/{BeatmapId}", icon_url=f"{UserConfig['AvatarServer']}{session['AccountId']}")
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
     webhook.add_embed(embed)
