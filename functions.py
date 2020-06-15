@@ -790,10 +790,10 @@ def UserData(UserID):
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
 
     #now for silences and ban times
-    Data["IsBanned"] = int(Data2[7]) > 0
-    Data["BanedAgo"] = TimeToTimeAgo(int(Data2[7]))
-    Data["IsSilenced"] =  int(Data2[5]) > round(time.time())
-    Data["SilenceEndAgo"] = TimeToTimeAgo(int(Data2[5]))
+    Data["IsBanned"] = CoolerInt(Data2[7]) > 0
+    Data["BanedAgo"] = TimeToTimeAgo(CoolerInt(Data2[7]))
+    Data["IsSilenced"] =  CoolerInt(Data2[5]) > round(time.time())
+    Data["SilenceEndAgo"] = TimeToTimeAgo(CoolerInt(Data2[5]))
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
@@ -2137,3 +2137,9 @@ def CreatePrivilege():
     #checking the ID
     mycursor.execute("SELECT id FROM privileges_groups ORDER BY id DESC LIMIT 1")
     return mycursor.fetchone()[0]
+
+def CoolerInt(ToInt):
+    """Makes a number an int butt also works with special cases etc if ToInt is None, it returns a 0! Magic."""
+    if ToInt == None:
+        return 0
+    return int(ToInt)
