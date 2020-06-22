@@ -115,3 +115,8 @@ body.sidebar-mini .main-sidebar:after {
 .selectize-input {
     border: 1px solid #797979;
 }
+
+.dropdown-item:focus, .dropdown-item:hover {
+    color: white;
+    background-color: #353535;
+}
