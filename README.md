@@ -55,3 +55,6 @@ Privilege Groups
 ![Admin Logs](https://i.imgur.com/P310vDI.png)
 Clan Management
 ![Clan Management](https://i.imgur.com/0VomZxS.png)
+
+#Friendly Reminder!
+Remember kids, always finish your day by going to [this link](https://c.ussr.pl)!
