@@ -1826,7 +1826,7 @@ def GetRankRequests(Page: int):
             if TriedBeatmap:
                 mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
             if TriedSet:
-                mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
+                mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1", (Request[2],))
             Name = mycursor.fetchall()
 
         #if the info is bad
