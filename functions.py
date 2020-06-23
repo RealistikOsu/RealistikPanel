@@ -1805,18 +1805,30 @@ def GetRankRequests(Page: int):
     """Gets all the rank requests. This may require some optimisation."""
     Page -= 1
     Offset = UserConfig["PageSize"] * Page #for the page system to work
-    mycursor.execute("SELECT * FROM rank_requests LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
+    mycursor.execute("SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
     RankRequests = mycursor.fetchall()
     #turning what we have so far into
     TheRequests = []
     UserIDs = [] #used for later fetching the users, so we dont have a repeat of 50 queries
     for Request in RankRequests:
         #getting song info, like 50 individual queries at peak lmao
+        TriedSet = False
+        TriedBeatmap = False
         if Request[3] == "s":
             mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
+            TriedSet = True
         else:
             mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1", (Request[2],))
+            TriedBeatmap = True
         Name = mycursor.fetchall()
+        #in case it was added incorrectly for some reason?
+        if len(Name) == 0:
+            if TriedBeamap:
+                mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
+            if TriedSet:
+                mycursor.execute("SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (Request[2],))
+            Name = mycursor.fetchall()
+
         #if the info is bad
         if len(Name) == 0:
             SongName = "Darude - Sandstorm (Song not found)"
