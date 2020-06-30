@@ -403,13 +403,28 @@ def PPApi(id):
 #api mirrors
 @app.route("/js/status/api")
 def ApiStatus():
-    return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping").json())
+    try:
+        return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping").json())
+    except:
+        return jsonify({
+            "code" : 503
+        })
 @app.route("/js/status/lets")
 def LetsStatus():
-    return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status").json()) #this url to provide a predictable result
+    try:
+        return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status").json()) #this url to provide a predictable result
+    except:
+        return jsonify({
+            "server_status" : 0
+        })
 @app.route("/js/status/bancho")
 def BanchoStatus():
-    return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
+    try:
+        return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
+    except:
+        return jsonify({
+            "result" : 0
+        })
 
 #actions
 @app.route("/actions/wipe/<AccountID>")
