@@ -527,5 +527,28 @@ Changelogs = [
                 "Content" : "Fixed the redirects on gamemode wipes."
             }
         ]
+    },
+    {
+        "Build" : 1593530430,
+        "Type" : 3,
+        "Summary" : "Thys build focuses on fixing minor issues with RealistikPanel.",
+        "Changes" : [
+            {
+                "Type" : 5,
+                "Content" : "Some servers being offline no longer causes the dash to not load."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fixed issue with some dark mode elements using  a bright colour scheme"
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fix some available beatmap requests showing up as not found."
+            },
+            {
+                "Type" : 5,
+                "Content" : "Fix song playback on beatmap rank page."
+            }
+        ]
     }
 ]
