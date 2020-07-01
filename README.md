@@ -17,7 +17,7 @@ This project is now ready to be deployed as a full replacement to RAP.
 Everyday tons of new features
 - Recent Plays
 - Common statistics and graphs (dashboard)
-- Logging in using osu! server accounts (thanks Kotypey)
+- Logging in using osu! server accounts (thanks [Lukumiya](https://github.com/Lukumiya))
 - Bancho Settings (viewing and editing)
 - System Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
