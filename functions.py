@@ -1194,11 +1194,12 @@ def FreezeHandler(id : int):
         return
     Frozen = Status[0][0]
     if Frozen == 1:
-        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0 WHERE id = %s", (id,))
+        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s", (id,))
+        mycursor.execute("INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)", (id, UserConfig["VerifiedBadgeID"])) #award verification badge
         TheReturn = False
     else:
         now = datetime.datetime.now()
-        freezedate = now + datetime.timedelta(days=2)
+        freezedate = now + datetime.timedelta(days=5)
         freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
         mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
         TheReturn = True
