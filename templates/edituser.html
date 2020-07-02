@@ -52,6 +52,10 @@
         <br>
         <span style="color: #eb4034;">They were banned {{ UserData["BanedAgo"] }}</span>
         {% endif %}
+        {% if UserData["IsFrozen"] %}
+        <br>
+        <span style="color: #eb4034;">They are currently frozen. They will be autorestricted {{ UserData["FreezeDate"] }} if they do not submit a liveplay.</span>
+        {% endif %}
     </div>
     <div class="card-footer">
         RealistikPanel
@@ -161,6 +165,7 @@
         <div class="buttons">
             <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
             <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger" id="ban">Ban/Unban</a>
+            <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger">Freeze/Unfreeze</a>
             <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
             <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
             <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
