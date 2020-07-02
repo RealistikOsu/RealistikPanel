@@ -1,7 +1,7 @@
 # RealistikPanel!
 The modern admin panel for osu! private servers!
 
-![Dashboard](https://i.imgur.com/2pJIyL2.png)
+![Dashboard](https://i.imgur.com/GidGUqS.png)
 
 It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
 
@@ -17,7 +17,7 @@ This project is now ready to be deployed as a full replacement to RAP.
 Everyday tons of new features
 - Recent Plays
 - Common statistics and graphs (dashboard)
-- Logging in using osu! server accounts (thanks Kotypey)
+- Logging in using osu! server accounts (thanks [Lukumiya](https://github.com/Lukumiya))
 - Bancho Settings (viewing and editing)
 - System Settings (viewing and editing)
 - Beatmap Ranking (unranking, loving and ranking)
@@ -38,7 +38,7 @@ RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu da
 
 # Screenshots
 Dashboard
-![Dashboard](https://i.imgur.com/2pJIyL2.png)
+![Dashboard](https://i.imgur.com/GidGUqS.png)
 User List
 ![Beatmap Ranking](https://i.imgur.com/lWcGDpi.png)
 User Edit
@@ -55,3 +55,6 @@ Privilege Groups
 ![Admin Logs](https://i.imgur.com/P310vDI.png)
 Clan Management
 ![Clan Management](https://i.imgur.com/0VomZxS.png)
+
+# Friendly Reminder!
+Remember kids, always finish your day by going to [this link](https://c.ussr.pl)!
