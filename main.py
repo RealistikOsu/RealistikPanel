@@ -489,6 +489,7 @@ def Freezee(id: int):
     if HasPrivilege(session["AccountId"], 6):
         Account = GetUser(id)
         FreezeHandler(id)
+        RAPLog(session["AccountId"], f"has frozen the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
          return NoPerm(session)
