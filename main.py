@@ -484,6 +484,15 @@ def Restrict(id: int):
     else:
          return NoPerm(session)
 
+@app.route("/actions/freeze/<id>")
+def Freezee(id: int):
+    if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
+        FreezeHandler(id)
+        return redirect(f"/user/edit/{id}")
+    else:
+         return NoPerm(session)
+
 @app.route("/actions/ban/<id>")
 def Ban(id: int):
     """Do the FBI to the person."""

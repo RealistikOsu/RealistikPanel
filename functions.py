@@ -771,6 +771,9 @@ def UserData(UserID):
         PrivData = [[f"Unknown ({Data2[2]})"]]
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
+    mycursor.execute("SELECT freezedate FROM users WHERE id = %s LIMIT 1", (UserID,))
+    Freeze = mycursor.fetchone()
+  
     Data["UserpageContent"] = Data1[0]
     Data["UserColour"] = Data1[1]
     Data["Aka"] = Data1[2]
@@ -791,6 +794,9 @@ def UserData(UserID):
 
     #now for silences and ban times
     Data["IsBanned"] = CoolerInt(Data2[7]) > 0
+    Data["IsFrozen"] = int(Freeze[0]) > 0
+    Data["FreezeDateNo"] = int(Freeze[0])
+    Data["FreezeDate"] = TimeToTimeAgo(Data["FreezeDateNo"])                          
     Data["BanedAgo"] = TimeToTimeAgo(CoolerInt(Data2[7]))
     Data["IsSilenced"] =  CoolerInt(Data2[5]) > round(time.time())
     Data["SilenceEndAgo"] = TimeToTimeAgo(CoolerInt(Data2[5]))
@@ -1175,6 +1181,24 @@ def ResUnTrict(id : int):
     mydb.commit()
     return TheReturn
 
+def FreezeHandler(id : int):
+    mycursor.execute("SELECT frozen FROM users WHERE id = %s", (id,))
+    Status = mycursor.fetchall()
+    if len(Status) == 0:
+        return
+    Frozen = Status[0][0]
+    if Frozen == 1:
+        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0 WHERE id = %s", (id,))
+        TheReturn = False
+    else:
+        now = datetime.datetime.now()
+        freezedate = now + datetime.timedelta(days=2)
+        freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
+        mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
+        TheReturn = True
+    mydb.commit()
+    return TheReturn
+   
 def BanUser(id : int):
     """User go bye bye!"""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
