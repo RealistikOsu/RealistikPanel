@@ -771,8 +771,11 @@ def UserData(UserID):
         PrivData = [[f"Unknown ({Data2[2]})"]]
     #adds new info to dict
     #I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
-    mycursor.execute("SELECT freezedate FROM users WHERE id = %s LIMIT 1", (UserID,))
-    Freeze = mycursor.fetchone()
+    try:
+        mycursor.execute("SELECT freezedate FROM users WHERE id = %s LIMIT 1", (UserID,))
+        Freeze = mycursor.fetchone()
+    except:
+        Freeze = False
   
     Data["UserpageContent"] = Data1[0]
     Data["UserColour"] = Data1[1]
@@ -793,13 +796,16 @@ def UserData(UserID):
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
 
     #now for silences and ban times
-    Data["IsBanned"] = CoolerInt(Data2[7]) > 0
-    Data["IsFrozen"] = int(Freeze[0]) > 0
-    Data["FreezeDateNo"] = int(Freeze[0])
-    Data["FreezeDate"] = TimeToTimeAgo(Data["FreezeDateNo"])                          
+    Data["IsBanned"] = CoolerInt(Data2[7]) > 0                       
     Data["BanedAgo"] = TimeToTimeAgo(CoolerInt(Data2[7]))
     Data["IsSilenced"] =  CoolerInt(Data2[5]) > round(time.time())
     Data["SilenceEndAgo"] = TimeToTimeAgo(CoolerInt(Data2[5]))
+    if Freeze:
+        Data["IsFrozen"] = int(Freeze[0]) > 0
+        Data["FreezeDateNo"] = int(Freeze[0])
+        Data["FreezeDate"] = TimeToTimeAgo(Data["FreezeDateNo"])  
+    else:
+        Data["IsFrozen"] = False
 
     #removing "None" from user page and admin notes
     if Data["Notes"] == None:
