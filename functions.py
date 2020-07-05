@@ -1536,7 +1536,7 @@ def GetUserBadges(AccountID: int):
         Badges.append(badge[0])
 
     #so we dont run into errors where people have no/less than 6 badges
-    while len(Badges) != 6:
+    while len(Badges) < 6:
         Badges.append(0)
     return Badges
 
