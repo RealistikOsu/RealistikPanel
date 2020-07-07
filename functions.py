@@ -405,6 +405,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 13 = Manage Privileges
     # 14 = View RealistikPanel error/console logs
     # 15 = Manage Clans (RealistikPanel specific permission)
+    # 16 = View IPs in manage users
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -435,6 +436,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPOverwatch = 2 << 25
     RPErrorLogs = 2 << 26
     RPManageClans = 2 << 27
+    RPViewIPs = 2 << 28
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -477,6 +479,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & RPErrorLogs
     elif ReqPriv == 15:
         result = Privilege & RPManageClans
+    elif ReqPriv == 16:
+        result = Privilege & RPViewIPs
     
     if result >= 1:
         return True
@@ -1539,7 +1543,6 @@ def GetUserBadges(AccountID: int):
     while len(Badges) < 6:
         Badges.append(0)
     return Badges
-
 
 def SetUserBadges(AccountID: int, Badges: list):
     """Sets badge list to account."""

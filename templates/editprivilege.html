@@ -47,6 +47,7 @@
                     <!--Placeholder for RealistikPanel specific perms-->
                     <input name="privileges" value="134217728" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="25">RPErrorLogs<br>
                     <input name="privileges" value="268435456" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="26">RPManageClans<br>
+                    <input name="privileges" value="536870912" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="27">RPViewIPs<br>
                 </div>
             </div>
             <div class="form-group">
@@ -82,6 +83,7 @@ var Privilege = "{{ privileges['Privileges'] }}";
 var PrivInt = parseInt(Privilege);
 
 //porting HasPrivilege to JS
+//uh oh i dont like this
 if (PrivInt & 1) {
     document.getElementById("1").checked = true;
 }
@@ -159,6 +161,9 @@ if (PrivInt & 134217728) {
 }
 if (PrivInt & 268435456) {
     document.getElementById("26").checked = true;
+}
+if (PrivInt & 536870912) {
+    document.getElementById("27").checked = true;
 }
 </script>
 {% endblock %}

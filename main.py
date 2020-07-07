@@ -164,7 +164,7 @@ def SystemSettings():
 def EditUser(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges())
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16))
         else:
              return NoPerm(session)
     if request.method == "POST":
@@ -172,11 +172,11 @@ def EditUser(id):
             try:
                 ApplyUserEdit(request.form, session)
                 RAPLog(session["AccountId"], f"has edited the user {request.form.get('username', 'NOT FOUND')}")
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!")
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!", ShowIPs = HasPrivilege(session["AccountId"], 16))
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.")
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.", ShowIPs = HasPrivilege(session["AccountId"], 16))
         else:
             return NoPerm(session)
 
@@ -201,7 +201,7 @@ def ConfirmDelete(id):
 
 @app.route("/user/iplookup/<ip>")
 def IPUsers(ip):
-    if HasPrivilege(session["AccountId"], 6):
+    if HasPrivilege(session["AccountId"], 16):
         IPUserLookup  = FindWithIp(ip)
         UserLen = len(IPUserLookup)
         return render_template("iplookup.html", data=DashData(), session=session, title="IP Lookup", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
