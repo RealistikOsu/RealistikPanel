@@ -316,7 +316,7 @@ def ChangePass(AccountID):
         if request.method == "POST":
             ChangePWForm(request.form, session)
             User = GetUser(int(AccountID))
-            RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}) {request.form['time']}.")
+            RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}).")
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
