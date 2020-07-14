@@ -1197,10 +1197,9 @@ def FreezeHandler(id : int):
         mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0 WHERE id = %s", (id,))
         TheReturn = False
     else:
-        now = datetime.datetime.now()
-        freezedate = now + datetime.timedelta(days=2)
-        freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
-        mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
+        # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
+        now = datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d")
+        mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (int(now), id,))
         TheReturn = True
     mydb.commit()
     return TheReturn
