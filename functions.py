@@ -1204,8 +1204,7 @@ def FreezeHandler(id : int):
     else:
         if UserConfig["TimestampType"] == "ainu":
         # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
-        now = datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d")
-            freezedateunix = int(datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d"))
+            freezedateunix = int(datetime.datetime.utcfromtimestamp(int(time.time()) + 432000).strftime("%Y%m%d"))
         else:
             freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
             freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
