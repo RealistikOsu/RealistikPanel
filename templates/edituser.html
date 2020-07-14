@@ -140,9 +140,11 @@
                 <label>Admin Notes</label>
                 <textarea type="text" class="form-control" name="notes" rows=15>{{ UserData['Notes'] }}</textarea>
             </div>
+            {% if ShowIPs %}
             <div class="form-group" id="iptext">
                 <b>IP: </b>{{ UserData['Ip'] }}
             </div>
+            {% endif %}
             <button class="btn btn-success" type="submit" name="">Apply!</button>
         </form>
     </div>

@@ -405,6 +405,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 13 = Manage Privileges
     # 14 = View RealistikPanel error/console logs
     # 15 = Manage Clans (RealistikPanel specific permission)
+    # 16 = View IPs in manage users
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -435,6 +436,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPOverwatch = 2 << 25
     RPErrorLogs = 2 << 26
     RPManageClans = 2 << 27
+    RPViewIPs = 2 << 28
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -477,6 +479,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & RPErrorLogs
     elif ReqPriv == 15:
         result = Privilege & RPManageClans
+    elif ReqPriv == 16:
+        result = Privilege & RPViewIPs
     
     if result >= 1:
         return True
@@ -1194,12 +1198,18 @@ def FreezeHandler(id : int):
         return
     Frozen = Status[0][0]
     if Frozen == 1:
-        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0 WHERE id = %s", (id,))
+        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s", (id,))
+        mycursor.execute("INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)", (id, UserConfig["VerifiedBadgeID"])) #award verification badge
         TheReturn = False
     else:
         # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
         now = datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d")
         mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (int(now), id,))
+        #split later in commits
+        now = datetime.datetime.now()
+        freezedate = now + datetime.timedelta(days=5)
+        freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
+        mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
         TheReturn = True
     mydb.commit()
     return TheReturn
@@ -1534,10 +1544,9 @@ def GetUserBadges(AccountID: int):
         Badges.append(badge[0])
 
     #so we dont run into errors where people have no/less than 6 badges
-    while len(Badges) != 6:
+    while len(Badges) < 6:
         Badges.append(0)
     return Badges
-
 
 def SetUserBadges(AccountID: int, Badges: list):
     """Sets badge list to account."""
