@@ -1197,18 +1197,18 @@ def FreezeHandler(id : int):
     if len(Status) == 0:
         return
     Frozen = Status[0][0]
-    if Frozen == 1:
+    if Frozen:
         mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s", (id,))
         mycursor.execute("INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)", (id, UserConfig["VerifiedBadgeID"])) #award verification badge
         TheReturn = False
     else:
+        if UserConfig["TimestampType"] == "ainu":
         # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
         now = datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d")
-        mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (int(now), id,))
-        #split later in commits
-        now = datetime.datetime.now()
-        freezedate = now + datetime.timedelta(days=5)
-        freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
+            freezedateunix = int(datetime.datetime.utcfromtimestamp(int(time.time()) + 172800).strftime("%Y%m%d"))
+        else:
+            freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
+            freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
         mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
         TheReturn = True
     mydb.commit()
