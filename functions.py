@@ -551,7 +551,7 @@ def Webhook(BeatmapId, ActionName, session):
     RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
     ingamemsg = f"[https://misumi.me/u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
     params = urlencode({"k": UserConfig['Key'], "to": "#announce", "msg": ingamemsg})
-    requests.get("https://c.misumi.me/api/v1/fokabotMessage?{}".format(params))
+    requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
 
 def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     """Logs to the RAP log."""
@@ -1184,7 +1184,7 @@ def ResUnTrict(id : int):
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
         params = urlencode({"k": UserConfig['Key'], "to": name, "msg": wip})
-        requests.get("https://c.misumi.me/api/v1/fokabotMessage?{}".format(params))
+        requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
@@ -1217,7 +1217,7 @@ def FreezeHandler(id : int):
         TheReturn = True
         wip = "Your account has been frozen. Please join the RealistikOsu! Discord and submit a liveplay to a staff member in order to be unfrozen"
         params = urlencode({"k": UserConfig['Key'], "to": name, "msg": wip})
-        requests.get("https://c.misumi.me/api/v1/fokabotMessage?{}".format(params))
+        requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
     mydb.commit()
     return TheReturn
    
