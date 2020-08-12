@@ -32,6 +32,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "UseRecaptcha" : False,
     "RecaptchaSecret" : "",
     "RecaptchaSiteKey" : "",
+    "Key" : "take this from your pep.py config or it will not work",
     #RealistikPanel Settings
     "PageSize" : 50, #number of elements per page
     "SecretKey" : b64encode(urandom(64)).decode('utf-8'), #generates random encryption key
