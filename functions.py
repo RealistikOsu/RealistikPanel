@@ -505,6 +505,10 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     mydb.commit()
     Webhook(BeatmapId, ActionName, session)
 
+def FokaMessage(params) -> None:
+    """Sends a fokabot message."""
+    requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage", params=params)
+
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook."""
     URL = UserConfig["Webhook"]
@@ -549,9 +553,9 @@ def Webhook(BeatmapId, ActionName, session):
     if ActionName == 5:
         Logtext = "loved"
     RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
-    ingamemsg = f"[https://misumi.me/u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
-    params = urlencode({"k": UserConfig['Key'], "to": "#announce", "msg": ingamemsg})
-    requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
+    ingamemsg = f"[https://{UserConfig['ServerURL']}u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
+    params = {"k": UserConfig['FokaKey'], "to": "#announce", "msg": ingamemsg}
+    FokaMessage(params)
 
 def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     """Logs to the RAP log."""
@@ -1183,8 +1187,8 @@ def ResUnTrict(id : int):
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
-        params = urlencode({"k": UserConfig['Key'], "to": name, "msg": wip})
-        requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
+        params = {"k": UserConfig['FokaKey'], "to": GetUser(id)["Username"], "msg": wip}
+        FokaMessage(params)
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
@@ -1201,7 +1205,7 @@ def FreezeHandler(id : int):
     Frozen = Status[0][0]
     if Frozen:
         mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s", (id,))
-        mycursor.execute(f"SELECT * FROM user_badges WHERE user = {id} AND badge = {UserConfig['VerifiedBadgeID']")
+        mycursor.execute(f"SELECT * FROM user_badges WHERE user = {id} AND badge = {UserConfig['VerifiedBadgeID']}")
         bruh = mycursor.fetchall()
         if bruh is None:
             mycursor.execute("INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)", (id, UserConfig["VerifiedBadgeID"])) #award verification badge
@@ -1215,9 +1219,9 @@ def FreezeHandler(id : int):
             freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
         mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
         TheReturn = True
-        wip = "Your account has been frozen. Please join the RealistikOsu! Discord and submit a liveplay to a staff member in order to be unfrozen"
-        params = urlencode({"k": UserConfig['Key'], "to": name, "msg": wip})
-        requests.get(f"https://c.{UserConfig['ServerUrl']}/api/v1/fokabotMessage?{}".format(params))
+        wip = f"Your account has been frozen. Please join the {UserConfig['ServerName']} Discord and submit a liveplay to a staff member in order to be unfrozen"
+        params = {"k": UserConfig['FokaKey'], "to": GetUser(id)["Username"], "msg": wip}
+        FokaMessage(params)
     mydb.commit()
     return TheReturn
    
