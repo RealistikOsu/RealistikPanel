@@ -9,6 +9,9 @@ import os
 from updater import *
 from threading import Thread
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 print(f" {Fore.BLUE}Running Build {GetBuild()}")
 ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 
@@ -404,24 +407,27 @@ def PPApi(id):
 @app.route("/js/status/api")
 def ApiStatus():
     try:
-        return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping").json())
-    except:
+        return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping", verify=False).json())
+    except Exception as err:
+        print("[ERROR] /js/status/api: ", err)
         return jsonify({
             "code" : 503
         })
 @app.route("/js/status/lets")
 def LetsStatus():
     try:
-        return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status").json()) #this url to provide a predictable result
-    except:
+        return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status", verify=False).json()) #this url to provide a predictable result
+    except Exception as err:
+        print("[ERROR] /js/status/lets: ", err)
         return jsonify({
             "server_status" : 0
         })
 @app.route("/js/status/bancho")
 def BanchoStatus():
     try:
-        return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus").json()) #this url to provide a predictable result
-    except:
+        return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus", verify=False).json()) #this url to provide a predictable result
+    except Exception as err:
+        print("[ERROR] /js/status/bancho: ", err)
         return jsonify({
             "result" : 0
         })
