@@ -1579,12 +1579,16 @@ def GetBuild():
         BuildInfo = json.load(file)
     return BuildInfo["version"]
 
-def UpdateUserStore(Username: str):
-    """Updates the user info stored in rpusers.json or creates the file."""
+def CheckExists():
+    """Make sure the file exists"""
     if not os.path.exists("rpusers.json"):
         #if doesnt exist
-        with open("rpusers.json", 'w+') as json_file:
+        with open("rpusers.json", 'w') as json_file:
             json.dump({}, json_file, indent=4)
+
+def UpdateUserStore(Username: str):
+    """Updates the user info stored in rpusers.json or creates the file."""
+    CheckExists()
     
     #gets current log
     with open("rpusers.json", "r") as Log:
@@ -1608,6 +1612,8 @@ def UpdateUserStore(Username: str):
 
 def GetUserStore(Username: str):
     """Gets user info from the store."""
+    CheckExists()
+    
     with open("rpusers.json", "r") as Log:
         Store = json.load(Log)
     
@@ -1630,6 +1636,7 @@ def GetUserID(Username: str):
 
 def GetStore():
     """Returns user store as list."""
+    CheckExists()
     with open("rpusers.json", "r") as RPUsers:
         Store = json.load(RPUsers)
     
