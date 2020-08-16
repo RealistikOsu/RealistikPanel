@@ -405,6 +405,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     # 13 = Manage Privileges
     # 14 = View RealistikPanel error/console logs
     # 15 = Manage Clans (RealistikPanel specific permission)
+    # 16 = View IPs in manage users
     #THIS TOOK ME SO LONG TO FIGURE OUT WTF
     NoPriv = 0
     UserNormal = 2 << 0
@@ -435,6 +436,7 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
     RPOverwatch = 2 << 25
     RPErrorLogs = 2 << 26
     RPManageClans = 2 << 27
+    RPViewIPs = 2 << 28
 
     if ReqPriv == 0: #dont use this like at all
         return True
@@ -477,6 +479,8 @@ def HasPrivilege(UserID : int, ReqPriv = 2):
         result = Privilege & RPErrorLogs
     elif ReqPriv == 15:
         result = Privilege & RPManageClans
+    elif ReqPriv == 16:
+        result = Privilege & RPViewIPs
     
     if result >= 1:
         return True
@@ -500,6 +504,10 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     mycursor.execute("UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3", (BeatmapId,))
     mydb.commit()
     Webhook(BeatmapId, ActionName, session)
+
+def FokaMessage(params) -> None:
+    """Sends a fokabot message."""
+    requests.get(f"{UserConfig['BanchoURL']}api/v1/fokabotMessage", params=params)
 
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook."""
@@ -545,6 +553,9 @@ def Webhook(BeatmapId, ActionName, session):
     if ActionName == 5:
         Logtext = "loved"
     RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
+    ingamemsg = f"[https://{UserConfig['ServerURL']}u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
+    params = {"k": UserConfig['FokaKey'], "to": "#announce", "msg": ingamemsg}
+    FokaMessage(params)
 
 def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     """Logs to the RAP log."""
@@ -1174,11 +1185,10 @@ def ResUnTrict(id : int):
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s", (id,)) #unrestricts
         TheReturn = False
-    else: 
-        r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
-            "userID" : id,
-            "reason" : "Your account has been restricted! Check with staff to see what's up."
-        }))
+    else:
+        wip = "Your account has been restricted! Check with staff to see whats up."
+        params = {"k": UserConfig['FokaKey'], "to": GetUser(id)["Username"], "msg": wip}
+        FokaMessage(params)
         TimeBan = round(time.time())
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
@@ -1193,15 +1203,25 @@ def FreezeHandler(id : int):
     if len(Status) == 0:
         return
     Frozen = Status[0][0]
-    if Frozen == 1:
-        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0 WHERE id = %s", (id,))
+    if Frozen:
+        mycursor.execute("UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s", (id,))
+        mycursor.execute(f"SELECT * FROM user_badges WHERE user = {id} AND badge = {UserConfig['VerifiedBadgeID']}")
+        bruh = mycursor.fetchall()
+        if bruh is None:
+            mycursor.execute("INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)", (id, UserConfig["VerifiedBadgeID"])) #award verification badge
         TheReturn = False
     else:
-        now = datetime.datetime.now()
-        freezedate = now + datetime.timedelta(days=2)
-        freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
+        if UserConfig["TimestampType"] == "ainu":
+        # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
+            freezedateunix = int(datetime.datetime.utcfromtimestamp(int(time.time()) + 432000).strftime("%Y%m%d"))
+        else:
+            freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
+            freezedateunix = (freezedate-datetime.datetime(1970,1,1)).total_seconds()
         mycursor.execute("UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s", (freezedateunix, id,))
         TheReturn = True
+        wip = f"Your account has been frozen. Please join the {UserConfig['ServerName']} Discord and submit a liveplay to a staff member in order to be unfrozen"
+        params = {"k": UserConfig['FokaKey'], "to": GetUser(id)["Username"], "msg": wip}
+        FokaMessage(params)
     mydb.commit()
     return TheReturn
    
@@ -1535,10 +1555,9 @@ def GetUserBadges(AccountID: int):
         Badges.append(badge[0])
 
     #so we dont run into errors where people have no/less than 6 badges
-    while len(Badges) != 6:
+    while len(Badges) < 6:
         Badges.append(0)
     return Badges
-
 
 def SetUserBadges(AccountID: int, Badges: list):
     """Sets badge list to account."""
@@ -1579,12 +1598,16 @@ def GetBuild():
         BuildInfo = json.load(file)
     return BuildInfo["version"]
 
-def UpdateUserStore(Username: str):
-    """Updates the user info stored in rpusers.json or creates the file."""
+def CheckExists():
+    """Make sure the file exists"""
     if not os.path.exists("rpusers.json"):
         #if doesnt exist
-        with open("rpusers.json", 'w+') as json_file:
+        with open("rpusers.json", 'w') as json_file:
             json.dump({}, json_file, indent=4)
+
+def UpdateUserStore(Username: str):
+    """Updates the user info stored in rpusers.json or creates the file."""
+    CheckExists()
     
     #gets current log
     with open("rpusers.json", "r") as Log:
@@ -1608,6 +1631,8 @@ def UpdateUserStore(Username: str):
 
 def GetUserStore(Username: str):
     """Gets user info from the store."""
+    CheckExists()
+    
     with open("rpusers.json", "r") as Log:
         Store = json.load(Log)
     
@@ -1630,6 +1655,7 @@ def GetUserID(Username: str):
 
 def GetStore():
     """Returns user store as list."""
+    CheckExists()
     with open("rpusers.json", "r") as RPUsers:
         Store = json.load(RPUsers)
     

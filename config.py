@@ -41,8 +41,11 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "CurrentIP" : "95.179.225.194", #the IP for the /current.json (ripple based switchers)
     "TimezoneOffset" : 1, #offset for hours, can be negative
     "DonorBadgeID" : 1002, #This badge will be awarded to new donors!
+    "VerifiedBadgeID" : 1005, #The badge that will be awarded on unfreezing a person.
     "ConsoleLogWebhook" : "", #if set, all console logs will be sent to that webhook
-    "AdminLogWebhook" : "" #if set, all admin logs (aka rap logs) will be sent to that webhook
+    "AdminLogWebhook" : "", #if set, all admin logs (aka rap logs) will be sent to that webhook
+    "TimestampType" : "unix", #type of timestamps to use (for now only on freezes), current options: unix (seconds since 1/1/1970) | ainu (day thing)
+    "FokaKey" : "take this from your pep.py config or it will not work"
 }
 
 class JsonFile:
