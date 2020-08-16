@@ -531,7 +531,7 @@ Changelogs = [
     {
         "Build" : 1593530430,
         "Type" : 3,
-        "Summary" : "Thys build focuses on fixing minor issues with RealistikPanel.",
+        "Summary" : "This build focuses on fixing minor issues with RealistikPanel.",
         "Changes" : [
             {
                 "Type" : 5,
@@ -548,6 +548,37 @@ Changelogs = [
             {
                 "Type" : 5,
                 "Content" : "Fix song playback on beatmap rank page."
+            }
+        ]
+    },
+    {
+        "Build" : 1597593141,
+        "Type" : 2,
+        "Summary" : "This update bring quality of life improvements, bugfixes and higher server type compatibillity.",
+        "Changes" : [
+            {
+                "Type" : 4,
+                "Content" : "Add separate privilege for viewing user IPs."
+            },
+            {
+                "Type" : 4,
+                "Content" : "Add logging for freezing users"
+            },
+            {
+                "Type" : 4,
+                "Content" : "Added support for Ainu-style freeze timestams."
+            },
+            {
+                "Type" : 6,
+                "Content" : "Restricting and freezing now sends a FokaBot message rather than disconnecting the user."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Solved rpusers.json not being created correctly."
+            },
+            {
+                "Type" : 2,
+                "Content" : "Solve issues with SSL status API."
             }
         ]
     }
