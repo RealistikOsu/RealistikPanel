@@ -2021,7 +2021,10 @@ def GetClanPages():
 
 def GetAccuracy(count300, count100, count50, countMiss):
     """Converts 300, 100, 50 and miss count into osu accuracy."""
-    return (50*count50 + 100*count100 + 300*count300) / (3*(countMiss + count50 + count100 + count300))
+    try:
+        return (50*count50 + 100*count100 + 300*count300) / (3*(countMiss + count50 + count100 + count300))
+    except ZeroDivisionError:
+        return 0
 
 def GetClanMembers(ClanID: int):
     """Returns a list of clan members."""
