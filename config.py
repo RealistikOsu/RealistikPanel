@@ -8,6 +8,7 @@ DefaultConfig = { #THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "Port" : 1337,
     #SQL Info
     "SQLHost" : "localhost",
+    "SQLPort" : "3306",
     "SQLUser" : "",
     "SQLDatabase" : "ripple",
     "SQLPassword" : "",
