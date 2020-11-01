@@ -11,6 +11,8 @@ You may notice that some of this code (especially the early one) is not too grea
 I am using a lot of libraries and concepts that are new to me and it's the first time I'm doing them.
 This may be reflected in the quality of the code. I will try to fix up or replace some of the old code when I'm satisfied with the feature set.
 
+**I am planning on rewriting this at some point in the future due to me looking back and realising how bad it is...**
+
 This project is now ready to be deployed as a full replacement to RAP.
 
 # Feature set
