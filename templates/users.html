@@ -64,7 +64,7 @@
             <td>{{ user["Id"] }}</td>
             <td>
                 {% if not user['Country'] == "XX" %}
-                <img style="margin-right: 5px;" src="https://www.countryflags.io/{{ user['Country'] }}/flat/16.png">
+                <img class="nflag" src="https://ussr.pl/static/flags/{{ user['Country'] }}.png">
                 {% else %}
                 <b>? </b>
                 {% endif %}

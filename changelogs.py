@@ -596,6 +596,10 @@ Changelogs = [
                 "Content": "Updated the panel's dark theme colour scheme to closer match the one of the RealistikOsu website."
             },
             {
+                "Type": 6,
+                "Content": "Replaced the flags used on users with modern osu! styled ones."
+            },
+            {
                 "Type": 5,
                 "Content": "Editing users with pep.py offline should now be possible due to OnlineStatus changes."
             },

@@ -25,3 +25,11 @@
     padding: 11px 12px;
     padding: 0 !important;
 }
+
+/* Flags! */
+.nflag {
+    margin-right: 5px;
+    max-width: 20px;
+    position: relative;
+    top: -2px;
+}
