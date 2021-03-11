@@ -581,5 +581,28 @@ Changelogs = [
                 "Content" : "Solve issues with SSL status API."
             }
         ]
+    },
+    {
+        "Build": 1615490957,
+        "Type": 2,
+        "Summary": "This update brings a breath of fresh air to RealistikPanel with some nice quality of life changes.",
+        "Changes": [
+            {
+                "Type": 6,
+                "Content": "Replaced the osu! beatmap song preview API with the RealistikOsu full song API."
+            },
+            {
+                "Type": 6,
+                "Content": "Updated the panel's dark theme colour scheme to closer match the one of the RealistikOsu website."
+            },
+            {
+                "Type": 5,
+                "Content": "Editing users with pep.py offline should now be possible due to OnlineStatus changes."
+            },
+            {
+                "Type": 5,
+                "Content": "Plays with the Nightcore mod on will now no longer appear as DTNC."
+            }
+        ]
     }
 ]

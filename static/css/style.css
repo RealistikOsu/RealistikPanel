@@ -1942,7 +1942,7 @@ a.dropdown-item {
   /* Legacy iOS */ }
 :root {
   /* Colors */
-  --primary: color(primary);
+  --primary: #0f97ff;
   --secondary: color(fontdark);
   --success: color(success);
   --info: color(info);

@@ -175,7 +175,7 @@ def LoginHandler(username, password):
     User = mycursor.fetchall()
     if len(User) == 0:
         #when user not found
-        return [False, "User not found. Maybe a typo?"]
+        return False, "The user was not found. Maybe you have made a typo?"
     else:
         User = User[0]
         #Stores grabbed data in variables for easier access
@@ -185,19 +185,13 @@ def LoginHandler(username, password):
         Privilege = User[3]
         UserID = User[4]
         
-        #Converts IsBanned to bool
-        if IsBanned == "0" or not IsBanned:
-            IsBanned = False
-        else:
-            IsBanned = True
-        
         #dont  allow the bot account to log in (in case the server has a MASSIVE loophole)
         if UserID == 999:
             return [False, "You may not log into the bot account."]
 
         #shouldve been done during conversion but eh
-        if IsBanned:
-            return [False, "You are banned... Awkward..."]
+        if not IsBanned == "0" or not IsBanned:
+            return False, "It seems you have been banned... Yikes..."
         else:
             if HasPrivilege(UserID):
                 if checkpw(PassHash, password):
@@ -209,9 +203,9 @@ def LoginHandler(username, password):
                         "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=2) #so the token expires
                     }]
                 else:
-                     return [False, "Incorrect password"]
+                     return False, "The password you have entered is incorrect!"
             else:
-                return [False, "Missing privileges!"]
+                return False, "The account you are attempting to log into is missing the appropeate privileges to carry out this action!"
 
 def TimestampConverter(timestamp, NoDate=1):
     """Converts timestamps into readable time."""
@@ -285,7 +279,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
         Dicti["Player"] = x[1]
         Dicti["PlayerId"] = x[2]
         Dicti["Score"] = f'{x[4]:,}'
-        Dicti["pp"] = round(x[5])
+        Dicti["pp"] = round(x[5], 2)
         Dicti["Timestamp"] = x[3]
         Dicti["Time"] = TimestampConverter(x[3])
         Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
@@ -637,13 +631,15 @@ def ApplySystemSettings(DataArray, Session):
     
     mydb.commit() #applies the changes
 
-def IsOnline(AccountId: int):
+def IsOnline(AccountId: int) -> bool:
     """Checks if given user is online."""
-    Online = requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()
-    if Online["status"] == 200:
-        return Online["result"]
-    else:
-        return False
+    try:
+        Online = requests.get(url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}").json()
+        if Online["status"] == 200:
+            return Online["result"]
+        else:
+            return False
+    except Exception: return False
 
 def CalcPP(BmapID):
     """Sends request to letsapi to calc PP for beatmap id."""
@@ -964,14 +960,14 @@ def ModToText(mod: int):
             Mods += "HR"
         if mod & 32:
             Mods += "SD"
-        if mod & 64:
+        if mod & 512:
+            Mods += "NC"
+        elif mod & 64:
             Mods += "DT"
         if mod & 128:
             Mods += "RX"
         if mod & 256:
             Mods += "HT"
-        if mod & 512:
-            Mods += "NC"
         if mod & 1024:
             Mods += "FL"
         if mod & 2048:
@@ -2034,13 +2030,15 @@ def GetClanMembers(ClanID: int):
     if len(ClanUsers) == 0:
         return []
     Conditions = ""
+    args = []
     #this is so we can use one long query rather than a bunch of small ones
     for ClanUser in ClanUsers:
-        Conditions += f"id = {ClanUser[0]} OR "
+        Conditions += f"id = %s OR "
+        args.append(ClanUser[0])
     Conditions = Conditions[:-4] #remove the OR
     
     #getting the users
-    mycursor.execute(f"SELECT username, id, register_datetime FROM users WHERE {Conditions}") #here i use format as the conditions are a trusted input
+    mycursor.execute(f"SELECT username, id, register_datetime FROM users WHERE {Conditions}", args) #here i use format as the conditions are a trusted input
     UserData = mycursor.fetchall()
     #turning the data into a dictionary list
     ReturnList = []
