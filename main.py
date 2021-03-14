@@ -629,6 +629,10 @@ def NotFoundError(error):
 @app.errorhandler(500)
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
+
+    # 9/10 SQL did the death. Recreate cursor.
+    botch_sql_recovery()
+
     return render_template("500.html")
 
 #we make sure session exists

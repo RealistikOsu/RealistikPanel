@@ -121,6 +121,19 @@ if BadUserCount > 0:
 PlayerCount = [] # list of players 
 CachedStore = {}
 
+def botch_sql_recovery() -> None:
+    """Attepts to recreate the MySQL connection on fail. Currently the panel has
+    VERY poor MySQL handling which leads to a lot of crashes. This is a really
+    stupid fix that makes it so that the panel does not have to be restarted
+    upon SQL doing the death. This is a REALLY botch fix, shouldnt exist."""
+
+    global mycursor
+    mycursor.close()
+    mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
+    mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
+    mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+
 def DashData():
     #note to self: add data caching so data isnt grabbed every time the dash is accessed
     """Grabs all the values for the dashboard."""
