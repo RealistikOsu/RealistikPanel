@@ -128,7 +128,9 @@ def botch_sql_recovery() -> None:
     upon SQL doing the death. This is a REALLY botch fix, shouldnt exist."""
 
     global mycursor
-    mycursor.close()
+    try:
+        mycursor.close()
+    except Exception: pass
     mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
     mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
     mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
@@ -241,10 +243,8 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
     """Returns recent plays."""
     #this is probably really bad
     DivBy = 1
-    if UserConfig["HasRelax"]:
-        DivBy += 1
-    if UserConfig["HasAutopilot"]:
-        DivBy += 1
+    if UserConfig["HasRelax"]: DivBy += 1
+    if UserConfig["HasAutopilot"]: DivBy += 1
     PerGamemode = round(TotalPlays/DivBy)
     mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 AND scores.pp >= %s ORDER BY scores.time DESC LIMIT %s", (MinPP, PerGamemode,))
     plays = mycursor.fetchall()
@@ -264,14 +264,10 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
             #addint them to the list
             plays_ap = list(plays_ap)
             plays.append(plays_ap)
-    PlaysArray = []
-    #converting into lists as theyre cooler (and easier to work with)
-    for x in plays:
-        PlaysArray.append(list(x))
 
     #converting the data into something readable
     ReadableArray = []
-    for x in PlaysArray:
+    for x in plays:
         #yes im doing this
         #lets get the song name
         BeatmapMD5 = x[0]
@@ -527,7 +523,7 @@ def Webhook(BeatmapId, ActionName, session):
     mapa = mycursor.fetchall()
     mapa = mapa[0]
     if ActionName == 0:
-        TitleText = "unranked :("
+        TitleText = "unranked..."
     if ActionName == 2:
         TitleText = "ranked!"
     if ActionName == 5:

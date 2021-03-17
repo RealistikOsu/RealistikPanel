@@ -1,6 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
 from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory, jsonify
-from flask_recaptcha import ReCaptcha
 from defaults import *
 from config import UserConfig
 from functions import *
@@ -16,18 +15,7 @@ print(f" {Fore.BLUE}Running Build {GetBuild()}")
 ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 
 app = Flask(__name__)
-recaptcha = ReCaptcha(app=app)
 app.secret_key = os.urandom(24) #encrypts the session cookie
-
-#recaptcha setup
-if UserConfig["UseRecaptcha"]:
-    #recaptcha config
-    app.config.update({
-        "RECAPTCHA_THEME" : "dark",
-        "RECAPTCHA_SITE_KEY" : UserConfig["RecaptchaSiteKey"],
-        "RECAPTCHA_SECRET_KEY" : UserConfig["RecaptchaSecret"],
-        "RECAPTCHA_ENABLED" : True
-    })
 
 @app.route("/")
 def home():
@@ -55,18 +43,15 @@ def login():
         if request.method == "GET":
             return render_template("login.html", conf = UserConfig)
         if request.method == "POST":
-            if recaptcha.verify():
-                LoginData = LoginHandler(request.form["username"], request.form["password"])
-                if not LoginData[0]:
-                    return render_template("login.html", alert=LoginData[1], conf = UserConfig)
-                if LoginData[0]:
-                    SessionToApply = LoginData[2]
-                    #modifying the session
-                    for key in list(SessionToApply.keys()):
-                        session[key] = SessionToApply[key]
-                    return redirect(url_for("home"))
+            LoginData = LoginHandler(request.form["username"], request.form["password"])
+            if not LoginData[0]:
+                return render_template("login.html", alert=LoginData[1], conf = UserConfig)
             else:
-                return render_template("login.html", alert="ReCaptcha Failed!", conf=UserConfig)
+                SessionToApply = LoginData[2]
+                #modifying the session
+                for key in list(SessionToApply.keys()):
+                    session[key] = SessionToApply[key]
+                return redirect(url_for("home"))
     else:
         return redirect(url_for("dash"))
 
@@ -319,7 +304,6 @@ def ChangePass(AccountID):
         if request.method == "POST":
             ChangePWForm(request.form, session)
             User = GetUser(int(AccountID))
-            RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({AccountID}).")
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
