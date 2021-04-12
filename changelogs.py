@@ -608,5 +608,29 @@ Changelogs = [
                 "Content": "Plays with the Nightcore mod on will now no longer appear as DTNC."
             }
         ]
+    },
+    {
+        "Build": 1618268910,
+        "Type": 2,
+        "Summary": "This build brings some much needed stability and performance improvements alongslide a few neat additions.",
+        "Changes": [
+            {
+                "Type": 4,
+                "Content": "Added a 'View On Bancho' button to beatmap ranking that allows you to view the beatmap set on Bancho.",
+                "Image" : "/static/img/changelog/view-on-bancho.png"
+            },
+            {
+                "Type": 4,
+                "Content": "Add modern flags showcasing user nationalities."
+            },
+            {
+                "Type": 5,
+                "Content": "Fix a major crashing issue where the panel would completely crash when two pages would be attempted to load concurrently."
+            },
+            {
+                "Type": 2,
+                "Content": "Major performance increases on statistic and dash pages on large databases due to primary index ordering."
+            }
+        ]
     }
 ]

@@ -614,8 +614,7 @@ def NotFoundError(error):
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
 
-    # 9/10 SQL did the death. Recreate cursor.
-    botch_sql_recovery()
+    #botch_sql_recovery()
 
     return render_template("500.html")
 
