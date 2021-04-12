@@ -220,7 +220,7 @@ def LoginHandler(username, password):
                 else:
                      return False, "The password you have entered is incorrect!"
             else:
-                return False, "The account you are attempting to log into is missing the appropeate privileges to carry out this action!"
+                return False, "The account you are attempting to log into is missing the appropriate privileges to carry out this action!"
 
 def TimestampConverter(timestamp, NoDate=1):
     """Converts timestamps into readable time."""
