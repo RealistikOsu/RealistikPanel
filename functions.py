@@ -1188,8 +1188,7 @@ def ResUnTrict(id : int):
         return
     Privilege = Privilege[0][0]
     if Privilege == 2: #if restricted
-        TimeBan = round(time.time())
-        mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s", (id,)) #unrestricts
+        mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s LIMIT 1", (id,)) #unrestricts
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
@@ -1199,6 +1198,19 @@ def ResUnTrict(id : int):
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
         TheReturn = True
+
+        # First places KILL.
+        mycursor.execute(
+            "SELECT beatmap_md5 FROM first_places WHERE user_id = %s",
+            (id,)
+        )
+        recalc_maps = mycursor.fetchall()
+
+        # Delete all of their old.
+        mycursor.execute("DELETE FROM first_places WHERE user_id = %s", 
+            (id,)
+        )
+        for bmap_md5, in recalc_maps: calc_first_place(bmap_md5)
     UpdateBanStatus(id)
     mydb.commit()
     return TheReturn
@@ -2158,7 +2170,7 @@ def GetUsersActiveBetween(Offset:int = 0, Ahead:int = 24):
 
 def RippleSafeUsername(Username):
     """Generates a ripple-style safe username."""
-    return Username.lower().replace(" ", "_")
+    return Username.lower().replace(" ", "_").rstrip()
 
 def GetSuggestedRank():
     """Gets suggested maps to rank (based on play count)."""
@@ -2177,7 +2189,7 @@ def GetSuggestedRank():
 
 def CountRestricted():
     """Calculates the amount of restricted or banned users."""
-    mycursor.execute("SELECT COUNT(*) FROM users WHERE NOT privileges & 1")
+    mycursor.execute("SELECT COUNT(*) FROM users WHERE privileges = 2")
     Count = mycursor.fetchone()
     if Count == None:
         return 0
@@ -2222,3 +2234,65 @@ def CoolerInt(ToInt):
     if ToInt == None:
         return 0
     return int(ToInt)
+
+def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
+    """Calculates the new first place for a beatmap and inserts it into the
+    datbaase.
+    
+    Args:
+        beatmap_md5 (str): The MD5 of the beatmap to set the first place for.
+        rx (int): THe custom mode to recalc for (0=vn, 1=rx, 2=ap)
+        mode (int): The gamemode to recalc for.
+    """
+
+    # We have to work out table.
+    table = {
+        0: "scores",
+        1: "scores_relax",
+        2: "scores_ap"
+    }.get(rx)
+
+    # WHY IS THE ROSU IMPLEMENTATION SO SCUFFED.
+    # FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid
+    mycursor.execute(
+        "SELECT s.id, s.userid, s.score, s.max_combo, s.full_combo, s.mods, s.300_count,"
+        "s.100_count, s.50_count, s.misses_count, s.time, s.play_mode, s.completed,"
+        f"s.accuracy, s.pp, s.playtime, s.beatmap_md5 FROM {table} s RIGHT JOIN users a ON a.id = s.userid WHERE "
+        "s.beatmap_md5 = %s AND s.play_mode = %s AND completed = 3 AND a.privileges & 2 ORDER BY pp "
+        "DESC LIMIT 1",
+        (beatmap_md5, mode)
+    )
+
+    first_place_db = mycursor.fetchone()
+
+    # No scores at all.
+    if not first_place_db: return
+
+    # INSERT BRRRR
+    mycursor.execute(
+        """
+        INSERT INTO first_places
+         (
+            score_id,
+            user_id,
+            score,
+            max_combo,
+            full_combo,
+            mods,
+            300_count,
+            100_count,
+            50_count,
+            miss_count,
+            timestamp,
+            mode,
+            completed,
+            accuracy,
+            pp,
+            play_time,
+            beatmap_md5,
+            relax
+         ) VALUES
+         (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (*first_place_db, rx)
+    )
+    mydb.commit()
