@@ -1377,12 +1377,11 @@ def PlayerCountCollection(loop = True):
         PlayerCount.append(CurrentCount)
         time.sleep(UserConfig["UserCountFetchRate"] * 60)
         #so graph doesnt get too huge
-        if len(PlayerCount) > 40:
-            PlayerCount.pop(0)
+        if len(PlayerCount) >= 100:
+            PlayerCount.remove(PlayerCount[-1])
     if not loop:
         CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
         PlayerCount.append(CurrentCount)
-        time.sleep(UserConfig["UserCountFetchRate"] * 60)
 
 def DashActData():
     """Returns data for dash graphs."""
