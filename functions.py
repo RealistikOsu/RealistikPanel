@@ -1201,7 +1201,7 @@ def ResUnTrict(id : int, note: str = None):
 
         # We append the note if it exists to the thingy init bruv
         if note:
-            mycursor.execute("UPDATE users SET notes = notes + %s WHERE id = %s LIMIT 1", ("\n" + note, id))
+            mycursor.execute("UPDATE users SET notes = CONCAT(notes, %s) WHERE id = %s LIMIT 1", ("\n" + note, id))
 
         # First places KILL.
         mycursor.execute(
