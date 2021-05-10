@@ -466,7 +466,7 @@ def Restrict(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 6):
         Account = GetUser(id)
-        if ResUnTrict(id):
+        if ResUnTrict(id, request.args.get("note")):
             RAPLog(session["AccountId"], f"has restricted the account {Account['Username']} ({id})")
         else:
             RAPLog(session["AccountId"], f"has unrestricted the account {Account['Username']} ({id})")
