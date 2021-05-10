@@ -1180,7 +1180,7 @@ def WipeAutopilot(AccId):
     mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
-def ResUnTrict(id : int):
+def ResUnTrict(id : int, note: str = None):
     """Restricts or unrestricts account yeah."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()
@@ -1198,6 +1198,10 @@ def ResUnTrict(id : int):
         mycursor.execute("UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s", (TimeBan, id,)) #restrict em bois
         RemoveFromLeaderboard(id)
         TheReturn = True
+
+        # We append the note if it exists to the thingy init bruv
+        if note:
+            mycursor.execute("UPDATE users SET notes = notes + %s WHERE id = %s LIMIT 1", ("\n" + note, id))
 
         # First places KILL.
         mycursor.execute(
