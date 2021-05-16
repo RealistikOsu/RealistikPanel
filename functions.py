@@ -1768,7 +1768,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     mycursor.execute("SELECT song_name, beatmap_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
     MapData = mycursor.fetchone()
     #Getting bmap name without diff
-    BmapName = MapData[0].split("[")[0] #¯\_(ツ)_/¯ might work
+    BmapName = MapData[0].split("[")[0].rstrip() #¯\_(ツ)_/¯ might work
     #webhook, didnt use webhook function as it was too adapted for single map webhook
     webhook = DiscordWebhook(url=UserConfig["Webhook"])
     embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424)
