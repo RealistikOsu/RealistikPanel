@@ -905,7 +905,7 @@ def GetPrivileges():
 def ApplyUserEdit(form, session):
     """Apples the user settings."""
     #getting variables from form
-    UserId = form.get("userid", False)
+    UserId = int(form.get("userid", False))
     Username = form.get("username", False)
     Aka = form.get("aka", False)
     Email = form.get("email", False)
@@ -947,6 +947,11 @@ def ApplyUserEdit(form, session):
     if UserConfig["HasAutopilot"]:
         mycursor.execute("UPDATE ap_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
     mydb.commit()
+
+    # Refresh in pep.py - Rosu only
+    r.publish("peppy:refresh_privs", {
+        "user_id": UserId
+    })
 
 def ModToText(mod: int):
     """Converts mod enum to cool string."""
@@ -1867,6 +1872,9 @@ def ChangePassword(AccountID: int, NewPassword: str):
     BCrypted = CreateBcrypt(NewPassword)
     mycursor.execute("UPDATE users SET password_md5 = %s WHERE id = %s", (BCrypted, AccountID,))
     mydb.commit()
+    r.publish("peppy:change_pass", {
+        "user_id": AccountID
+    })
 
 def ChangePWForm(form, session): #this function may be unnecessary but ehh
     """Handles the change password POST request."""
@@ -2118,6 +2126,9 @@ def ApplyClanEdit(Form, session):
     MemberLimit = Form["limit"]
     mycursor.execute("UPDATE clans SET name=%s, description=%s, tag=%s, mlimit=%s, icon=%s WHERE id = %s LIMIT 1", (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID))
     mydb.commit()
+    # Make all tags refresh.
+    mycursor.execute("SELECT user FROM user_clans WHERE clan=%s", (ClanID,))
+    for user_id, in mycursor.fetchall(): cache_clan(user_id)
     RAPLog(session["AccountId"], f"edited the clan {ClanName} ({ClanID})")
 
 def NukeClan(ClanID: int, session):
@@ -2126,8 +2137,14 @@ def NukeClan(ClanID: int, session):
     if not Clan:
         return
     
+    # Make all tags refresh.
+    mycursor.execute("SELECT user FROM user_clans WHERE clan=%s", (ClanID,))
+    c_m_db = mycursor.fetchall()
+    
     mycursor.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
     mycursor.execute("DELETE FROM user_clans WHERE clan=%s", (ClanID,))
+    # run this after
+    for user_id, in c_m_db: cache_clan(user_id)
     mydb.commit()
     RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")
 
@@ -2135,6 +2152,7 @@ def KickFromClan(AccountID):
     """Kicks user from all clans (supposed to be only one)."""
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
     mydb.commit()
+    cache_clan(AccountID)
 
 def GetUsersRegisteredBetween(Offset:int = 0, Ahead:int = 24):
     """Gets how many players registered during a given time period (variables are in hours)."""
@@ -2299,3 +2317,10 @@ def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
         """, (*first_place_db, rx)
     )
     mydb.commit()
+
+def cache_clan(user_id: int) -> None:
+    """Updates LETS' cached clan tag for a specific user. This is a
+    requirement for RealistikOsu lets, or else clan tags may get out of sync.
+    """
+
+    r.publish("rosu:clan_update", str(user_id))
