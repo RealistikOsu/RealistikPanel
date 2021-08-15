@@ -1408,11 +1408,11 @@ def DashActData():
     Data["IntervalList"] = json.dumps(IntervalList)
     return Data
 
-def GiveSupporter(AccountID : int, Duration = 1):
+def GiveSupporter(AccountID : int, Duration = 30):
     """Gives the target user supporter.
     Args:
         AccountID (int): The account id of the target user.
-        Duration (int): The time (in months) that the supporter rank should last
+        Duration (int): The time (in days) that the supporter rank should last
     """ #messing around with docstrings
     #checking if person already has supporter
     #also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
@@ -1422,11 +1422,11 @@ def GiveSupporter(AccountID : int, Duration = 1):
         #already has supporter, extending
         mycursor.execute("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
         ToEnd = mycursor.fetchone()[0]
-        ToEnd += 2.628e+6 * Duration
+        ToEnd += 86400 * Duration
         mycursor.execute("UPDATE users SET donor_expire = %s WHERE id=%s", (ToEnd, AccountID,))
         mydb.commit()
     else:
-        EndTimestamp = round(time.time()) + (2.628e+6 * Duration)
+        EndTimestamp = round(time.time()) + (86400 * Duration)
         CurrentPriv += 4 #adding donor perms
         mycursor.execute("UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s", (CurrentPriv, EndTimestamp, AccountID,))
         #allowing them to set custom badges

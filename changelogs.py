@@ -632,5 +632,16 @@ Changelogs = [
                 "Content": "Major performance increases on statistic and dash pages on large databases due to primary index ordering."
             }
         ]
+    },
+    {
+        "Build": 1629068185,
+        "Type": 3,
+        "Summary": "Minor change to how supporter is rewarded.",
+        "Changes": [
+            {
+                "Type": 6,
+                "Content": "Amount of days rewarded for supporter is now selected as days, rather than months."
+            }
+        ]
     }
 ]
