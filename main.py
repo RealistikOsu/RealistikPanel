@@ -317,7 +317,7 @@ def DonorAward(AccountID):
         if request.method == "POST":
             GiveSupporterForm(request.form)
             User = GetUser(int(AccountID))
-            RAPLog(session["AccountId"], f"has awarded {User['Username']} ({AccountID}) {request.form['time']} months of donor.")
+            RAPLog(session["AccountId"], f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.")
             return redirect(f"/user/edit/{AccountID}")
     else:
         return NoPerm(session)
