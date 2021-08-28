@@ -391,7 +391,7 @@ def PPApi(id):
 @app.route("/js/status/api")
 def ApiStatus():
     try:
-        return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping", verify=False).json())
+        return jsonify(requests.get(UserConfig["ServerURL"] + "api/v1/ping", verify=False, timeout=1).json())
     except Exception as err:
         print("[ERROR] /js/status/api: ", err)
         return jsonify({
@@ -400,7 +400,7 @@ def ApiStatus():
 @app.route("/js/status/lets")
 def LetsStatus():
     try:
-        return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status", verify=False).json()) #this url to provide a predictable result
+        return jsonify(requests.get(UserConfig["LetsAPI"] + "v1/status", verify=False, timeout=1).json()) #this url to provide a predictable result
     except Exception as err:
         print("[ERROR] /js/status/lets: ", err)
         return jsonify({
@@ -409,7 +409,7 @@ def LetsStatus():
 @app.route("/js/status/bancho")
 def BanchoStatus():
     try:
-        return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus", verify=False).json()) #this url to provide a predictable result
+        return jsonify(requests.get(UserConfig["BanchoURL"] + "api/v1/serverStatus", verify=False, timeout=1).json()) #this url to provide a predictable result
     except Exception as err:
         print("[ERROR] /js/status/bancho: ", err)
         return jsonify({
