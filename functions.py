@@ -509,6 +509,11 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     mydb.commit()
     Webhook(BeatmapId, ActionName, session)
 
+    # USSR SUPPORT.
+    mycursor.execute("SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1", (BeatmapId,))
+    md5: str = mycursor.fetchone()[0]
+    refresh_all_lbs(md5)
+
 def FokaMessage(params) -> None:
     """Sends a fokabot message."""
     requests.get(f"{UserConfig['BanchoURL']}api/v1/fokabotMessage", params=params)
@@ -1770,8 +1775,9 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     elif Staus == 5:
         TitleText = "loved"
     
-    mycursor.execute("SELECT song_name, beatmap_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1", (BeatmapSet,))
-    MapData = mycursor.fetchone()
+    mycursor.fetchall("SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s", (BeatmapSet,))
+    all_maps = mycursor.fetchall()
+    MapData = all_maps[0]
     #Getting bmap name without diff
     BmapName = MapData[0].split("[")[0].rstrip() #¯\_(ツ)_/¯ might work
     #webhook, didnt use webhook function as it was too adapted for single map webhook
@@ -1783,6 +1789,9 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     webhook.add_embed(embed)
     print(" * Posting webhook!")
     webhook.execute()
+
+    # Refresh all lbs.
+    for _, _, md5 in all_maps: refresh_all_lbs(md5)
 
 def FindUserByUsername(User: str, Page):
     """Finds user by their username OR email."""
@@ -2318,9 +2327,27 @@ def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
     )
     mydb.commit()
 
+# USSR Redis Support.
 def cache_clan(user_id: int) -> None:
     """Updates LETS' cached clan tag for a specific user. This is a
     requirement for RealistikOsu lets, or else clan tags may get out of sync.
     """
 
     r.publish("rosu:clan_update", str(user_id))
+
+def refresh_bmap_cache(md5: str) -> None:
+    """Tells USSR to drop the beatmap cache for a specific beatmap."""
+
+    r.publish("ussr:bmap_decache", md5)
+
+def refresh_lb_cache(md5: str, mode: int, c_mode) -> None:
+    """Refreshes the leaderboard cache for a specific leaderboard."""
+
+    data = f"{md5}:{mode}:{c_mode}"
+    r.publish("ussr:lb_refresh", data)
+
+def refresh_all_lbs(md5: str) -> None:
+    """Refreshes ALL of the leaderboards for a given beatmap."""
+
+    for c_mode in (0, 1, 2):
+        for mode in (0, 1, 2, 3): refresh_lb_cache(md5, mode, c_mode)

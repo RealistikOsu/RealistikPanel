@@ -643,5 +643,24 @@ Changelogs = [
                 "Content": "Amount of days rewarded for supporter is now selected as days, rather than months."
             }
         ]
+    },
+    {
+        "Build": 1637413312,
+        "Type": 2,
+        "Summary": "This update brings about support and integration with the USSR score server.",
+        "Changes": [
+            {
+                "Type": 2,
+                "Content": "Ranking a beatmap now refreshes the cached beatmap status in USSR"
+            },
+            {
+                "Type": 2,
+                "Content": "Properly supporting USSR leaderboard refreshes."
+            },
+            {
+                "Type": 2,
+                "Content": "More interconnected Redis backend."
+            }
+        ]
     }
 ]
