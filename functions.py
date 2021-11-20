@@ -1775,7 +1775,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     elif Staus == 5:
         TitleText = "loved"
     
-    mycursor.fetchall("SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s", (BeatmapSet,))
+    mycursor.execute("SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s", (BeatmapSet,))
     all_maps = mycursor.fetchall()
     MapData = all_maps[0]
     #Getting bmap name without diff
