@@ -957,6 +957,7 @@ def ApplyUserEdit(form, session):
     r.publish("peppy:refresh_privs", {
         "user_id": UserId
     })
+    refresh_username_cache(UserID)
 
 def ModToText(mod: int):
     """Converts mod enum to cool string."""
@@ -1775,7 +1776,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     elif Staus == 5:
         TitleText = "loved"
     
-    mycursor.fetchall("SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s", (BeatmapSet,))
+    mycursor.execute("SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s", (BeatmapSet,))
     all_maps = mycursor.fetchall()
     MapData = all_maps[0]
     #Getting bmap name without diff
@@ -2351,3 +2352,10 @@ def refresh_all_lbs(md5: str) -> None:
 
     for c_mode in (0, 1, 2):
         for mode in (0, 1, 2, 3): refresh_lb_cache(md5, mode, c_mode)
+
+def refresh_username_cache(user_id: int) -> None:
+    """Refreshes the username cache for a specific user."""
+
+    r.publish("peppy:change_username", json.dumps({
+        "userID": user_id,
+    }))
