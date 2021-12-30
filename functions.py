@@ -957,7 +957,7 @@ def ApplyUserEdit(form, session):
     r.publish("peppy:refresh_privs", {
         "user_id": UserId
     })
-    refresh_username_cache(UserID)
+    refresh_username_cache(UserId)
 
 def ModToText(mod: int):
     """Converts mod enum to cool string."""
