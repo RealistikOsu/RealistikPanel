@@ -1198,8 +1198,8 @@ def ResUnTrict(id : int, note: str = None):
     if len(Privilege) == 0:
         return
     Privilege = Privilege[0][0]
-    if Privilege == 2: #if restricted
-        mycursor.execute("UPDATE users SET privileges = 3, ban_datetime = 0 WHERE id = %s LIMIT 1", (id,)) #unrestricts
+    if not Privilege & 1: #if restricted
+        mycursor.execute("UPDATE users SET privileges |= 1, ban_datetime = 0 WHERE id = %s LIMIT 1", (id,)) #unrestricts
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
