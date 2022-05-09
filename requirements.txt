@@ -8,3 +8,5 @@ flask-recaptcha==0.4.2
 pycountry==20.7.3 
 osrparse==3.0.0
 timeago==1.0.7
+werkzeug==2.0.3
+itsdangerous==2.0.1
