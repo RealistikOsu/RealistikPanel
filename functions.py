@@ -919,7 +919,7 @@ def ApplyUserEdit(form, session):
     UserPage = form.get("userpage", False)
     Notes = form.get("notes", False)
     Privilege = form.get("privilege", False)
-    HWIDBypass = form.get("hwid_bypass", False) == "true" 
+    HWIDBypass = form.get("hwid_bypass", False) == "1"
 
     if not UserId or not Username:
         print("Yo you seriously messed up the form")
