@@ -1,4 +1,5 @@
 #This file is responsible for running the web server and (mostly nothing else)
+from binhex import REASONABLY_LARGE
 from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory, jsonify
 from defaults import *
 from config import UserConfig
@@ -466,13 +467,13 @@ def Restrict(id: int):
     """The wipe action."""
     if HasPrivilege(session["AccountId"], 6):
         Account = GetUser(id)
-        if ResUnTrict(id, request.args.get("note")):
+        if ResUnTrict(id, request.args.get("note"), request.args.get("reason")):
             RAPLog(session["AccountId"], f"has restricted the account {Account['Username']} ({id})")
         else:
             RAPLog(session["AccountId"], f"has unrestricted the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+        return NoPerm(session)
 
 @app.route("/actions/freeze/<id>")
 def Freezee(id: int):
@@ -489,7 +490,7 @@ def Ban(id: int):
     """Do the FBI to the person."""
     if HasPrivilege(session["AccountId"], 5):
         Account = GetUser(id)
-        if BanUser(id):
+        if BanUser(id, request.args.get("reason")):
             RAPLog(session["AccountId"], f"has banned the account {Account['Username']} ({id})")
         else:
             RAPLog(session["AccountId"], f"has unbanned the account {Account['Username']} ({id})")

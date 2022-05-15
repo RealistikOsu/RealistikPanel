@@ -144,11 +144,11 @@
                 <label>HWID Bypass:</label>
                 <select name="hwid_bypass" class="form-control">
                     {% if UserData["BypassHWID"] %}
-                        <option value="1" selected>Yes</option>
-                        <option value="0">No</option>
+                        <option value="true" selected>Yes</option>
+                        <option value="false">No</option>
                     {% else %}
-                        <option value="1">Yes</option>
-                        <option value="0" selected>No</option>
+                        <option value="true">Yes</option>
+                        <option value="false" selected>No</option>
                     {% endif %}
                 </select>
             </div>
@@ -159,6 +159,25 @@
             {% endif %}
             <button class="btn btn-success" type="submit" name="">Apply!</button>
         </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h4>Community Management</h4>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <label>Ban Reason</label>
+            <textarea class="form-control" id="ban_reason"></textarea>
+        </div>
+        <div class="buttons">
+            <a href="javascript:restrictUser('{{ UserData['Id'] }}')" class="btn btn-danger">Restrict/Unrestrict</a>
+            <a href="javascript:banUser('{{ UserData['Id'] }}')" class="btn btn-danger" id="ban">Ban/Unban</a>
+        </div>
+
+        {% if UserData["IsBanned"] %}
+            <b>Banned Since: </b><span>{{ UserData["BanedAgo"] }}</span>
+        {% endif %}
     </div>
 </div>
 <div class="card">
@@ -177,8 +196,6 @@
             {% endif %}
         </div>
         <div class="buttons">
-            <a href="/actions/restrict/{{ UserData['Id'] }}" class="btn btn-danger">Restrict/Unrestrict</a>
-            <a href="/actions/ban/{{ UserData['Id'] }}" class="btn btn-danger" id="ban">Ban/Unban</a>
             <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger">Freeze/Unfreeze</a>
             <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
             <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
@@ -202,6 +219,9 @@
     </div>
 </div>
 <script>
+    const restrictUser = (id) => window.location.replace(`/actions/restrict/${id}?reason=${document.getElementById("ban_reason").value || ""}`);
+    const banUser = (id) => window.location.replace(`/actions/ban/${id}?reason=${document.getElementById("ban_reason").value || ""}`);
+
     //sets default country to one from UserData
     document.getElementById("countryselect").value = "{{ UserData['Country'] }}";
     //ip lookup, did it via js not to slow down the loading with a request
