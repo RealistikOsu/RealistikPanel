@@ -168,7 +168,7 @@
     <div class="card-body">
         <div class="form-group">
             <label>Ban Reason</label>
-            <textarea class="form-control" id="ban_reason"></textarea>
+            <textarea class="form-control" id="ban_reason">{{ UserData["BanReason"] }}</textarea>
         </div>
         <div class="buttons">
             <a href="javascript:restrictUser('{{ UserData['Id'] }}')" class="btn btn-danger">Restrict/Unrestrict</a>
