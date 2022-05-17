@@ -1,5 +1,4 @@
 #This file is responsible for running the web server and (mostly nothing else)
-from binhex import REASONABLY_LARGE
 from flask import Flask, render_template, session, redirect, url_for, request, send_from_directory, jsonify
 from defaults import *
 from config import UserConfig

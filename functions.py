@@ -1197,7 +1197,7 @@ def WipeAutopilot(AccId):
 
 def ResUnTrict(id : int, note: str = None, reason: str = None):
     """Restricts or unrestricts account yeah."""
-    if reason != None:
+    if reason:
         mycursor.execute("UPDATE users SET ban_reason = %s WHERE id = %s", (reason, id,))
 
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
@@ -1267,7 +1267,7 @@ def FreezeHandler(id : int):
    
 def BanUser(id : int, reason: str = None):
     """User go bye bye!"""
-    if reason != None:
+    if reason:
         mycursor.execute("UPDATE users SET ban_reason = %s WHERE id = %s", (reason, id,))
     
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
