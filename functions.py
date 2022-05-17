@@ -777,7 +777,7 @@ def UserData(UserID):
     Data = GetUser(UserID)
     mycursor.execute("SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1", (UserID,))# Req 1
     Data1 = mycursor.fetchone()
-    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime, bypass_hwid FROM users WHERE id = %s LIMIT 1", (UserID,))
+    mycursor.execute("SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime, bypass_hwid, ban_reason FROM users WHERE id = %s LIMIT 1", (UserID,))
     Data2 = mycursor.fetchone()
     #Fetches the IP
     mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
@@ -814,6 +814,7 @@ def UserData(UserID):
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0]
     Data["BypassHWID"] = Data2[8]
+    Data["BanReason"] = Data2[9]
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
@@ -1194,8 +1195,11 @@ def WipeAutopilot(AccId):
     #mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
-def ResUnTrict(id : int, note: str = None):
+def ResUnTrict(id : int, note: str = None, reason: str = None):
     """Restricts or unrestricts account yeah."""
+    if reason:
+        mycursor.execute("UPDATE users SET ban_reason = %s WHERE id = %s", (reason, id,))
+
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()
     if len(Privilege) == 0:
@@ -1262,8 +1266,11 @@ def FreezeHandler(id : int):
     mydb.commit()
     return TheReturn
    
-def BanUser(id : int):
+def BanUser(id : int, reason: str = None):
     """User go bye bye!"""
+    if reason:
+        mycursor.execute("UPDATE users SET ban_reason = %s WHERE id = %s", (reason, id,))
+    
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
     Privilege = mycursor.fetchall()
     Timestamp = round(time.time())
