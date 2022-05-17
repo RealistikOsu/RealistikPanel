@@ -144,11 +144,11 @@
                 <label>HWID Bypass:</label>
                 <select name="hwid_bypass" class="form-control">
                     {% if UserData["BypassHWID"] %}
-                        <option value="true" selected>Yes</option>
-                        <option value="false">No</option>
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
                     {% else %}
-                        <option value="true">Yes</option>
-                        <option value="false" selected>No</option>
+                        <option value="1">Yes</option>
+                        <option value="0" selected>No</option>
                     {% endif %}
                 </select>
             </div>
