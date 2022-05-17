@@ -140,6 +140,18 @@
                 <label>Admin Notes</label>
                 <textarea type="text" class="form-control" name="notes" rows=15>{{ UserData['Notes'] }}</textarea>
             </div>
+            <div class="form-group">
+                <label>HWID Bypass:</label>
+                <select name="hwid_bypass" class="form-control">
+                    {% if UserData["BypassHWID"] %}
+                        <option value="1" selected>Yes</option>
+                        <option value="0">No</option>
+                    {% else %}
+                        <option value="1">Yes</option>
+                        <option value="0" selected>No</option>
+                    {% endif %}
+                </select>
+            </div>
             {% if ShowIPs %}
             <div class="form-group" id="iptext">
                 <b>IP: </b>{{ UserData['Ip'] }}
