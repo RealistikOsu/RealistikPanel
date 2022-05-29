@@ -1032,6 +1032,14 @@ def ModToText(mod: int):
             Mods += "K3"
         return Mods
 
+def DeleteProfileComments(AccId):
+    mycursor.execute("DELETE FROM user_comments WHERE prof = %s", (AccId,))
+    mydb.commit()
+
+def DeleteUserComments(AccId):
+    mycursor.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
+    mydb.commit()
+
 def WipeAccount(AccId):
     """Wipes the account with the given id."""
     r.publish("peppy:disconnect", json.dumps({ #lets the user know what is up
