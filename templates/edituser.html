@@ -33,7 +33,12 @@
         {% endif %}
     </div>
     <div class="card-body">
-        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }} <img src="https://ussr.pl/static/flags/{{ UserData['Country'] }}.png" class="nflag"><br>
+        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}
+        {% if UserData['Country'] == "XX" %}
+        <img src="https://ussr.pl/static/images/new-flags/xx.png" class="nflag"><br>
+        {% else %}
+        <img src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg" class="nflag"><br>
+        {% endif %}
         Their status on {{ config["ServerName"] }} is 
         {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
