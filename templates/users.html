@@ -64,9 +64,9 @@
             <td>{{ user["Id"] }}</td>
             <td>
                 {% if not user['Country'] == "XX" %}
-                <img class="nflag" src="https://ussr.pl/static/flags/{{ user['Country'] }}.png">
+                <img class="nflag" src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg">
                 {% else %}
-                <b>? </b>
+                <img class="nflag" src="https://ussr.pl/static/images/new-flags/xx.png">
                 {% endif %}
                 <a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a>
             </td>

@@ -35,13 +35,20 @@ def dash():
         else:
             return render_template("dash.html", title="Dashboard", session=session, data=DashData(), plays=RecentPlays(), config=UserConfig, Graph=DashActData(), MostPlayed=GetMostPlayed(), info=f"Hey! RealistikPanel has been recently updated to build <b>{GetBuild()}</b>! Check out <a href='/changelogs'>what's new here!</a>")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
+IP_REDIRS = {}
 @app.route("/login", methods = ["GET", "POST"])
 def login():
     if not session["LoggedIn"] and not HasPrivilege(session["AccountId"]):
+
         if request.method == "GET":
+            redir = request.args.get("redirect")
+            if redir: 
+                IP_REDIRS[request.headers.get("X-Real-IP")] = redir
+
             return render_template("login.html", conf = UserConfig)
+
         if request.method == "POST":
             LoginData = LoginHandler(request.form["username"], request.form["password"])
             if not LoginData[0]:
@@ -51,6 +58,12 @@ def login():
                 #modifying the session
                 for key in list(SessionToApply.keys()):
                     session[key] = SessionToApply[key]
+
+                redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
+                if redir:
+                    del IP_REDIRS[request.headers.get("X-Real-IP")]
+                    return redirect(redir)
+
                 return redirect(url_for("home"))
     else:
         return redirect(url_for("dash"))
@@ -78,7 +91,7 @@ def BanchoSettings():
                 return render_template("banchosettings.html", preset=FetchBSData(), title="Bancho Settings", data=DashData(), bsdata=FetchBSData(), session=session, config=UserConfig, error="An internal error has occured while saving bancho settings! An error has been logged to the console.")
 
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/rank/<id>", methods = ["GET", "POST"])
 def RankMap(id):
@@ -95,7 +108,7 @@ def RankMap(id):
                 ConsoleLog(f"Error while ranking beatmap ({id})!", f"{e}", 3)
                 return render_template("beatrank.html", title="Rank Beatmap!", data=DashData(), session=session, beatdata=SplitList(GetBmapInfo(id)), config=UserConfig, error="An internal error has occured while ranking! An error has been logged to the console.", Id= id)
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/rank", methods = ["GET", "POST"])
 def RankFrom():
@@ -103,10 +116,10 @@ def RankFrom():
         if HasPrivilege(session["AccountId"], 3):
             return render_template("rankform.html", title="Rank a beatmap!", data=DashData(), session=session, config=UserConfig, SuggestedBmaps = SplitList(GetSuggestedRank()))
         else:
-             return NoPerm(session)
+             return NoPerm(session, request.path)
     else:
         if not HasPrivilege(session["AccountId"]): #mixing things up eh
-             return NoPerm(session)
+             return NoPerm(session, request.path)
         else:
             return redirect(f"/rank/{request.form['bmapid']}") #does this even work
 
@@ -118,7 +131,7 @@ def Users(page = 1):
         if request.method == "POST":
             return render_template("users.html", title="Users", data=DashData(), session=session, config=UserConfig, UserData = FindUserByUsername(request.form["user"], int(page)), page=int(page), User=request.form["user"], Pages=UserPageCount())
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/index.php")
 def LegacyIndex():
@@ -146,7 +159,7 @@ def SystemSettings():
                 ConsoleLog("Error while editing system settings!", f"{e}", 3)
                 return render_template("syssettings.html", data=DashData(), session=session, title="System Settings", SysData=SystemSettingsValues(), config=UserConfig, error = "An internal error has occured while saving system settings! An error has been logged to the console.")
         else:
-             return NoPerm(session)
+             return NoPerm(session, request.path)
 
 @app.route("/user/edit/<id>", methods = ["GET", "POST"])
 def EditUser(id):
@@ -154,7 +167,7 @@ def EditUser(id):
         if HasPrivilege(session["AccountId"], 6):
             return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16))
         else:
-             return NoPerm(session)
+             return NoPerm(session, request.path)
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             try:
@@ -166,7 +179,7 @@ def EditUser(id):
                 ConsoleLog("Error while editing user!", f"{e}", 3)
                 return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.", ShowIPs = HasPrivilege(session["AccountId"], 16))
         else:
-            return NoPerm(session)
+            return NoPerm(session, request.path)
 
 
 @app.route("/logs/<page>")
@@ -174,7 +187,7 @@ def Logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template("raplogs.html", data=DashData(), session=session, title="Logs", config=UserConfig, Logs = RAPFetch(page), page=int(page), Pages = RapLogCount())
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/action/confirm/delete/<id>")
 def ConfirmDelete(id):
@@ -185,7 +198,7 @@ def ConfirmDelete(id):
         AccountToBeDeleted = GetUser(id)
         return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f"delete the user {AccountToBeDeleted['Username']}", yeslink=f"/actions/delete/{id}", backlink=f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/user/iplookup/<ip>")
 def IPUsers(ip):
@@ -194,14 +207,14 @@ def IPUsers(ip):
         UserLen = len(IPUserLookup)
         return render_template("iplookup.html", data=DashData(), session=session, title="IP Lookup", config=UserConfig, ipusers=IPUserLookup, IPLen = UserLen, ip=ip)
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/badges")
 def Badges():
     if HasPrivilege(session["AccountId"], 4):
         return render_template("badges.html", data=DashData(), session=session, title="Badges", config=UserConfig, badges=GetBadges())
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/badge/edit/<BadgeID>", methods = ["GET", "POST"])
 def EditBadge(BadgeID: int):
@@ -218,14 +231,14 @@ def EditBadge(BadgeID: int):
                 ConsoleLog("Error while editing badge!", f"{e}", 3)
                 return render_template("editbadge.html", data=DashData(), session=session, title="Edit Badge", config=UserConfig, badge=GetBadge(BadgeID), error="An internal error has occured while editing the badge! An error has been logged to the console.")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/privileges")
 def EditPrivileges():
     if HasPrivilege(session["AccountId"], 13):
         return render_template("privileges.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=GetPrivileges())
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/privilege/edit/<Privilege>", methods = ["GET", "POST"])
 def EditPrivilege(Privilege: int):
@@ -244,21 +257,21 @@ def EditPrivilege(Privilege: int):
                 Priv = GetPriv(Privilege)
                 return render_template("editprivilege.html", data=DashData(), session=session, title="Privileges", config=UserConfig, privileges=Priv, error="An internal error has occured while editing the privileges! An error has been logged to the console.")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/console")
 def Console():
     if HasPrivilege(session["AccountId"], 14):
         return render_template("consolelogs.html", data=DashData(), session=session, title="Console Logs", config=UserConfig, logs=GetLog())
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/changelogs")
 def ChangeLogs():
     if HasPrivilege(session["AccountId"]):
         return render_template("changelog.html", data=DashData(), session=session, title="Change Logs", config=UserConfig, logs=Changelogs)
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/current.json")
 def CurrentIPs():
@@ -292,7 +305,7 @@ def Admins():
     if HasPrivilege(session["AccountId"]):
         return render_template("admins.html", data=DashData(), session=session, title="Admins", config=UserConfig, admins=SplitList(GetStore()))
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 
 @app.route("/changepass/<AccountID>", methods = ["GET", "POST"]) #may change the route to something within /user
@@ -306,7 +319,7 @@ def ChangePass(AccountID):
             User = GetUser(int(AccountID))
             return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/donoraward/<AccountID>", methods = ["GET", "POST"])
 def DonorAward(AccountID):
@@ -320,7 +333,7 @@ def DonorAward(AccountID):
             RAPLog(session["AccountId"], f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.")
             return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/donorremove/<AccountID>")
 def RemoveDonorRoute(AccountID):
@@ -328,7 +341,7 @@ def RemoveDonorRoute(AccountID):
         RemoveSupporter(AccountID, session)
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 
 @app.route("/rankreq/<Page>")
@@ -336,14 +349,14 @@ def RankReq(Page):
     if HasPrivilege(session["AccountId"], 3):
         return render_template("rankreq.html", data=DashData(), session=session, title="Ranking Requests", config=UserConfig, RankRequests = GetRankRequests(int(Page)), page = int(Page))
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/clans/<Page>")
 def ClanRoute(Page):
     if HasPrivilege(session["AccountId"], 15):
         return render_template("clansview.html", data=DashData(), session=session, title="Clans", config=UserConfig, page = int(Page), Clans = GetClans(Page), Pages = GetClanPages())
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/clan/<ClanID>", methods = ["GET", "POST"])
 def ClanEditRoute(ClanID):
@@ -353,28 +366,28 @@ def ClanEditRoute(ClanID):
         ApplyClanEdit(request.form, session)
         return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), success="Clan edited successfully!")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/clan/delete/<ClanID>")
 def ClanFinalDelete(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         NukeClan(ClanID, session)
         return redirect("/clans/1")
-    return NoPerm(session)
+    return NoPerm(session, request.path)
 
 @app.route("/clan/confirmdelete/<ClanID>")
 def ClanDeleteConfirm(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         Clan = GetClan(ClanID)
         return render_template("confirm.html", data=DashData(), session=session, title="Confirmation Required", config=UserConfig, action=f" delete the clan {Clan['Name']}", yeslink=f"/clan/delete/{ClanID}", backlink="/clans/1")
-    return NoPerm(session)
+    return NoPerm(session, request.path)
 
 @app.route("/stats", methods = ["GET", "POST"])
 def StatsRoute():
     if HasPrivilege(session["AccountId"]):
         MinPP = request.form.get("minpp", 0)
         return render_template("stats.html", data=DashData(), session=session, title="Server Statistics", config=UserConfig, StatData = GetStatistics(MinPP), MinPP = MinPP)
-    return NoPerm(session)
+    return NoPerm(session, request.path)
 
 #API for js
 @app.route("/js/pp/<id>")
@@ -427,7 +440,8 @@ def DeleteCommentProfile(AccountID: int):
         RAPLog(session["AccountId"], f"has removed all comments made on {Account['Username']}'s profile ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+      
+        return NoPerm(session, request.path)
 
 @app.route("/actions/comment/user/<AccountID>")
 def DeleteCommentUser(AccountID: int):
@@ -439,7 +453,7 @@ def DeleteCommentUser(AccountID: int):
         RAPLog(session["AccountId"], f"has removed all comments made by {Account['Username']} ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/wipe/<AccountID>")
 def Wipe(AccountID: int):
@@ -450,7 +464,7 @@ def Wipe(AccountID: int):
         RAPLog(session["AccountId"], f"has wiped the account {Account['Username']} ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/wipeap/<AccountID>")
 def WipeAPRoute(AccountID: int):
@@ -461,7 +475,7 @@ def WipeAPRoute(AccountID: int):
         RAPLog(session["AccountId"], f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/wiperx/<AccountID>")
 def WipeRXRoute(AccountID: int):
@@ -472,7 +486,7 @@ def WipeRXRoute(AccountID: int):
         RAPLog(session["AccountId"], f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/wipeva/<AccountID>")
 def WipeVARoute(AccountID: int):
@@ -483,7 +497,7 @@ def WipeVARoute(AccountID: int):
         RAPLog(session["AccountId"], f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})")
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/restrict/<id>")
 def Restrict(id: int):
@@ -496,7 +510,7 @@ def Restrict(id: int):
             RAPLog(session["AccountId"], f"has unrestricted the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/actions/freeze/<id>")
 def Freezee(id: int):
@@ -506,7 +520,7 @@ def Freezee(id: int):
         RAPLog(session["AccountId"], f"has frozen the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/actions/ban/<id>")
 def Ban(id: int):
@@ -519,7 +533,7 @@ def Ban(id: int):
             RAPLog(session["AccountId"], f"has unbanned the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 @app.route("/actions/hwid/<id>")
 def HWID(id: int):
     """Clear HWID matches."""
@@ -529,7 +543,7 @@ def HWID(id: int):
         RAPLog(session["AccountId"], f"has cleared the HWID matches for the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 @app.route("/actions/delete/<id>")
 def DeleteAcc(id: int):
     """Account goes bye bye forever."""
@@ -539,7 +553,7 @@ def DeleteAcc(id: int):
         RAPLog(session["AccountId"], f"has deleted the account {AccountToBeDeleted['Username']} ({id})")
         return redirect("/users/1")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 @app.route("/actions/kick/<id>")
 def KickFromBancho(id: int):
     """Kick from bancho"""
@@ -549,7 +563,7 @@ def KickFromBancho(id: int):
         RAPLog(session["AccountId"], f"has kicked the account {Account['Username']} ({id})")
         return redirect(f"/user/edit/{id}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/actions/deletebadge/<id>")
 def BadgeDeath(id:int):
@@ -558,7 +572,7 @@ def BadgeDeath(id:int):
         RAPLog(session["AccountId"], f"deleted the badge with the ID of {id}")
         return redirect(url_for("Badges"))
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/actions/createbadge")
 def CreateBadgeAction():
@@ -567,7 +581,7 @@ def CreateBadgeAction():
         RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
         return redirect(f"/badge/edit/{Badge}")
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/actions/createprivilege")
 def CreatePrivilegeAction():
@@ -575,7 +589,7 @@ def CreatePrivilegeAction():
         PrivID = CreatePrivilege()
         RAPLog(session["AccountId"], f"Created a new privilege group with the ID of {PrivID}")
         return redirect(f"/privilege/edit/{PrivID}")
-    return NoPerm(session)
+    return NoPerm(session, request.path)
 
 @app.route("/actions/deletepriv/<PrivID>")
 def PrivDeath(PrivID:int):
@@ -585,7 +599,7 @@ def PrivDeath(PrivID:int):
         RAPLog(session["AccountId"], f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})")
         return redirect(url_for("EditPrivileges"))
     else:
-         return NoPerm(session)
+         return NoPerm(session, request.path)
 
 @app.route("/action/rankset/<BeatmapSet>")
 def RankSet(BeatmapSet: int):
@@ -594,7 +608,7 @@ def RankSet(BeatmapSet: int):
         RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/action/loveset/<BeatmapSet>")
 def LoveSet(BeatmapSet: int):
@@ -603,7 +617,7 @@ def LoveSet(BeatmapSet: int):
         RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/action/unrankset/<BeatmapSet>")
 def UnrankSet(BeatmapSet: int):
@@ -612,7 +626,7 @@ def UnrankSet(BeatmapSet: int):
         RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/action/deleterankreq/<ReqID>")
 def MarkRequestAsDone(ReqID):
@@ -620,14 +634,14 @@ def MarkRequestAsDone(ReqID):
         DeleteBmapReq(ReqID)
         return redirect("/rankreq/1")
     else:
-        return NoPerm(session)
+        return NoPerm(session, request.path)
 
 @app.route("/action/kickclan/<AccountID>")
 def KickClanRoute(AccountID):
     if HasPrivilege(session["AccountId"], 15):
         KickFromClan(AccountID)
         return redirect("/clans/1")
-    return NoPerm(session)
+    return NoPerm(session, request.path)
 
 #error handlers
 @app.errorhandler(404)
@@ -649,12 +663,12 @@ def BeforeRequest():
         for x in list(ServSession.keys()):
             session[x] = ServSession[x]
 
-def NoPerm(session):
+def NoPerm(session, path):
     """If not logged it, returns redirect to login. Else 403s. This is for convienience when page is reloaded after restart."""
     if session["LoggedIn"]:
         return render_template("403.html")
     else:
-        return redirect("/login")
+        return redirect(f"/login?redirect={path}")
 
 if __name__ == "__main__":
     Thread(target=PlayerCountCollection, args=(True,)).start()

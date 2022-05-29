@@ -958,10 +958,10 @@ def ApplyUserEdit(form, session):
     mydb.commit()
 
     # Refresh in pep.py - Rosu only
-    r.publish("peppy:refresh_privs", {
+    r.publish("peppy:refresh_privs", json.dumps({
         "user_id": UserId
-    })
-    refresh_username_cache(UserId)
+    }))
+    refresh_username_cache(UserId, Username)
 
 def ModToText(mod: int):
     """Converts mod enum to cool string."""
@@ -1200,7 +1200,7 @@ def WipeAutopilot(AccId):
             id = %s
     """, (AccId,))
     mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
-    mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
+    #mycursor.execute("DELETE FROM ap_beatmap_playcount WHERE user_id = %s", (AccId,))
     mydb.commit()
 
 def ResUnTrict(id : int, note: str = None, reason: str = None):
@@ -1214,7 +1214,8 @@ def ResUnTrict(id : int, note: str = None, reason: str = None):
         return
     Privilege = Privilege[0][0]
     if not Privilege & 1: #if restricted
-        mycursor.execute("UPDATE users SET privileges |= 1, ban_datetime = 0 WHERE id = %s LIMIT 1", (id,)) #unrestricts
+        new_privs = Privilege | 1
+        mycursor.execute("UPDATE users SET privileges = %s, ban_datetime = 0 WHERE id = %s LIMIT 1", (new_privs, id,)) #unrestricts
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
@@ -1900,9 +1901,9 @@ def ChangePassword(AccountID: int, NewPassword: str):
     BCrypted = CreateBcrypt(NewPassword)
     mycursor.execute("UPDATE users SET password_md5 = %s WHERE id = %s", (BCrypted, AccountID,))
     mydb.commit()
-    r.publish("peppy:change_pass", {
+    r.publish("peppy:change_pass", json.dumps({
         "user_id": AccountID
-    })
+    }))
 
 def ChangePWForm(form, session): #this function may be unnecessary but ehh
     """Handles the change password POST request."""
@@ -2371,9 +2372,10 @@ def refresh_all_lbs(md5: str) -> None:
     for c_mode in (0, 1, 2):
         for mode in (0, 1, 2, 3): refresh_lb_cache(md5, mode, c_mode)
 
-def refresh_username_cache(user_id: int) -> None:
+def refresh_username_cache(user_id: int, new_name: str) -> None:
     """Refreshes the username cache for a specific user."""
 
     r.publish("peppy:change_username", json.dumps({
         "userID": user_id,
+        "newUsername": new_name
     }))
