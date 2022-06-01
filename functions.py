@@ -2005,13 +2005,7 @@ def UserPageCount():
         if NewNumber == round(int(str(TheNumber).split(".")[0])):
             NewNumber += 1
         TheNumber = NewNumber
-    #makign page dict
-    Pages = []
-    while TheNumber != 0:
-        Pages.append(TheNumber)
-        TheNumber -= 1
-    Pages.reverse()
-    return Pages
+    return TheNumber
 
 def RapLogCount():
     """Gets the amount of pages for rap logs."""
