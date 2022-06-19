@@ -512,7 +512,7 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     # USSR SUPPORT.
     mycursor.execute("SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1", (BeatmapId,))
     md5: str = mycursor.fetchone()[0]
-    refresh_all_lbs(md5)
+    refresh_bmap(md5)
 
 def FokaMessage(params) -> None:
     """Sends a fokabot message."""
@@ -1811,7 +1811,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     webhook.execute()
 
     # Refresh all lbs.
-    for _, _, md5 in all_maps: refresh_all_lbs(md5)
+    for _, _, md5 in all_maps: refresh_bmap(md5)
 
 def FindUserByUsername(User: str, Page):
     """Finds user by their username OR email."""
@@ -2349,22 +2349,10 @@ def cache_clan(user_id: int) -> None:
 
     r.publish("rosu:clan_update", str(user_id))
 
-def refresh_bmap_cache(md5: str) -> None:
-    """Tells USSR to drop the beatmap cache for a specific beatmap."""
+def refresh_bmap(md5: str) -> None:
+    """Tells USSR to update the beatmap cache for a specific beatmap."""
 
-    r.publish("ussr:bmap_decache", md5)
-
-def refresh_lb_cache(md5: str, mode: int, c_mode) -> None:
-    """Refreshes the leaderboard cache for a specific leaderboard."""
-
-    data = f"{md5}:{mode}:{c_mode}"
-    r.publish("ussr:lb_refresh", data)
-
-def refresh_all_lbs(md5: str) -> None:
-    """Refreshes ALL of the leaderboards for a given beatmap."""
-
-    for c_mode in (0, 1, 2):
-        for mode in (0, 1, 2, 3): refresh_lb_cache(md5, mode, c_mode)
+    r.publish("ussr:refresh_bmap", md5)
 
 def refresh_username_cache(user_id: int, new_name: str) -> None:
     """Refreshes the username cache for a specific user."""
