@@ -209,10 +209,10 @@ def IPUsers(ip):
     else:
          return NoPerm(session, request.path)
      
-@app.route("/user/ban_logs/<page>")
+@app.route("/ban-logs/<page>")
 def BanLogs(page):
     if HasPrivilege(session["AccountId"], 7):
-        return render_template("banlogs.html", data=DashData(), session=session, title="Ban Logs", config=UserConfig, bal_logs = fetch_banlogs(int(page)-1), page=int(page), pages = ban_pages())
+        return render_template("ban_logs.html", data=DashData(), session=session, title="Ban Logs", config=UserConfig, ban_logs = fetch_banlogs(int(page)-1), page=int(page), pages = ban_pages())
     else:
          return NoPerm(session, request.path)
 

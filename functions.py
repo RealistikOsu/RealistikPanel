@@ -2376,8 +2376,8 @@ class BanLog(TypedDict):
     detail: str
 
 BAN_LOG_BASE = (
-    "SELECT from_id, f.username, to_id, t.username, UNIX_TIMESTAMP(ts), summary, detail, "
-    "FROM ban_log "
+    "SELECT from_id, f.username, to_id, t.username, UNIX_TIMESTAMP(ts), summary, detail "
+    "FROM ban_logs b "
     "INNER JOIN users f ON f.id = from_id "
     "INNER JOIN users t ON t.id = to_id "
 )
@@ -2386,7 +2386,7 @@ PAGE_SIZE = 50
 def fetch_banlogs(page: int = 0) -> list[BanLog]:
     """Fetches a page of ban logs."""
     
-    mycursor.execute(BAN_LOG_BASE + f"ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}")
+    mycursor.execute(BAN_LOG_BASE + f"ORDER BY b.id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}")
     
     # Convert into dicts.
     return [{
@@ -2403,7 +2403,7 @@ def fetch_banlogs(page: int = 0) -> list[BanLog]:
 def ban_count() -> int:
     """Returns the total number of bans."""
     
-    mycursor.execute("SELECT COUNT(*) FROM ban_log")
+    mycursor.execute("SELECT COUNT(*) FROM ban_logs")
     return mycursor.fetchone()[0]
 
 def ban_pages() -> int:
