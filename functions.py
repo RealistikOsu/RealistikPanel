@@ -15,6 +15,9 @@ from osrparse import *
 import os
 from changelogs import Changelogs
 import timeago
+import math
+
+from typing import TypedDict
 
 init() #initialises colourama for colours
 Changelogs.reverse()
@@ -2361,3 +2364,50 @@ def refresh_username_cache(user_id: int, new_name: str) -> None:
         "userID": user_id,
         "newUsername": new_name
     }))
+    
+class BanLog(TypedDict):
+    from_id: int
+    from_name: str
+    to_id: int
+    to_name: str
+    ts: int
+    expity_timeago: str
+    summary: str
+    detail: str
+
+BAN_LOG_BASE = (
+    "SELECT from_id, f.username, to_id, t.username, UNIX_TIMESTAMP(ts), summary, detail "
+    "FROM ban_logs b "
+    "INNER JOIN users f ON f.id = from_id "
+    "INNER JOIN users t ON t.id = to_id "
+)
+PAGE_SIZE = 50
+
+def fetch_banlogs(page: int = 0) -> list[BanLog]:
+    """Fetches a page of ban logs."""
+    
+    mycursor.execute(BAN_LOG_BASE + f"ORDER BY b.id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}")
+    
+    # Convert into dicts.
+    return [{
+        "from_id": row[0],
+        "from_name": row[1],
+        "to_id": row[2],
+        "to_name": row[3],
+        "ts": row[4],
+        "summary": row[5],
+        "detail": row[6],
+        "expity_timeago": TimeToTimeAgo(row[4])
+    } for row in mycursor]
+
+def ban_count() -> int:
+    """Returns the total number of bans."""
+    
+    mycursor.execute("SELECT COUNT(*) FROM ban_logs")
+    return mycursor.fetchone()[0]
+
+def ban_pages() -> int:
+    """Returns the number of pages in the ban log."""
+    
+    return math.ceil(ban_count() / PAGE_SIZE)
+

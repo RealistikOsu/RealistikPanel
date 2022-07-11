@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="section-title">Ban Logs</h2>
+<p class="section-lead">View detailed ban reasons for the entire server!</p>
+
+{% for log in ban_logs %}
+
+<div class= "card">
+    <div class="card-header">
+        <img alt="image" src="https://a.ussr.pl/{{ log["from_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        <h4>{{ log["from_name"] }}</h4> to 
+        <img alt="image" src="https://a.ussr.pl/{{ log["to_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;">
+        <h4>{{ log["to_name"] }}</h4> for {{ log["summary"] }} 
+    </div>
+    <div class="card-body">
+        {{ log["detail"] }}
+    </div>
+    <div class="card-footer">
+        Banned {{ log["expity_timeago"] }}
+    </div>
+</div>
+
+{% endfor %}
+
+<ul class="pagination">
+    <li class="page-item" id="page-before">
+        <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
+            <span aria-hidden="true">«</span>
+            <span class="sr-only">Previous</span>
+        </a>
+    </li>
+    <span id="page-items"></span>
+    <li class="page-item" id="page-after">
+        <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
+            <span aria-hidden="true">»</span>
+            <span class="sr-only">Next</span>
+        </a>
+    </li>
+</ul>
+<script>
+    // cap = 10
+    const pageItems = document.querySelector("#page-items");
+    const pageLen = {{ pages }} + 1;
+    const page = {{ page }};
+    const plen = Math.max(page-5, 1);
+
+    for (let i = plen; i < Math.min(plen+(5*2), pageLen); i++) {
+        pageItems.innerHTML += `
+            <li class="page-item ${i == page ? "active" : ""}">
+                <a class="page-link" href="/users/${i}">${i}</a>
+            </li>
+        `;
+    }
+
+    if (page <= 1) document.getElementById("page-before").classList.add("disabled");
+    if (page >= pageLen-1) document.getElementById("page-after").classList.add("disabled");
+</script>
+
+{% endblock %}
