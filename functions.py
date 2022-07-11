@@ -15,6 +15,9 @@ from osrparse import *
 import os
 from changelogs import Changelogs
 import timeago
+import math
+
+from typing import TypedDict
 
 init() #initialises colourama for colours
 Changelogs.reverse()
@@ -2361,3 +2364,41 @@ def refresh_username_cache(user_id: int, new_name: str) -> None:
         "userID": user_id,
         "newUsername": new_name
     }))
+    
+class BanLog(TypedDict):
+    from_id: int
+    to_id: int
+    ts: int
+    expity_timeago: str
+    summary: str
+    detail: str
+
+BAN_LOG_BASE = "SELECT from_id, to_id, UNIX(ts), summary, detail FROM ban_log "
+PAGE_SIZE = 50
+
+def fetch_banlogs(page: int = 0) -> list[BanLog]:
+    """Fetches a page of ban logs."""
+    
+    mycursor.execute(BAN_LOG_BASE + f"ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}")
+    
+    # Convert into dicts.
+    return [{
+        "from_id": row[0],
+        "to_id": row[1],
+        "ts": row[2],
+        "summary": row[3],
+        "detail": row[4],
+        "expity_timeago": TimeToTimeAgo(row[2])
+    } for row in mycursor]
+
+def ban_count() -> int:
+    """Returns the total number of bans."""
+    
+    mycursor.execute("SELECT COUNT(*) FROM ban_log")
+    return mycursor.fetchone()[0]
+
+def ban_pages() -> int:
+    """Returns the number of pages in the ban log."""
+    
+    return math.ceil(ban_count() / PAGE_SIZE)
+
