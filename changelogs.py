@@ -662,5 +662,16 @@ Changelogs = [
                 "Content": "More interconnected Redis backend."
             }
         ]
+    },
+    {
+        "Build": 1657558726,
+        "Type": 1,
+        "Summary": "This update brings feature parity with the rest of the RealistikOsu stack, such as ban logs!",
+        "Changes": [
+            {
+                "Type": 4,
+                "Content": "Added ban logs to the panel."
+            }
+        ]
     }
 ]
