@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% for log in ban_logs %}
+
+<div class= "card">
+    <div class="card-header">
+        <img alt="image" src="https://a.ussr.pl/{{ log["from_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        <h4>{{ log["from_name"] }}</h4> to 
+        <img alt="image" src="https://a.ussr.pl/{{ log["to_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;">
+        <h4>{{ log["to_name"] }}</h4> for {{ log["summary"] }} 
+    </div>
+    <div class="card-body">
+        <p class="card-text">{{ log["reason"] }}</p>
+    </div>
+</div>
+
+{% endfor %}
+
+{% endblock %}

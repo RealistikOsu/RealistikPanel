@@ -2367,13 +2367,20 @@ def refresh_username_cache(user_id: int, new_name: str) -> None:
     
 class BanLog(TypedDict):
     from_id: int
+    from_name: str
     to_id: int
+    to_name: str
     ts: int
     expity_timeago: str
     summary: str
     detail: str
 
-BAN_LOG_BASE = "SELECT from_id, to_id, UNIX(ts), summary, detail FROM ban_log "
+BAN_LOG_BASE = (
+    "SELECT from_id, f.username, to_id, t.username, UNIX_TIMESTAMP(ts), summary, detail, "
+    "FROM ban_log "
+    "INNER JOIN users f ON f.id = from_id "
+    "INNER JOIN users t ON t.id = to_id "
+)
 PAGE_SIZE = 50
 
 def fetch_banlogs(page: int = 0) -> list[BanLog]:
@@ -2384,11 +2391,13 @@ def fetch_banlogs(page: int = 0) -> list[BanLog]:
     # Convert into dicts.
     return [{
         "from_id": row[0],
-        "to_id": row[1],
-        "ts": row[2],
-        "summary": row[3],
-        "detail": row[4],
-        "expity_timeago": TimeToTimeAgo(row[2])
+        "from_name": row[1],
+        "to_id": row[2],
+        "to_name": row[3],
+        "ts": row[4],
+        "summary": row[5],
+        "detail": row[6],
+        "expity_timeago": TimeToTimeAgo(row[4])
     } for row in mycursor]
 
 def ban_count() -> int:
