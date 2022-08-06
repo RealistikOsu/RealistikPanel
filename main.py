@@ -165,7 +165,7 @@ def SystemSettings():
 def EditUser(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16))
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16), ban_logs = fetch_user_banlogs(int(id)))
         else:
              return NoPerm(session, request.path)
     if request.method == "POST":
