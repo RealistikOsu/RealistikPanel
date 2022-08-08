@@ -1910,7 +1910,7 @@ def ChangePassword(AccountID: int, NewPassword: str):
 
 def ChangePWForm(form, session): #this function may be unnecessary but ehh
     """Handles the change password POST request."""
-    ChangePassword(form["accid"], form["newpass"])
+    ChangePassword(int(form["accid"]), form["newpass"])
     User = GetUser(form["accid"])
     RAPLog(session["AccountId"], f"has changed the password of {User['Username']} ({form['accid']})")
 
