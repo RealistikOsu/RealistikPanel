@@ -680,5 +680,5 @@ def NoPerm(session, path):
 if __name__ == "__main__":
     Thread(target=PlayerCountCollection, args=(True,)).start()
     UpdateCachedStore()
-    app.run(host= '0.0.0.0', port=UserConfig["Port"], threaded= False)
+    app.run(host= '127.0.0.1', port=UserConfig["Port"], threaded= False)
     handleUpdate() # handle update...
