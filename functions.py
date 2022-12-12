@@ -85,8 +85,8 @@ def ConsoleLog(Info: str, Additional: str="", Type: int=1):
 
 try:
     mydb = mysql.connector.connect(
-        #host=UserConfig["SQLHost"],
-        #port=UserConfig["SQLPort"],
+        host=UserConfig["SQLHost"],
+        port=UserConfig["SQLPort"],
         user=UserConfig["SQLUser"],
         passwd=UserConfig["SQLPassword"]
     ) #connects to database
