@@ -61,6 +61,12 @@
 </table>
 
 <ul class="pagination">
+    <li class="page-item" id="first-page">
+        <a class="page-link" href="/users/1" aria-label="First">
+            <span aria-hidden="true">««</span>
+            <span class="sr-only">First</span>
+        </a>
+    </li>
     <li class="page-item" id="page-before">
         <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
             <span aria-hidden="true">«</span>
@@ -72,6 +78,12 @@
         <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
             <span aria-hidden="true">»</span>
             <span class="sr-only">Next</span>
+        </a>
+    </li>
+    <li class="page-item" id="last-page">
+        <a class="page-link" href="/users/{{ Pages }}" aria-label="Last">
+            <span aria-hidden="true">»»</span>
+            <span class="sr-only">Last</span>
         </a>
     </li>
 </ul>
@@ -90,7 +102,13 @@
         `;
     }
 
-    if (page <= 1) document.getElementById("page-before").classList.add("disabled");
-    if (page >= pageLen-1) document.getElementById("page-after").classList.add("disabled");
+    if (page <= 1) {
+        document.getElementById("page-before").classList.add("disabled");
+        document.getElementById("first-page").classList.add("disabled");
+    }
+    if (page >= pageLen-1) {
+        document.getElementById("page-after").classList.add("disabled");
+        document.getElementById("last-page").classList.add("disabled");
+    }
 </script>
 {% endblock %}
