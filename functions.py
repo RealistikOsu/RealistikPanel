@@ -680,7 +680,7 @@ def FetchUsers(page = 0):
     """Fetches users for the users page."""
     #This is going to need a lot of patching up i can feel it
     Offset = UserConfig["PageSize"] * page #for the page system to work
-    mycursor.execute("SELECT id, username, privileges, allowed FROM users LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
+    mycursor.execute("SELECT id, username, privileges, allowed, country FROM users LIMIT %s OFFSET %s", (UserConfig['PageSize'], Offset,))
     People = mycursor.fetchall()
 
     #gets list of all different privileges so an sql select call isnt ran per person
@@ -730,18 +730,11 @@ def FetchUsers(page = 0):
     #]
     Users = []
     for user in People:
-        #country query
-        mycursor.execute("SELECT country FROM users_stats WHERE id = %s", (user[0],))
-        Country = mycursor.fetchall()
-        if len(Country) == 0:
-            Country = "XX"
-        else:
-            Country = Country[0][0]
         Dict = {
             "Id" : user[0],
             "Name" : user[1],
             "Privilege" : PrivilegeDict[str(user[2])],
-            "Country" : Country
+            "Country" : user[4]
         }
         if user[3] == 1:
             Dict["Allowed"] = True
@@ -753,23 +746,21 @@ def FetchUsers(page = 0):
 
 def GetUser(id):
     """Gets data for user. (universal)"""
-    mycursor.execute("SELECT id, username, pp_std, country FROM users_stats WHERE id = %s LIMIT 1", (id,))
+    mycursor.execute("SELECT id, username, country FROM users WHERE id = %s LIMIT 1", (id,))
     User = mycursor.fetchone()
     if User == None:
         #if no one found
         return {
             "Id" : 0,
             "Username" : "Not Found",
-            "pp" : 0,
             "IsOnline" : False,
             "Country" : "GB" #RULE BRITANNIA
         }
     return {
         "Id" : User[0],
         "Username" : User[1],
-        "pp" : User[2],
         "IsOnline" : IsOnline(id),
-        "Country" : User[3]
+        "Country" : User[2]
     }
 
 def UserData(UserID):
