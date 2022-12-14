@@ -21,6 +21,8 @@ from typing import TypedDict
 from typing import Optional
 from typing import Union
 
+from enum import IntFlag
+
 init() #initialises colourama for colours
 Changelogs.reverse()
 
@@ -185,7 +187,7 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
         if user_id == 999:
             return False, USER_NOT_FOUND_ERROR
 
-        if HasPrivilege(user_id):
+        if has_privilege_value(user_id, Privileges.ADMIN_ACCESS_RAP):
             if checkpw(password_md5, password):
                 return True, "You have been logged in!", { #creating session
                     "LoggedIn" : True,
@@ -208,18 +210,31 @@ def timestamp_as_date(timestamp: int, exclude_date: bool = True) -> str:
 
     return date.strftime("%H:%M %d/%m/%Y")
 
-def RecentPlays(TotalPlays = 20, MinPP = 0):
+BASE_RECENT_QUERY = """
+SELECT
+    s.beatmap_md5, u.username, s.userid, s.time, s.score, s.pp,
+    s.play_mode, s.mods, s.300_count, s.100_count, s.50_count,
+    s.misses_count, b.song_name
+FROM {} s 
+INNER JOIN users u ON u.id = s.userid
+INNER JOIN beatmaps b ON b.beatmap_md5 = s.beatmap_md5
+WHERE
+    u.privileges & 1 AND s.pp >= %s
+ORDER BY s.id DESC
+LIMIT %s
+"""
+def RecentPlays(total_plays: int = 20, minimum_pp: int = 0):
     """Returns recent plays."""
-    #this is probably really bad
-    DivBy = 1
-    if UserConfig["HasRelax"]: DivBy += 1
-    if UserConfig["HasAutopilot"]: DivBy += 1
-    PerGamemode = round(TotalPlays/DivBy)
-    mycursor.execute("SELECT scores.beatmap_md5, users.username, scores.userid, scores.time, scores.score, scores.pp, scores.play_mode, scores.mods, scores.300_count, scores.100_count, scores.50_count, scores.misses_count FROM scores LEFT JOIN users ON users.id = scores.userid WHERE users.privileges & 1 AND scores.pp >= %s ORDER BY scores.id DESC LIMIT %s", (MinPP, PerGamemode,))
+    divisor = 1
+    if UserConfig["HasRelax"]: divisor += 1
+    if UserConfig["HasAutopilot"]: divisor += 1
+    plays_per_gamemode = total_plays // divisor
+
+    mycursor.execute(BASE_RECENT_QUERY.format("scores"), (minimum_pp, plays_per_gamemode,))
     plays = mycursor.fetchall()
     if UserConfig["HasRelax"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_relax.beatmap_md5, users.username, scores_relax.userid, scores_relax.time, scores_relax.score, scores_relax.pp, scores_relax.play_mode, scores_relax.mods, scores_relax.300_count, scores_relax.100_count, scores_relax.50_count, scores_relax.misses_count FROM scores_relax LEFT JOIN users ON users.id = scores_relax.userid WHERE users.privileges & 1 AND scores_relax.pp >= %s ORDER BY scores_relax.id DESC LIMIT %s", (MinPP, PerGamemode,))
+        mycursor.execute(BASE_RECENT_QUERY.format("scores_relax"), (minimum_pp, plays_per_gamemode,))
         playx_rx = mycursor.fetchall()
         for plays_rx in playx_rx:
             #addint them to the list
@@ -227,7 +242,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
             plays.append(plays_rx)
     if UserConfig["HasAutopilot"]:
         #adding relax plays
-        mycursor.execute("SELECT scores_ap.beatmap_md5, users.username, scores_ap.userid, scores_ap.time, scores_ap.score, scores_ap.pp, scores_ap.play_mode, scores_ap.mods, scores_ap.300_count, scores_ap.100_count, scores_ap.50_count, scores_ap.misses_count FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid WHERE users.privileges & 1 AND scores_ap.pp >= %s ORDER BY scores_ap.id DESC LIMIT %s", (MinPP, PerGamemode,))
+        mycursor.execute(BASE_RECENT_QUERY.format("scores_ap"), (minimum_pp, plays_per_gamemode,))
         playx_ap = mycursor.fetchall()
         for plays_ap in playx_ap:
             #addint them to the list
@@ -240,13 +255,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
         #yes im doing this
         #lets get the song name
         BeatmapMD5 = x[0]
-        mycursor.execute("SELECT song_name FROM beatmaps WHERE beatmap_md5 = %s", (BeatmapMD5,))
-        SongFetch = mycursor.fetchall()
-        if len(SongFetch) == 0:
-            #checking if none found
-            SongName = "Invalid..."
-        else:
-            SongName = list(SongFetch[0])[0]
+        SongName = x[12]
         #make and populate a readable dict
         Dicti = {}
         Mods = ModToText(x[7])
@@ -263,7 +272,6 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
         Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
     
-    ReadableArray = sorted(ReadableArray, key=lambda k: k["Timestamp"]) #sorting by time
     ReadableArray.reverse()
     return ReadableArray
 
@@ -356,6 +364,42 @@ def GetBmapInfo(id):
         BMapNumber = BMapNumber + 1
         beatmap["BmapNumber"] = BMapNumber
     return BeatmapList
+
+
+class Privileges(IntFlag):
+    """Bitwise enumerations for Ripple privileges."""
+
+    USER_PUBLIC = 1
+    USER_NORMAL = 2 << 0
+    USER_DONOR = 2 << 1
+    ADMIN_ACCESS_RAP = 2 << 2
+    ADMIN_MANAGE_USERS = 2 << 3
+    ADMIN_BAN_USERS = 2 << 4
+    ADMIN_SILENCE_USERS = 2 << 5
+    ADMIN_WIPE_USERS = 2 << 6
+    ADMIN_MANAGE_BEATMAPS = 2 << 7
+    ADMIN_MANAGE_SERVERS = 2 << 8
+    ADMIN_MANAGE_SETTINGS = 2 << 9
+    ADMIN_MANAGE_BETAKEYS = 2 << 10
+    ADMIN_MANAGE_REPORTS = 2 << 11
+    ADMIN_MANAGE_DOCS = 2 << 12
+    ADMIN_MANAGE_BADGES = 2 << 13
+    ADMIN_VIEW_RAP_LOGS = 2 << 14
+    ADMIN_MANAGE_PRIVILEGES = 2 << 15
+    ADMIN_SEND_ALERTS = 2 << 16
+    ADMIN_CHAT_MOD = 2 << 17
+    ADMIN_KICK_USERS = 2 << 18
+    USER_PENDING_VERIFICATION = 2 << 19
+    USER_TOURNAMENT_STAFF = 2 << 20
+    ADMIN_CAKER = 20 << 21
+    BOT_USER = 1 << 30
+
+def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
+    # Fetch privileges from database.
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    user_privileges = Privileges(mycursor.fetchone()[0])
+
+    return user_privileges & privilege == privilege
 
 def HasPrivilege(UserID : int, ReqPriv = 2):
     """Check if the person trying to access the page has perms to do it."""
@@ -502,20 +546,6 @@ def Webhook(BeatmapId, ActionName, session):
     if ActionName == 5:
         TitleText = "loved!"
     webhook = DiscordWebhook(url=URL) #creates webhook
-    # me trying to learn the webhook
-    #EmbedJson = { #json to be sent to webhook
-    #    "image" : f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg",
-    #    "author" : {
-    #        "icon_url" : f"https://a.ussr.pl/{session['AccountId']}",
-    #        "url" : f"https://ussr.pl/b/{BeatmapId}",
-    #        "name" : f"{mapa[0]} was just {TitleText}"
-    #    },
-    #    "description" : f"Ranked by {session['AccountName']}",
-    #    "footer" : {
-    #        "text" : "via RealistikPanel!"
-    #    }
-    #}
-    #requests.post(URL, data=EmbedJson, headers=headers) #sends the webhook data
     embed = DiscordEmbed(description=f"Ranked by {session['AccountName']}", color=242424) #this is giving me discord.py vibes
     embed.set_author(name=f"{mapa[0]} was just {TitleText}", url=f"{UserConfig['ServerURL']}b/{BeatmapId}", icon_url=f"{UserConfig['AvatarServer']}{session['AccountId']}")
     embed.set_footer(text="via RealistikPanel!")
@@ -550,7 +580,7 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
         webhook.add_embed(embed)
         webhook.execute()
 
-def checkpw(dbpassword, painpassword):
+def checkpw(dbpassword: str, painpassword: str) -> bool:
     """
     By: kotypey
     password checking...
@@ -558,9 +588,8 @@ def checkpw(dbpassword, painpassword):
 
     result = hashlib.md5(painpassword.encode()).hexdigest().encode('utf-8')
     dbpassword = dbpassword.encode('utf-8')
-    check = bcrypt.checkpw(result, dbpassword)
 
-    return check
+    return bcrypt.checkpw(result, dbpassword)
 
 def SystemSettingsValues():
     """Fetches the system settings data."""
@@ -612,6 +641,7 @@ def ApplySystemSettings(DataArray, Session):
         mycursor.execute("UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_home_alert'")
     
     mydb.commit() #applies the changes
+    RAPLog(Session["AccountId"], "updated the system settings.")
 
 def IsOnline(AccountId: int) -> bool:
     """Checks if given user is online."""
@@ -2175,7 +2205,7 @@ def GetStatistics(MinPP = 0):
         RegisterList.append(GetUsersRegisteredBetween(24*Days))
         Days -= 1
     UsersActiveToday = GetUsersActiveBetween()
-    RecentPlay = RecentPlays(TotalPlays = 500, MinPP=MinPP) #this MIGHT kill performance
+    RecentPlay = RecentPlays(500, MinPP)
     ResctictedCount = CountRestricted()
 
     return {
