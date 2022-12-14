@@ -659,8 +659,6 @@ def NotFoundError(error):
 def BadCodeError(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
 
-    #botch_sql_recovery()
-
     return render_template("500.html")
 
 #we make sure session exists

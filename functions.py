@@ -18,6 +18,8 @@ import timeago
 import math
 
 from typing import TypedDict
+from typing import Optional
+from typing import Union
 
 init() #initialises colourama for colours
 Changelogs.reverse()
@@ -124,123 +126,87 @@ if BadUserCount > 0:
 PlayerCount = [] # list of players 
 CachedStore = {}
 
-def botch_sql_recovery() -> None:
-    """Attepts to recreate the MySQL connection on fail. Currently the panel has
-    VERY poor MySQL handling which leads to a lot of crashes. This is a really
-    stupid fix that makes it so that the panel does not have to be restarted
-    upon SQL doing the death. This is a REALLY botch fix, shouldnt exist."""
+def decode_int_or(value: Optional[bytes], default: int = 0) -> int:
+    """Decodes a byte stream and casts it to an int or returns a default value if `value`
+    is `None`."""
 
-    global mycursor
-    try:
-        mycursor.close()
-    except Exception: pass
-    mycursor = mydb.cursor(buffered=True) #creates a thing to allow us to run mysql commands
-    mycursor.execute(f"USE {UserConfig['SQLDatabase']}") #Sets the db to ripple
-    mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
+    if value is None:
+        return default
 
+    return int(value.decode("utf-8"))
 
-def DashData():
-    #note to self: add data caching so data isnt grabbed every time the dash is accessed
+def DashData() -> dict:
     """Grabs all the values for the dashboard."""
     mycursor.execute("SELECT value_string FROM system_settings WHERE name = 'website_global_alert'")
-    Alert = mycursor.fetchall()
-    if len(Alert) == 0:
-        #some ps only have home alert
-        mycursor.execute("SELECT value_string FROM system_settings WHERE name = 'website_home_alert'")
-        #if also that doesnt exist
-        Alert = mycursor.fetchall()
-        if len(Alert) == 0:
-            Alert = [[]]
-    Alert = Alert[0][0]
-    if Alert == "": #checks if no alert
-        Alert = False
+    alert = mycursor.fetchone()
+    if alert is None:
+        alert_message = None
+    else:
+        alert_message = alert[0]
 
-    totalPP = r.get("ripple:total_pp")#Not calculated by every server .decode("utf-8")
-    RegisteredUsers = r.get("ripple:registered_users")
-    OnlineUsers = r.get("ripple:online_users")
-    TotalPlays = r.get("ripple:total_plays")
-    TotalScores = r.get("ripple:total_submitted_scores")
+    totalPP = decode_int_or(r.get("ripple:total_pp"))
+    RegisteredUsers = decode_int_or(r.get("ripple:registered_users"))
+    OnlineUsers = decode_int_or(r.get("ripple:online_users"))
+    TotalPlays = decode_int_or(r.get("ripple:total_plays"))
+    TotalScores = decode_int_or(r.get("ripple:total_submitted_scores"))
 
-    #If we dont have variable(variable is None) will set it and get it again
-    if not totalPP:
-        r.set('ripple:total_pp', 0)
-        totalPP = r.get("ripple:total_pp")
-    if not RegisteredUsers:
-        r.set('ripple:registered_users', 1)
-        RegisteredUsers = r.get("ripple:registered_users")
-    if not OnlineUsers:
-        r.set('ripple:online_users', 1)
-        OnlineUsers = r.get("ripple:online_users")
-    if not TotalPlays:
-        r.set('ripple:total_plays', 1)
-        TotalPlays = r.get("ripple:total_plays")
-    if not TotalScores:
-        r.set('ripple:total_submitted_scores', 1)
-        TotalScores = r.get("ripple:total_submitted_scores")
     response = {
-        "RegisteredUsers" : RegisteredUsers.decode("utf-8") ,
-        "OnlineUsers" : OnlineUsers.decode("utf-8"),
-        "TotalPP" : f'{int(totalPP.decode("utf-8")):,}',
-        "TotalPlays" : f'{int(TotalPlays.decode("utf-8")):,}',
-        "TotalScores" : f'{int(TotalScores.decode("utf-8")):,}',
-        "Alert" : Alert
+        "RegisteredUsers" : RegisteredUsers,
+        "OnlineUsers" : OnlineUsers,
+        "TotalPP" : f'{int(totalPP):,}',
+        "TotalPlays" : f'{int(TotalPlays):,}',
+        "TotalScores" : f'{int(TotalScores):,}',
+        "Alert" : alert_message
     }
     return response
 
-def LoginHandler(username, password):
+
+USER_NOT_FOUND_ERROR = "The user was not found. Maybe you have made a typo?"
+USER_BANNED_ERROR = "You appear to be banned. Yikes."
+USER_PASSWORD_ERROR = "The password you entered is incorrect."
+USER_PRIVILEGE_ERROR = "You do not have the required privileges to access this page."
+
+def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
     """Checks the passwords and handles the sessions."""
-    mycursor.execute("SELECT username, password_md5, ban_datetime, privileges, id FROM users WHERE username_safe = %s", (RippleSafeUsername(username),))
-    User = mycursor.fetchall()
-    if len(User) == 0:
+    mycursor.execute("SELECT username, password_md5, privileges, id FROM users WHERE username_safe = %s LIMIT 1", (RippleSafeUsername(username),))
+    user = mycursor.fetchone()
+    if user is None:
         #when user not found
-        return False, "The user was not found. Maybe you have made a typo?"
+        return False, USER_NOT_FOUND_ERROR
     else:
-        User = User[0]
-        #Stores grabbed data in variables for easier access
-        Username = User[0]
-        PassHash = User[1]
-        IsBanned = User[2]
-        Privilege = User[3]
-        UserID = User[4]
+        (
+            username,
+            password_md5,
+            privileges,
+            user_id,
+        ) = user
         
         #dont  allow the bot account to log in (in case the server has a MASSIVE loophole)
-        if UserID == 999:
-            return [False, "You may not log into the bot account."]
+        if user_id == 999:
+            return False, USER_NOT_FOUND_ERROR
 
-        #shouldve been done during conversion but eh
-        if not IsBanned == "0" or not IsBanned:
-            return False, "It seems you have been banned... Yikes..."
-        else:
-            if HasPrivilege(UserID):
-                if checkpw(PassHash, password):
-                    return [True, "You have been logged in!", { #creating session
-                        "LoggedIn" : True,
-                        "AccountId" : UserID,
-                        "AccountName" : Username,
-                        "Privilege" : Privilege,
-                        "exp" : datetime.datetime.utcnow() + datetime.timedelta(hours=2) #so the token expires
-                    }]
-                else:
-                     return False, "The password you have entered is incorrect!"
+        if HasPrivilege(user_id):
+            if checkpw(password_md5, password):
+                return True, "You have been logged in!", { #creating session
+                    "LoggedIn" : True,
+                    "AccountId" : user_id,
+                    "AccountName" : username,
+                    "Privilege" : privileges,
+                }
             else:
-                return False, "The account you are attempting to log into is missing the appropriate privileges to carry out this action!"
+                 return False, USER_PASSWORD_ERROR
+        else:
+            return False, USER_PRIVILEGE_ERROR
 
-def TimestampConverter(timestamp, NoDate=1):
+def timestamp_as_date(timestamp: int, exclude_date: bool = True) -> str:
     """Converts timestamps into readable time."""
-    date = datetime.datetime.fromtimestamp(int(timestamp)) #converting into datetime object
+    date = datetime.datetime.fromtimestamp(timestamp) #converting into datetime object
     date += datetime.timedelta(hours=UserConfig["TimezoneOffset"]) #adding timezone offset to current time
-    #so we avoid things like 21:6
-    #hour = str(date.hour)
-    #minute = str(date.minute)
-    #if len(hour) == 1:
-        #hour = "0" + hour
-    #if len(minute) == 1:
-        #minute = "0" + minute
-    if NoDate == 1:
-        #return f"{hour}:{minute}"
+
+    if exclude_date:
         return date.strftime("%H:%M")
-    if NoDate == 2:
-        return date.strftime("%H:%M %d/%m/%Y")
+
+    return date.strftime("%H:%M %d/%m/%Y")
 
 def RecentPlays(TotalPlays = 20, MinPP = 0):
     """Returns recent plays."""
@@ -293,7 +259,7 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
         Dicti["Score"] = f'{x[4]:,}'
         Dicti["pp"] = round(x[5], 2)
         Dicti["Timestamp"] = x[3]
-        Dicti["Time"] = TimestampConverter(x[3])
+        Dicti["Time"] = timestamp_as_date(int(x[3]))
         Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
     
@@ -872,7 +838,7 @@ def RAPFetch(page = 1):
             "LogId" : log[0],
             "AccountData" : LogUserData,
             "Text" : log[2],
-            "Time" : TimestampConverter(log[3], 2),
+            "Time" : timestamp_as_date(log[3], False),
             "Via" : log[4]
         }
         LogArray.append(TheLog)
@@ -1360,44 +1326,6 @@ def FindWithIp(Ip):
         #lets take a second here to appreciate my naming scheme
     return UserDataArray
 
-def PlayStyle(Enum : int):
-    """Returns array of playstyles."""
-    #should be similar to privileges (it is)
-    Styles = []
-    #Play style enums
-    Mouse = 1 << 0
-    Tablet = 1 << 1
-    Keyboard = 1 << 2
-    Touchscreen = 1 << 3
-    #Nice ones ripple
-    Spoon = 1 << 4
-    LeapMotion = 1 << 5
-    OculusRift = 1 << 6
-    Dick = 1 << 7
-    Eggplant = 1 << 8
-
-    #if statement time
-    if Enum & Mouse >= 1:
-        Styles.append("Mouse")
-    if Enum & Tablet >= 1:
-        Styles.append("Tablet")
-    if Enum & Keyboard >= 1:
-        Styles.append("Keyboard")
-    if Enum & Touchscreen >= 1:
-        Styles.append("Touchscreen")
-    if Enum & Spoon >= 1:
-        Styles.append("Spoon")
-    if Enum & LeapMotion >= 1:
-        Styles.append("Leap Motion")
-    if Enum & OculusRift >= 1:
-        Styles.append("Oculus Rift")
-    if Enum & Dick >= 1:
-        Styles.append("Dick")
-    if Enum & Eggplant >= 1:
-        Styles.append("Eggplant")
-    
-    return Styles
-
 def PlayerCountCollection(loop = True):
     """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
     while loop:
@@ -1632,7 +1560,7 @@ def GetLog():
     LogNr = 0
     #format the timestamps
     for log in Log:
-        log["FormatDate"] = TimestampConverter(log["Timestamp"])
+        log["FormatDate"] = timestamp_as_date(log["Timestamp"])
         Log[LogNr] = log
         LogNr += 1
     return Log
@@ -1957,7 +1885,7 @@ def GetRankRequests(Page: int):
             "RequestSongID" : Request[2], #not specifically song id or set id
             "Type" : Request[3], #s = set b = single diff
             "Time" : Request[4],
-            "TimeFormatted" : TimestampConverter(Request[4], 2),
+            "TimeFormatted" : timestamp_as_date(Request[4], False),
             "SongName" : SongName,
             "Cover" : Cover,
             "BeatmapSetID" : BeatmapSetID
