@@ -16,6 +16,8 @@ import os
 from changelogs import Changelogs
 import timeago
 import math
+import string
+import random
 
 from typing import TypedDict
 from typing import Optional
@@ -2382,3 +2384,33 @@ def fetch_user_banlogs(user_id: int) -> list[BanLog]:
         "detail": row[6],
         "expity_timeago": TimeToTimeAgo(row[4])
     } for row in mycursor]
+
+RANDOM_CHARSET = string.ascii_letters + string.digits
+def random_str(length: int) -> str:
+    """Generates a random string of a specific length."""
+    return "".join(random.choice(RANDOM_CHARSET) for _ in range(length))
+
+class ClanInvite(TypedDict):
+    id: int
+    clan_id: int
+    invite_code: str
+
+def get_clan_invites(clan_id: int) -> list[ClanInvite]:
+    mycursor.execute("SELECT id, clan, invite FROM clan_invites WHERE clan_id = %s", (clan_id,))
+
+    return [{
+        "id": row[0],
+        "clan_id": row[1],
+        "invite_code": row[2],
+    } for row in mycursor]
+
+def create_clan_invite(clan_id: int) -> ClanInvite:
+    invite_code = random_str(8)
+    mycursor.execute("INSERT INTO clan_invites (clan_id, invite) VALUES (%s, %s)", (clan_id, invite_code))
+    mydb.commit()
+
+    return {
+        "id": mycursor.lastrowid,
+        "clan_id": clan_id,
+        "invite_code": invite_code,
+    }
