@@ -1748,7 +1748,9 @@ def TimeToTimeAgo(Timestamp: int):
     """Converts a seconds timestamp to a timeago string."""
     DTObj = datetime.datetime.fromtimestamp(Timestamp)
     CurrentTime = datetime.datetime.now()
-    return timeago.format(DTObj, CurrentTime)
+    base_time = timeago.format(DTObj, CurrentTime)
+
+    return f"{base_time} ({DTObj.strftime('%d/%m/%Y %H:%M')})"
 
 def RemoveFromLeaderboard(UserID: int):
     """Removes the user from leaderboards."""
