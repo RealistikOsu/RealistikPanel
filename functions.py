@@ -1406,7 +1406,7 @@ def PlayerCountCollection(loop = True):
         time.sleep(UserConfig["UserCountFetchRate"] * 60)
         #so graph doesnt get too huge
         if len(PlayerCount) >= 100:
-            PlayerCount.remove(PlayerCount[-1])
+            PlayerCount.remove(PlayerCount[0])
     if not loop:
         CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
         PlayerCount.append(CurrentCount)
