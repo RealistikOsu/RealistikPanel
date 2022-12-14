@@ -267,19 +267,18 @@ def RecentPlays(TotalPlays = 20, MinPP = 0):
     ReadableArray.reverse()
     return ReadableArray
 
-def FetchBSData():
+def FetchBSData() -> dict:
     """Fetches Bancho Settings."""
     mycursor.execute("SELECT name, value_string, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'")
-    Query = list(mycursor.fetchall())
-    #bancho maintenence
-    if Query[0][2] == 0:
-        BanchoMan = False
-    else:
-        BanchoMan = True
+    
+    result_map = {
+        res[0]: res[1:] for res in mycursor
+    }
+
     return {
-        "BanchoMan" : BanchoMan,
-        "MenuIcon" : Query[1][1],
-        "LoginNotif" : Query[2][1]
+        "BanchoMan" : bool(result_map["bancho_maintenance"][1]),
+        "MenuIcon" : result_map["menu_icon"][0],
+        "LoginNotif" : result_map["login_notification"][0]
     }
 
 def BSPostHandler(post, session):
