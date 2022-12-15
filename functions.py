@@ -399,7 +399,10 @@ class Privileges(IntFlag):
 def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
     # Fetch privileges from database.
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (user_id,))
-    user_privileges = Privileges(mycursor.fetchone()[0])
+    res = mycursor.fetchone()
+    if res is None:
+        return False
+    user_privileges = Privileges(res[0])
 
     return user_privileges & privilege == privilege
 
@@ -2396,7 +2399,7 @@ class ClanInvite(TypedDict):
     invite_code: str
 
 def get_clan_invites(clan_id: int) -> list[ClanInvite]:
-    mycursor.execute("SELECT id, clan, invite FROM clan_invites WHERE clan_id = %s", (clan_id,))
+    mycursor.execute("SELECT id, clan, invite FROM clans_invites WHERE clan = %s", (clan_id,))
 
     return [{
         "id": row[0],
@@ -2406,11 +2409,138 @@ def get_clan_invites(clan_id: int) -> list[ClanInvite]:
 
 def create_clan_invite(clan_id: int) -> ClanInvite:
     invite_code = random_str(8)
-    mycursor.execute("INSERT INTO clan_invites (clan_id, invite) VALUES (%s, %s)", (clan_id, invite_code))
+    mycursor.execute("INSERT INTO clans_invites (clan, invite) VALUES (%s, %s)", (clan_id, invite_code))
     mydb.commit()
 
     return {
         "id": mycursor.lastrowid,
         "clan_id": clan_id,
         "invite_code": invite_code,
+    }
+
+# HWID Capabilities
+class HWIDLog(TypedDict):
+    id: int
+    user_id: int
+    mac: str
+    unique_id: str
+    disk_id: str
+    occurences: int
+
+def get_hwid_history(user_id: int) -> list[HWIDLog]:
+    mycursor.execute("SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user WHERE userid = %s", (user_id,))
+
+    return [
+        {
+            "id": res[0],
+            "user_id": res[1],
+            "mac": res[2],
+            "unique_id": res[3],
+            "disk_id": res[4],
+            "occurences": res[5],
+        } for res in mycursor
+    ]
+
+def get_hwid_history_paginated(user_id: int, page: int = 0) -> list[HWIDLog]:
+
+    mycursor.execute("SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
+                    f"WHERE userid = %s ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
+                    (user_id,))
+
+    return [
+        {
+            "id": res[0],
+            "user_id": res[1],
+            "mac": res[2],
+            "unique_id": res[3],
+            "disk_id": res[4],
+            "occurences": res[5],
+        } for res in mycursor
+    ]
+
+def get_hwid_matches_exact(log: HWIDLog) -> list[HWIDLog]:
+    """Gets a list of exactly matching HWID logs for all users other than the
+    origin of the initial log.
+
+    Args:
+        log (HWIDLog): The initial log to search for.
+
+    Returns:
+        list[HWIDLog]: A list of logs from other users that exactly match 
+            `log`.
+    """
+
+    mycursor.execute("SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
+                     "WHERE userid != %s AND mac = %s AND unique_id = %s AND "
+                     "disk_id = %s", (log["user_id"], log["mac"], log["unique_id"],
+                     log["disk_id"]))
+
+    return [
+        {
+            "id": res[0],
+            "user_id": res[1],
+            "mac": res[2],
+            "unique_id": res[3],
+            "disk_id": res[4],
+            "occurences": res[5],
+        } for res in mycursor
+    ]
+
+def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
+    """Gets a list of partially matching HWID logs (just one item has to match)
+    for all users other than the origin of the initial log.
+
+    Args:
+        log (HWIDLog): The initial log to search for.
+
+    Returns:
+        list[HWIDLog]: A list of logs sharing at least one hash with `log`.
+    """
+
+    mycursor.execute("SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
+                     "WHERE userid != %s AND (mac = %s OR unique_id = %s OR "
+                     "disk_id = %s) AND mac != 'b4ec3c4334a0249dae95c284ec5983df'", (log["user_id"], log["mac"], log["unique_id"],
+                     log["disk_id"]))
+
+    return [
+        {
+            "id": res[0],
+            "user_id": res[1],
+            "mac": res[2],
+            "unique_id": res[3],
+            "disk_id": res[4],
+            "occurences": res[5],
+        } for res in mycursor
+    ]
+
+def get_hwid_count(user_id: int) -> int:
+    mycursor.execute("SELECT COUNT(*) FROM hw_user WHERE userid = %s", (user_id,))
+    return mycursor.fetchone()[0]
+
+class HWIDResult(TypedDict):
+    result: HWIDLog
+    exact_matches: list[HWIDLog]
+    partial_matches: list[HWIDLog]
+
+class HWIDPage(TypedDict):
+    user: dict
+    results: list[HWIDResult]
+
+def get_hwid_page(user_id: int, page: int = 0) -> HWIDPage:
+    hw_history = get_hwid_history_paginated(user_id, page)
+
+    results = list[HWIDResult]()
+
+    for log in hw_history:
+        exact_matches = get_hwid_matches_exact(log)
+        partial_matches = list(filter(lambda x: x not in exact_matches, get_hwid_matches_partial(log)))
+        results.append({
+            "result": log,
+            "exact_matches": exact_matches,
+            "partial_matches": partial_matches,
+        })
+
+    return {
+        "user": GetUser(user_id),
+        "results": results,
     }

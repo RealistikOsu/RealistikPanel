@@ -17,6 +17,24 @@ ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 app = Flask(__name__)
 app.secret_key = os.urandom(24) #encrypts the session cookie
 
+def load_panel_template(file: str, title: str, **kwargs):
+    """Creates a JINJA template response, forwarding the necessary information into the
+    template.
+
+    Args:
+        file (str): The location of the html file within the `templates` directory.
+        title (str): The title of the page (as displayed to the user).
+    """
+
+    return render_template(
+        file,
+        title=title,
+        session=session,
+        data=DashData(),
+        config=UserConfig,
+        **kwargs,
+    )
+
 @app.route("/")
 def home():
     if session["LoggedIn"]:
@@ -165,7 +183,7 @@ def SystemSettings():
 def EditUser(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
-            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16), ban_logs = fetch_user_banlogs(int(id)))
+            return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), ShowIPs = HasPrivilege(session["AccountId"], 16), ban_logs = fetch_user_banlogs(int(id)), hwid_count = get_hwid_count(int(id)))
         else:
              return NoPerm(session, request.path)
     if request.method == "POST":
@@ -173,11 +191,11 @@ def EditUser(id):
             try:
                 ApplyUserEdit(request.form, session)
                 RAPLog(session["AccountId"], f"has edited the user {request.form.get('username', 'NOT FOUND')}")
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!", ShowIPs = HasPrivilege(session["AccountId"], 16))
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!", ShowIPs = HasPrivilege(session["AccountId"], 16), ban_logs = fetch_user_banlogs(int(id)), hwid_count = get_hwid_count(int(id)))
             except Exception as e:
                 print(e)
                 ConsoleLog("Error while editing user!", f"{e}", 3)
-                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.", ShowIPs = HasPrivilege(session["AccountId"], 16))
+                return render_template("edituser.html", data=DashData(), session=session, title="Edit User", config=UserConfig, UserData=UserData(id), Privs = GetPrivileges(), UserBadges= GetUserBadges(id), badges=GetBadges(), error="An internal error has occured while editing the user! An error has been logged to the console.", ShowIPs = HasPrivilege(session["AccountId"], 16), ban_logs = fetch_user_banlogs(int(id)), hwid_count = get_hwid_count(int(id)))
         else:
             return NoPerm(session, request.path)
 
@@ -369,9 +387,9 @@ def ClanRoute(Page):
 def ClanEditRoute(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         if request.method == "GET":
-            return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID))
+            return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), clan_invites = get_clan_invites(ClanID))
         ApplyClanEdit(request.form, session)
-        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), success="Clan edited successfully!")
+        return render_template("editclan.html", data=DashData(), session=session, title="Clans", config=UserConfig, Clan=GetClan(ClanID), Members=SplitList(GetClanMembers(ClanID)), ClanOwner = GetClanOwner(ClanID), success="Clan edited successfully!", clan_invites = get_clan_invites(ClanID))
     else:
         return NoPerm(session, request.path)
 
@@ -650,13 +668,33 @@ def KickClanRoute(AccountID):
         return redirect("/clans/1")
     return NoPerm(session, request.path)
 
+@app.route("/user/hwid/<user_id>/<page>")
+def view_user_hwid_route(user_id: int, page: int = 1):
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_USERS):
+        return NoPerm(session, request.path)
+
+    user_id = int(user_id)
+    page = int(page)
+
+    page_info = get_hwid_page(user_id, page - 1)
+    username = page_info["user"]["Username"]
+
+    return load_panel_template(
+        "userhwids.html",
+        title=f"{username}'s Hardware Logs",
+        hwid_logs=page_info["results"],
+        user=page_info["user"],
+        page=page,
+        total_hwids=get_hwid_count(user_id),
+    )
+
 #error handlers
 @app.errorhandler(404)
-def NotFoundError(error):
+def not_found_error_handler(_):
     return render_template("404.html")
 
 @app.errorhandler(500)
-def BadCodeError(error):
+def code_error_handler(error):
     ConsoleLog("Misc unhandled error!", f"{error}", 3)
 
     return render_template("500.html")

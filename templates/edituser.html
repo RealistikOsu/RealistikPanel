@@ -189,6 +189,18 @@
 {% else %}
 <div>{{ UserData['Username'] }} has no ban logs associated with them.</div>
 {% endif %}
+<h2 class="section-title">{{ UserData['Username'] }}'s Hardware Information</h2>
+<div class="card">
+    <div class="card-header">
+        <h4>Hardware Log History</h4>
+    </div>
+    <div class="card-body">
+        {{ UserData['Username'] }} has a total of <b>{{ hwid_count }}</b> HWID logs.
+        <div class="buttons">
+            <a href="/user/hwid/{{ UserData['Id'] }}/1" class="btn btn-success">View HWIDs</a>
+        </div>
+    </div>
+</div>
 <h2 class="section-title">Admin Centre</h2>
 <div class="card">
     <div class="card-header">

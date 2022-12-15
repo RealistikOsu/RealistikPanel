@@ -88,5 +88,11 @@
         {% endfor %}
     </div>
 </div>
+<h2 class="section-title">Clan Invites</h2>
+
+{% if not clan_invites %}
+<p>This clan has no active invite links!</p>
+{% else %}
+{% endif %}
 
 {% endblock %}
