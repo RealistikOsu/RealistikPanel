@@ -39,7 +39,7 @@
         {% else %}
         <img src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg" class="nflag"><br>
         {% endif %}
-        Their status on {{ config["ServerName"] }} is 
+        Their status on {{ config["ServerName"] }} is
         {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
         {% else %}
@@ -173,9 +173,9 @@
 <div class= "card">
     <div class="card-header">
         <img alt="image" src="https://a.ussr.pl/{{ log["from_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        <h4>{{ log["from_name"] }}</h4> to 
+        <h4>{{ log["from_name"] }}</h4> to
         <img alt="image" src="https://a.ussr.pl/{{ log["to_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;">
-        <h4>{{ log["to_name"] }}</h4> for {{ log["summary"] }} 
+        <h4>{{ log["to_name"] }}</h4> for {{ log["summary"] }}
     </div>
     <div class="card-body">
         {{ log["detail"] }}
@@ -278,7 +278,7 @@
     })
     .catch(err => {
         document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)"
-    }); 
+    });
 
     //setting default  badges
     document.getElementById("Badge1").value = "{{ UserBadges[0] }}";

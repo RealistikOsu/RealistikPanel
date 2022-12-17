@@ -264,4 +264,3 @@
       chat.onShow.call(this, append_element);
   }
 })(jQuery, this, 0);
-

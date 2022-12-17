@@ -122,14 +122,14 @@
 </div>
 <script>
     //for playing and stopping bmap music
-    var audio = document.getElementById("BeatmapAudio"); 
-    function Play() { 
-        audio.play(); 
-    } 
+    var audio = document.getElementById("BeatmapAudio");
+    function Play() {
+        audio.play();
+    }
 
-    function Pause() { 
-        audio.pause(); 
-    } 
+    function Pause() {
+        audio.pause();
+    }
 
     function CalcPP(BeatmapNr, BeatmapID) {
         //turn it into a loading thing
@@ -148,7 +148,7 @@
             document.getElementById("pp-"+BeatmapNr).innerHTML = "<a class='badge badge-danger' style='color: white;'>Calculation Error!</a>"
         }
         })
-        .catch(err => { throw err }); 
+        .catch(err => { throw err });
     }
 </script>
 {% endblock %}
