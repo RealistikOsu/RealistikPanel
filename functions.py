@@ -943,12 +943,12 @@ def ApplyUserEdit(form, session):
     BadgeList = [int(form.get("Badge1", 0)), int(form.get("Badge2", 0)), int(form.get("Badge3", 0)), int(form.get("Badge4", 0)), int(form.get("Badge5", 0)), int(form.get("Badge6", 0))]
     SetUserBadges(UserId, BadgeList)
     #SQL Queries
-    mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s, bypass_hwid=%s WHERE id = %s", (Email, Notes, Username, SafeUsername, Privilege, HWIDBypass, UserId,))
-    mycursor.execute("UPDATE users_stats SET country = %s, userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (Country, UserPage, Aka, Username, UserId,))
+    mycursor.execute("UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges=%s, bypass_hwid=%s, country=%s WHERE id = %s", (Email, Notes, Username, SafeUsername, Privilege, HWIDBypass, Country, UserId,))
+    mycursor.execute("UPDATE userpage_content = %s, username_aka = %s, username = %s WHERE id = %s", (UserPage, Aka, Username, UserId,))
     if UserConfig["HasRelax"]:
-        mycursor.execute("UPDATE rx_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
+        mycursor.execute("UPDATE rx_stats SET username = %s WHERE id = %s", (Username, UserId,))
     if UserConfig["HasAutopilot"]:
-        mycursor.execute("UPDATE ap_stats SET country = %s, username_aka = %s, username = %s WHERE id = %s", (Country, Aka, Username, UserId,))
+        mycursor.execute("UPDATE ap_stats SET username = %s WHERE id = %s", (Username, UserId,))
     mydb.commit()
 
     # Refresh in pep.py - Rosu only
