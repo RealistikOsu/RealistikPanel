@@ -793,7 +793,6 @@ def panel_api_status_api():
         return jsonify(
             requests.get(
                 UserConfig["ServerURL"] + "api/v1/ping",
-                verify=False,
                 timeout=1,
             ).json(),
         )
@@ -808,7 +807,6 @@ def panel_lets_status_api():
         return jsonify(
             requests.get(
                 UserConfig["LetsAPI"] + "v1/status",
-                verify=False,
                 timeout=1,
             ).json(),
         )  # this url to provide a predictable result
@@ -823,7 +821,6 @@ def panel_bancho_status_api():
         return jsonify(
             requests.get(
                 UserConfig["BanchoURL"] + "api/v1/serverStatus",
-                verify=False,
                 timeout=1,
             ).json(),
         )  # this url to provide a predictable result
