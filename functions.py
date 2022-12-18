@@ -174,6 +174,7 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
                         "AccountId": user_id,
                         "AccountName": username,
                         "Privilege": privileges,
+                        "Theme": "dark",
                     },
                 )
             else:
