@@ -12,6 +12,7 @@ import time
 from enum import IntFlag
 from typing import Optional
 from typing import TypedDict
+from typing import TypeVar
 from typing import Union
 
 import bcrypt
@@ -28,6 +29,8 @@ from osrparse import *
 
 from changelogs import Changelogs
 from config import UserConfig
+
+T = TypeVar("T")
 
 init()  # initialises colourama for colours
 Changelogs.reverse()
@@ -95,7 +98,6 @@ if BadUserCount > 0:
 
 # public variables
 PlayerCount = []  # list of players
-CachedStore = {}
 
 
 def decode_int_or(value: Optional[bytes], default: int = 0) -> int:
@@ -168,7 +170,6 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
             if checkpw(password_md5, password):
                 return (
                     True,
-                    "You have been logged in!",
                     {  # creating session
                         "LoggedIn": True,
                         "AccountId": user_id,
@@ -424,6 +425,8 @@ class Privileges(IntFlag):
     USER_PENDING_VERIFICATION = 2 << 19
     USER_TOURNAMENT_STAFF = 2 << 20
     ADMIN_CAKER = 20 << 21
+    PANEL_MANAGE_CLANS = 2 << 27
+    PANEL_VIEW_IPS = 2 << 28
     BOT_USER = 1 << 30
 
 
@@ -1947,52 +1950,6 @@ def GetBuild():
     return BuildInfo["version"]
 
 
-def CheckExists():
-    """Make sure the file exists"""
-    if not os.path.exists("rpusers.json"):
-        # if doesnt exist
-        with open("rpusers.json", "w") as json_file:
-            json.dump({}, json_file, indent=4)
-
-
-def UpdateUserStore(Username: str):
-    """Updates the user info stored in rpusers.json or creates the file."""
-    CheckExists()
-
-    # gets current log
-    with open("rpusers.json") as Log:
-        Store = json.load(Log)
-
-    Store[Username] = {
-        "Username": Username,
-        "LastLogin": round(time.time()),
-        "LastBuild": GetBuild(),
-    }
-
-    with open("rpusers.json", "w+") as json_file:
-        json.dump(Store, json_file, indent=4)
-
-    # Updating cached store
-    CachedStore[Username] = {
-        "Username": Username,
-        "LastLogin": round(time.time()),
-        "LastBuild": GetBuild(),
-    }
-
-
-def GetUserStore(Username: str):
-    """Gets user info from the store."""
-    CheckExists()
-
-    with open("rpusers.json") as Log:
-        Store = json.load(Log)
-
-    if Username in list(Store.keys()):
-        return Store[Username]
-    else:
-        return {"Username": Username, "LastLogin": round(time.time()), "LastBuild": 0}
-
-
 def GetUserID(Username: str):
     """Gets user id from username."""
     mycursor.execute("SELECT id FROM users WHERE username LIKE %s LIMIT 1", (Username,))
@@ -2002,53 +1959,11 @@ def GetUserID(Username: str):
     return Data[0][0]
 
 
-def GetStore():
-    """Returns user store as list."""
-    CheckExists()
-    with open("rpusers.json") as RPUsers:
-        Store = json.load(RPUsers)
-
-    TheList = []
-    for x in list(Store.keys()):
-        # timeago - bit of an afterthought so sorry for weird implementation
-        Store[x]["Timeago"] = TimeToTimeAgo(Store[x]["LastLogin"])
-        # Gets User id
-        Store[x]["Id"] = GetUserID(x)
-        TheList.append(Store[x])
-
-    return TheList
-
-
-def SplitListTrue(TheList: list):
-    """Splits list into 2 halves."""
-    """
-    length = len(TheList)
-    return [ TheList[i*length // 2: (i+1)*length // 2]
-            for i in range(2) ]
-    """
-    Cool = 0
-    List1 = []
-    List2 = []
-    for Thing in TheList:
-        if Cool == 0:
-            List1.append(Thing)
-            Cool = 1
-        else:
-            List2.append(Thing)
-            Cool = 0
-    return [List1, List2]
-
-
-def SplitList(TheList: list):
-    """Splits list and ensures the 1st list is the longer one"""
-    SplitLists = SplitListTrue(TheList)
-    List1 = SplitLists[0]
-    List2 = SplitLists[1]
-    if len(List2) > len(List1):
-        LastElement = List2[-1]
-        List2.remove(LastElement)
-        List1.append(LastElement)
-    return [List1, List2]
+def halve_list(input: list[T]) -> tuple[list[T], list[T]]:
+    return (
+        input[::2],
+        input[1::2],
+    )
 
 
 def TimeToTimeAgo(Timestamp: int):
@@ -2074,7 +1989,7 @@ def RemoveFromLeaderboard(UserID: int):
 
         # removing from country leaderboards
         mycursor.execute(
-            "SELECT country FROM users_stats WHERE id = %s LIMIT 1",
+            "SELECT country FROM users WHERE id = %s LIMIT 1",
             (UserID,),
         )
         Country = mycursor.fetchone()[0]
@@ -2225,22 +2140,6 @@ def FindUserByUsername(User: str, Page):
         return []
 
 
-def UpdateCachedStore():  # not used for now
-    """Updates the data in the cached user store."""
-    UpToDateStore = GetStore()
-    for User in UpToDateStore:
-        CachedStore[User["Username"]] = {}
-        for Key in list(User.keys()):
-            CachedStore[User["Username"]][Key] = User[Key]
-
-
-def GetCachedStore(Username: str):
-    if Username in list(CachedStore.keys()):
-        return CachedStore[Username]
-    else:
-        return {"Username": Username, "LastLogin": round(time.time()), "LastBuild": 0}
-
-
 def CreateBcrypt(Password: str):
     """Creates hashed password using the hashing methods of Ripple."""
     MD5Password = hashlib.md5(Password.encode("utf-8")).hexdigest()
@@ -2373,7 +2272,7 @@ def GetRankRequests(Page: int):
         ]
     # flip so it shows newest first yes
     TheRequests.reverse()
-    TheRequests = SplitList(TheRequests)
+    TheRequests = halve_list(TheRequests)
     return TheRequests
 
 
@@ -2524,7 +2423,7 @@ def GetClan(ClanID: int):
     )
     Clan = mycursor.fetchone()
     if Clan == None:
-        return False
+        return None
     # getting current member count
     mycursor.execute("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
     MemberCount = mycursor.fetchone()[0]

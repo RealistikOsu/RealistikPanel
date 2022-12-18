@@ -14,14 +14,11 @@ from flask import request
 from flask import send_from_directory
 from flask import session
 from flask import url_for
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from config import UserConfig
 from defaults import *
 from functions import *
 from updater import *
-
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 print(f" {Fore.BLUE}Running Build {GetBuild()}")
 
@@ -29,9 +26,12 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)  # encrypts the session cookie
 
 
-def load_panel_template(file: str, title: str, **kwargs):
+def load_panel_template(file: str, title: str, **kwargs) -> str:
     """Creates a JINJA template response, forwarding the necessary information into the
     template.
+
+    Note:
+        This passes the `title`, `session`, `data` (dash data) and `config`.
 
     Args:
         file (str): The location of the html file within the `templates` directory.
@@ -49,53 +49,33 @@ def load_panel_template(file: str, title: str, **kwargs):
 
 
 @app.route("/")
-def home():
+def panel_home_redirect():
     if session["LoggedIn"]:
-        return redirect(url_for("dash"))
+        return redirect(url_for("panel_dashboard"))
     else:
-        return redirect(url_for("login"))
+        return redirect(url_for("panel_login"))
 
 
 @app.route("/dash/")
-def dash():
-    if HasPrivilege(session["AccountId"]):
-        # responsible for the "HeY cHeCk OuT tHe ChAnGeLoG"
-        User = GetCachedStore(session["AccountName"])
-        Thread(target=UpdateUserStore, args=(session["AccountName"],)).start()
-        if User["LastBuild"] == GetBuild():
-            return render_template(
-                "dash.html",
-                title="Dashboard",
-                session=session,
-                data=DashData(),
-                plays=RecentPlays(),
-                config=UserConfig,
-                Graph=DashActData(),
-                MostPlayed=GetMostPlayed(),
-            )
-        else:
-            return render_template(
-                "dash.html",
-                title="Dashboard",
-                session=session,
-                data=DashData(),
-                plays=RecentPlays(),
-                config=UserConfig,
-                Graph=DashActData(),
-                MostPlayed=GetMostPlayed(),
-                info=f"Hey! RealistikPanel has been recently updated to build <b>{GetBuild()}</b>! Check out <a href='/changelogs'>what's new here!</a>",
-            )
-    else:
-        return NoPerm(session, request.path)
+def panel_dashboard():
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_ACCESS_RAP):
+        return no_permission_response(request.path)
+
+    return load_panel_template(
+        title="Dashboard",
+        file="dash.html",
+        plays=RecentPlays(),
+        Graph=DashActData(),
+        MostPlayed=GetMostPlayed(),
+    )
 
 
 IP_REDIRS = {}
 
-
+# TODO: rework
 @app.route("/login", methods=["GET", "POST"])
-def login():
+def panel_login():
     if not session["LoggedIn"] and not HasPrivilege(session["AccountId"]):
-
         if request.method == "GET":
             redir = request.args.get("redirect")
             if redir:
@@ -104,202 +84,158 @@ def login():
             return render_template("login.html", conf=UserConfig)
 
         if request.method == "POST":
-            LoginData = LoginHandler(request.form["username"], request.form["password"])
-            if not LoginData[0]:
+            success, data = LoginHandler(
+                request.form["username"],
+                request.form["password"],
+            )
+            if not success:
                 return render_template(
                     "login.html",
-                    alert=LoginData[1],
+                    alert=data,
                     conf=UserConfig,
                 )
             else:
-                SessionToApply = LoginData[2]
-                # modifying the session
-                for key in list(SessionToApply.keys()):
-                    session[key] = SessionToApply[key]
+                # TODO: Write an abstraction for setting session data.
+                for key in data:
+                    session[key] = data[key]  # type: ignore
 
                 redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
                 if redir:
                     del IP_REDIRS[request.headers.get("X-Real-IP")]
                     return redirect(redir)
 
-                return redirect(url_for("home"))
+                return redirect(url_for("panel_home_redirect"))
     else:
-        return redirect(url_for("dash"))
+        return redirect(url_for("panel_dashboard"))
 
 
 @app.route("/logout")
-def logout():
-    # modifying the session
-    for x in list(ServSession.keys()):
-        session[x] = ServSession[x]
-    return redirect(url_for("home"))
+def panel_session_logout():
+    for key in ServSession:
+        session[key] = ServSession[key]
+    return redirect(url_for("panel_home_redirect"))
 
 
 @app.route("/bancho/settings", methods=["GET", "POST"])
-def BanchoSettings():
-    if HasPrivilege(session["AccountId"], 4):
-        # no bypassing it.
-        if request.method == "GET":
-            return render_template(
-                "banchosettings.html",
-                preset=FetchBSData(),
-                title="Bancho Settings",
-                data=DashData(),
-                bsdata=FetchBSData(),
-                session=session,
-                config=UserConfig,
+def panel_bancho_settings():
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_SERVERS):
+        return no_permission_response(request.path)
+
+    error = success = None
+    if request.method == "POST":
+        try:
+            BSPostHandler(
+                [
+                    request.form["banchoman"],
+                    request.form["mainmemuicon"],
+                    request.form["loginnotif"],
+                ],
+                session,
+            )  # handles all the changes
+            success = "Bancho settings were successfully edited!"
+        except Exception as e:
+            error = f"Failed to save Bancho settings with error {e}!"
+
+    return load_panel_template(
+        "banchosettings.html",
+        title="Bancho Settings",
+        bsdata=FetchBSData(),
+        preset=FetchBSData(),
+        error=error,
+        success=success,
+    )
+
+
+@app.route("/rank/<beatmap_id>", methods=["GET", "POST"])
+def panel_rank_beatmap(beatmap_id: str):
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_BEATMAPS):
+        return no_permission_response(request.path)
+
+    error = success = None
+
+    if request.method == "POST":
+        try:
+            beatmap_index = request.form["beatmapnumber"]
+            RankBeatmap(
+                beatmap_index,
+                request.form[f"bmapid-{beatmap_index}"],
+                request.form[f"rankstatus-{beatmap_index}"],
+                session,
             )
-        if request.method == "POST":
-            try:
-                BSPostHandler(
-                    [
-                        request.form["banchoman"],
-                        request.form["mainmemuicon"],
-                        request.form["loginnotif"],
-                    ],
-                    session,
-                )  # handles all the changes
-                return render_template(
-                    "banchosettings.html",
-                    preset=FetchBSData(),
-                    title="Bancho Settings",
-                    data=DashData(),
-                    bsdata=FetchBSData(),
-                    session=session,
-                    config=UserConfig,
-                    success="Bancho settings were successfully edited!",
-                )
-            except Exception as e:
-                print(e)
-                return render_template(
-                    "banchosettings.html",
-                    preset=FetchBSData(),
-                    title="Bancho Settings",
-                    data=DashData(),
-                    bsdata=FetchBSData(),
-                    session=session,
-                    config=UserConfig,
-                    error="An internal error has occured while saving bancho settings! An error has been logged to the console.",
-                )
+            success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
+        except Exception as e:
+            print(e)  # TODO: PROPER logging using traceback module.
+            error = f"Failed to rank beatmap {beatmap_id} with error {e}!"
 
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/rank/<id>", methods=["GET", "POST"])
-def RankMap(id):
-    if HasPrivilege(session["AccountId"], 3):
-        if request.method == "GET":
-            return render_template(
-                "beatrank.html",
-                title="Rank Beatmap!",
-                data=DashData(),
-                session=session,
-                beatdata=SplitList(GetBmapInfo(id)),
-                config=UserConfig,
-                Id=id,
-            )
-        if request.method == "POST":
-            try:
-                BeatmapNumber = request.form["beatmapnumber"]
-                RankBeatmap(
-                    BeatmapNumber,
-                    request.form[f"bmapid-{BeatmapNumber}"],
-                    request.form[f"rankstatus-{BeatmapNumber}"],
-                    session,
-                )
-                return render_template(
-                    "beatrank.html",
-                    title="Rank Beatmap!",
-                    data=DashData(),
-                    session=session,
-                    beatdata=SplitList(GetBmapInfo(id)),
-                    config=UserConfig,
-                    success=f"Successfully ranked beatmap {id}!",
-                    Id=id,
-                )
-            except Exception as e:
-                print(e)
-                return render_template(
-                    "beatrank.html",
-                    title="Rank Beatmap!",
-                    data=DashData(),
-                    session=session,
-                    beatdata=SplitList(GetBmapInfo(id)),
-                    config=UserConfig,
-                    error="An internal error has occured while ranking! An error has been logged to the console.",
-                    Id=id,
-                )
-    else:
-        return NoPerm(session, request.path)
+    return load_panel_template(
+        "beatrank.html",
+        title="Rank Beatmap!",
+        Id=beatmap_id,
+        beatdata=halve_list(GetBmapInfo(beatmap_id)),
+        success=success,
+        error=error,
+    )
 
 
 @app.route("/rank", methods=["GET", "POST"])
-def RankFrom():
-    if request.method == "GET":
-        if HasPrivilege(session["AccountId"], 3):
-            return render_template(
-                "rankform.html",
-                title="Rank a beatmap!",
-                data=DashData(),
-                session=session,
-                config=UserConfig,
-                SuggestedBmaps=SplitList(GetSuggestedRank()),
-            )
-        else:
-            return NoPerm(session, request.path)
-    else:
-        if not HasPrivilege(session["AccountId"]):  # mixing things up eh
-            return NoPerm(session, request.path)
-        else:
-            return redirect(f"/rank/{request.form['bmapid']}")  # does this even work
+def panel_rank_beatmap_search():
+    # We can skip the privilege check here since the endpoint we are redirecting to handles it.
+    if request.method == "POST":
+        return redirect(f"/rank/{request.form['bmapid']}")
+
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_BEATMAPS):
+        return no_permission_response(request.path)
+
+    return load_panel_template(
+        "rankform.html",
+        title="Rank a beatmap!",
+        SuggestedBmaps=halve_list(GetSuggestedRank()),
+    )
 
 
-@app.route("/users/<page>", methods=["GET", "POST"])
-def Users(page=1):
-    if HasPrivilege(session["AccountId"], 6):
-        if request.method == "GET":
-            return render_template(
-                "users.html",
-                title="Users",
-                data=DashData(),
-                session=session,
-                config=UserConfig,
-                UserData=FetchUsers(int(page) - 1),
-                page=int(page),
-                Pages=UserPageCount(),
-            )
-        if request.method == "POST":
-            return render_template(
-                "users.html",
-                title="Users",
-                data=DashData(),
-                session=session,
-                config=UserConfig,
-                UserData=FindUserByUsername(request.form["user"], int(page)),
-                page=int(page),
-                User=request.form["user"],
-                Pages=UserPageCount(),
-            )
+@app.route("/users/<page_str>", methods=["GET", "POST"])
+def panel_search_users(page_str: str = "1"):
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_USERS):
+        return no_permission_response(request.path)
+
+    page = int(page_str)
+
+    if request.method == "POST":
+        user_data = FindUserByUsername(
+            request.form["user"],
+            page,
+        )
     else:
-        return NoPerm(session, request.path)
+        user_data = FetchUsers(page - 1)
+
+    return load_panel_template(
+        "users.html",
+        title="Search Users",
+        UserData=user_data,
+        page=page,
+        Pages=UserPageCount(),
+    )
 
 
 @app.route("/index.php")
-def LegacyIndex():
-    """For implementing RAP funcions."""
-    Page = request.args.get("p")
-    if Page == "124":
-        # ranking page
-        return redirect(f"/rank/{request.args.get('bsid')}")
-    elif Page == "103":  # hanayo link
-        Account = request.args.get("id")
-        return redirect(f"/user/edit/{Account}")
-    return redirect(url_for("dash"))  # take them to the root
+def panel_legacy_index():
+    """Implements support for Ripple Admin Panel's legacy redirects"""
+
+    page = int(request.args["p"])
+
+    if page == 124:
+        set_id = request.args["bsid"]
+        return redirect(f"/rank/{set_id}")
+    elif page == 103:
+        user_id = request.args["id"]
+        return redirect(f"/user/edit/{user_id}")
+
+    # Unsupported/default redirect
+    return redirect(url_for("panel_dashboard"))
 
 
 @app.route("/system/settings", methods=["GET", "POST"])
-def SystemSettings():
+def panel_system_settings():
     if HasPrivilege(session["AccountId"], 4):
         if request.method == "GET":
             return render_template(
@@ -343,11 +279,11 @@ def SystemSettings():
                     error="An internal error has occured while saving system settings! An error has been logged to the console.",
                 )
         else:
-            return NoPerm(session, request.path)
+            return no_permission_response(request.path)
 
 
 @app.route("/user/edit/<id>", methods=["GET", "POST"])
-def EditUser(id):
+def panel_edit_user(id):
     if request.method == "GET":
         if HasPrivilege(session["AccountId"], 6):
             return render_template(
@@ -365,7 +301,7 @@ def EditUser(id):
                 hwid_count=get_hwid_count(int(id)),
             )
         else:
-            return NoPerm(session, request.path)
+            return no_permission_response(request.path)
     if request.method == "POST":
         if HasPrivilege(session["AccountId"], 6):
             try:
@@ -407,11 +343,11 @@ def EditUser(id):
                     hwid_count=get_hwid_count(int(id)),
                 )
         else:
-            return NoPerm(session, request.path)
+            return no_permission_response(request.path)
 
 
 @app.route("/logs/<page>")
-def Logs(page):
+def panel_view_logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template(
             "raplogs.html",
@@ -424,11 +360,11 @@ def Logs(page):
             Pages=RapLogCount(),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/action/confirm/delete/<id>")
-def ConfirmDelete(id):
+def panel_delete_user_confirm(id):
     """Confirms deletion of acc so accidents dont happen"""
     # i almost deleted my own acc lmao
     # me forgetting to commit changes saved me
@@ -445,11 +381,11 @@ def ConfirmDelete(id):
             backlink=f"/user/edit/{id}",
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/user/iplookup/<ip>")
-def IPUsers(ip):
+def panel_view_user_ip(ip):
     if HasPrivilege(session["AccountId"], 16):
         IPUserLookup = FindWithIp(ip)
         UserLen = len(IPUserLookup)
@@ -464,11 +400,11 @@ def IPUsers(ip):
             ip=ip,
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/ban-logs/<page>")
-def BanLogs(page):
+def panel_view_ban_logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template(
             "ban_logs.html",
@@ -481,11 +417,11 @@ def BanLogs(page):
             pages=ban_pages(),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/badges")
-def Badges():
+def panel_view_badges():
     if HasPrivilege(session["AccountId"], 4):
         return render_template(
             "badges.html",
@@ -496,11 +432,11 @@ def Badges():
             badges=GetBadges(),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/badge/edit/<BadgeID>", methods=["GET", "POST"])
-def EditBadge(BadgeID: int):
+def panel_edit_badge(BadgeID: int):
     if HasPrivilege(session["AccountId"], 4):
         if request.method == "GET":
             return render_template(
@@ -539,11 +475,11 @@ def EditBadge(BadgeID: int):
                     error="An internal error has occured while editing the badge! An error has been logged to the console.",
                 )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/privileges")
-def EditPrivileges():
+def panel_view_privileges():
     if HasPrivilege(session["AccountId"], 13):
         return render_template(
             "privileges.html",
@@ -554,11 +490,11 @@ def EditPrivileges():
             privileges=GetPrivileges(),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/privilege/edit/<Privilege>", methods=["GET", "POST"])
-def EditPrivilege(Privilege: int):
+def panel_edit_privilege(Privilege: int):
     if HasPrivilege(session["AccountId"], 13):
         if request.method == "GET":
             return render_template(
@@ -599,11 +535,11 @@ def EditPrivilege(Privilege: int):
                     error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/changelogs")
-def ChangeLogs():
+def panel_view_changelogs():
     if HasPrivilege(session["AccountId"]):
         return render_template(
             "changelog.html",
@@ -614,11 +550,11 @@ def ChangeLogs():
             logs=Changelogs,
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/current.json")
-def CurrentIPs():
+def panel_switcher_endpoints():
     """IPs for the Ripple switcher."""
     return jsonify(
         {
@@ -640,34 +576,19 @@ def CurrentIPs():
 
 
 @app.route("/toggledark")
-def ToggleDark():
+def panel_toggle_theme():
     if session["Theme"] == "dark":
         session["Theme"] = "white"
     else:
         session["Theme"] = "dark"
-    return redirect(url_for("dash"))
-
-
-@app.route("/admins")
-def Admins():
-    if HasPrivilege(session["AccountId"]):
-        return render_template(
-            "admins.html",
-            data=DashData(),
-            session=session,
-            title="Admins",
-            config=UserConfig,
-            admins=SplitList(GetStore()),
-        )
-    else:
-        return NoPerm(session, request.path)
+    return redirect(url_for("panel_dashboard"))
 
 
 @app.route(
     "/changepass/<AccountID>",
     methods=["GET", "POST"],
 )  # may change the route to something within /user
-def ChangePass(AccountID):
+def panel_edit_user_password(AccountID):
     if HasPrivilege(session["AccountId"], 6):  # may create separate perm for this
         if request.method == "GET":
             User = GetUser(int(AccountID))
@@ -684,11 +605,11 @@ def ChangePass(AccountID):
             User = GetUser(int(AccountID))
             return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/donoraward/<AccountID>", methods=["GET", "POST"])
-def DonorAward(AccountID):
+def panel_award_user_donor(AccountID):
     if HasPrivilege(session["AccountId"], 6):
         if request.method == "GET":
             User = GetUser(int(AccountID))
@@ -709,20 +630,20 @@ def DonorAward(AccountID):
             )
             return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/donorremove/<AccountID>")
-def RemoveDonorRoute(AccountID):
+def panel_remove_user_donor(AccountID):
     if HasPrivilege(session["AccountId"], 6):
         RemoveSupporter(AccountID, session)
         return redirect(f"/user/edit/{AccountID}")
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/rankreq/<Page>")
-def RankReq(Page):
+def panel_view_rank_requests(Page):
     if HasPrivilege(session["AccountId"], 3):
         return render_template(
             "rankreq.html",
@@ -734,11 +655,11 @@ def RankReq(Page):
             page=int(Page),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/clans/<Page>")
-def ClanRoute(Page):
+def panel_view_clans(Page):
     if HasPrivilege(session["AccountId"], 15):
         return render_template(
             "clansview.html",
@@ -751,11 +672,11 @@ def ClanRoute(Page):
             Pages=GetClanPages(),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
 @app.route("/clan/<ClanID>", methods=["GET", "POST"])
-def ClanEditRoute(ClanID):
+def panel_edit_clan(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         if request.method == "GET":
             return render_template(
@@ -765,7 +686,7 @@ def ClanEditRoute(ClanID):
                 title="Clans",
                 config=UserConfig,
                 Clan=GetClan(ClanID),
-                Members=SplitList(GetClanMembers(ClanID)),
+                Members=halve_list(GetClanMembers(ClanID)),
                 ClanOwner=GetClanOwner(ClanID),
                 clan_invites=get_clan_invites(ClanID),
             )
@@ -777,407 +698,59 @@ def ClanEditRoute(ClanID):
             title="Clans",
             config=UserConfig,
             Clan=GetClan(ClanID),
-            Members=SplitList(GetClanMembers(ClanID)),
+            Members=halve_list(GetClanMembers(ClanID)),
             ClanOwner=GetClanOwner(ClanID),
             success="Clan edited successfully!",
             clan_invites=get_clan_invites(ClanID),
         )
     else:
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
 
+# TODO: probably should be an action
 @app.route("/clan/delete/<ClanID>")
-def ClanFinalDelete(ClanID):
+def panel_delete_clan(ClanID):
     if HasPrivilege(session["AccountId"], 15):
         NukeClan(ClanID, session)
         return redirect("/clans/1")
-    return NoPerm(session, request.path)
+    return no_permission_response(request.path)
 
 
-@app.route("/clan/confirmdelete/<ClanID>")
-def ClanDeleteConfirm(ClanID):
-    if HasPrivilege(session["AccountId"], 15):
-        Clan = GetClan(ClanID)
-        return render_template(
-            "confirm.html",
-            data=DashData(),
-            session=session,
-            title="Confirmation Required",
-            config=UserConfig,
-            action=f" delete the clan {Clan['Name']}",
-            yeslink=f"/clan/delete/{ClanID}",
-            backlink="/clans/1",
-        )
-    return NoPerm(session, request.path)
+@app.route("/clan/confirmdelete/<clan_id_str>")
+def panel_delete_clan_confirm(clan_id_str: str):
+    if not has_privilege_value(session["AccountId"], Privileges.PANEL_MANAGE_CLANS):
+        return no_permission_response(request.path)
+
+    clan_id = int(clan_id_str)
+    clan = GetClan(clan_id)
+
+    return load_panel_template(
+        "confirm.html",
+        title="Confirmation Required",
+        action=f" delete the clan {clan['Name']}",
+        yeslink=f"/clan/delete/{clan_id}",
+        backlink="/clans/1",
+    )
 
 
 @app.route("/stats", methods=["GET", "POST"])
-def StatsRoute():
-    if HasPrivilege(session["AccountId"]):
-        MinPP = request.form.get("minpp", 0)
-        return render_template(
-            "stats.html",
-            data=DashData(),
-            session=session,
-            title="Server Statistics",
-            config=UserConfig,
-            StatData=GetStatistics(MinPP),
-            MinPP=MinPP,
-        )
-    return NoPerm(session, request.path)
+def panel_view_server_stats():
+    if not has_privilege_value(session["AccountId"], Privileges.ADMIN_ACCESS_RAP):
+        return
 
-
-# API for js
-@app.route("/js/pp/<id>")
-def PPApi(id):
-    try:
-        return jsonify(
-            {
-                "pp": str(round(CalcPP(id), 2)),
-                "dtpp": str(round(CalcPPDT(id), 2)),
-                "code": 200,
-            },
-        )
-    except:
-        return jsonify({"code": 500})
-
-
-# api mirrors
-@app.route("/js/status/api")
-def ApiStatus():
-    try:
-        return jsonify(
-            requests.get(
-                UserConfig["ServerURL"] + "api/v1/ping",
-                verify=False,
-                timeout=1,
-            ).json(),
-        )
-    except Exception as err:
-        print("[ERROR] /js/status/api: ", err)
-        return jsonify({"code": 503})
-
-
-@app.route("/js/status/lets")
-def LetsStatus():
-    try:
-        return jsonify(
-            requests.get(
-                UserConfig["LetsAPI"] + "v1/status",
-                verify=False,
-                timeout=1,
-            ).json(),
-        )  # this url to provide a predictable result
-    except Exception as err:
-        print("[ERROR] /js/status/lets: ", err)
-        return jsonify({"server_status": 0})
-
-
-@app.route("/js/status/bancho")
-def BanchoStatus():
-    try:
-        return jsonify(
-            requests.get(
-                UserConfig["BanchoURL"] + "api/v1/serverStatus",
-                verify=False,
-                timeout=1,
-            ).json(),
-        )  # this url to provide a predictable result
-    except Exception as err:
-        print("[ERROR] /js/status/bancho: ", err)
-        return jsonify({"result": 0})
-
-
-# actions
-@app.route("/actions/comment/profile/<AccountID>")
-def DeleteCommentProfile(AccountID: int):
-    """Wipe all comments made on this user's profile"""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        DeleteProfileComments(AccountID)
-
-        RAPLog(
-            session["AccountId"],
-            f"has removed all comments made on {Account['Username']}'s profile ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/comment/user/<AccountID>")
-def DeleteCommentUser(AccountID: int):
-    """Wipe all comments made by this user"""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        DeleteUserComments(AccountID)
-
-        RAPLog(
-            session["AccountId"],
-            f"has removed all comments made by {Account['Username']} ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/wipe/<AccountID>")
-def Wipe(AccountID: int):
-    """The wipe action."""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        WipeAccount(AccountID)
-        RAPLog(
-            session["AccountId"],
-            f"has wiped the account {Account['Username']} ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/wipeap/<AccountID>")
-def WipeAPRoute(AccountID: int):
-    """The wipe action."""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        WipeAutopilot(AccountID)
-        RAPLog(
-            session["AccountId"],
-            f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/wiperx/<AccountID>")
-def WipeRXRoute(AccountID: int):
-    """The wipe action."""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        WipeRelax(AccountID)
-        RAPLog(
-            session["AccountId"],
-            f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/wipeva/<AccountID>")
-def WipeVARoute(AccountID: int):
-    """The wipe action."""
-    if HasPrivilege(session["AccountId"], 11):
-        Account = GetUser(AccountID)
-        WipeVanilla(AccountID)
-        RAPLog(
-            session["AccountId"],
-            f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
-        )
-        return redirect(f"/user/edit/{AccountID}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/restrict/<id>")
-def Restrict(id: int):
-    """The wipe action."""
-    if HasPrivilege(session["AccountId"], 6):
-        Account = GetUser(id)
-        if ResUnTrict(id, request.args.get("note"), request.args.get("reason")):
-            RAPLog(
-                session["AccountId"],
-                f"has restricted the account {Account['Username']} ({id})",
-            )
-        else:
-            RAPLog(
-                session["AccountId"],
-                f"has unrestricted the account {Account['Username']} ({id})",
-            )
-        return redirect(f"/user/edit/{id}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/freeze/<id>")
-def Freezee(id: int):
-    if HasPrivilege(session["AccountId"], 6):
-        Account = GetUser(id)
-        FreezeHandler(id)
-        RAPLog(
-            session["AccountId"],
-            f"has frozen the account {Account['Username']} ({id})",
-        )
-        return redirect(f"/user/edit/{id}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/ban/<id>")
-def Ban(id: int):
-    """Do the FBI to the person."""
-    if HasPrivilege(session["AccountId"], 5):
-        Account = GetUser(id)
-        if BanUser(id, request.args.get("reason")):
-            RAPLog(
-                session["AccountId"],
-                f"has banned the account {Account['Username']} ({id})",
-            )
-        else:
-            RAPLog(
-                session["AccountId"],
-                f"has unbanned the account {Account['Username']} ({id})",
-            )
-        return redirect(f"/user/edit/{id}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/hwid/<id>")
-def HWID(id: int):
-    """Clear HWID matches."""
-    if HasPrivilege(session["AccountId"], 6):
-        Account = GetUser(id)
-        ClearHWID(id)
-        RAPLog(
-            session["AccountId"],
-            f"has cleared the HWID matches for the account {Account['Username']} ({id})",
-        )
-        return redirect(f"/user/edit/{id}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/delete/<id>")
-def DeleteAcc(id: int):
-    """Account goes bye bye forever."""
-    if HasPrivilege(session["AccountId"], 6):
-        AccountToBeDeleted = GetUser(id)
-        DeleteAccount(id)
-        RAPLog(
-            session["AccountId"],
-            f"has deleted the account {AccountToBeDeleted['Username']} ({id})",
-        )
-        return redirect("/users/1")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/kick/<id>")
-def KickFromBancho(id: int):
-    """Kick from bancho"""
-    if HasPrivilege(session["AccountId"], 12):
-        Account = GetUser(id)
-        BanchoKick(id, "You have been kicked by an admin!")
-        RAPLog(
-            session["AccountId"],
-            f"has kicked the account {Account['Username']} ({id})",
-        )
-        return redirect(f"/user/edit/{id}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/deletebadge/<id>")
-def BadgeDeath(id: int):
-    if HasPrivilege(session["AccountId"], 4):
-        DeleteBadge(id)
-        RAPLog(session["AccountId"], f"deleted the badge with the ID of {id}")
-        return redirect(url_for("Badges"))
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/createbadge")
-def CreateBadgeAction():
-    if HasPrivilege(session["AccountId"], 4):
-        Badge = CreateBadge()
-        RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
-        return redirect(f"/badge/edit/{Badge}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/actions/createprivilege")
-def CreatePrivilegeAction():
-    if HasPrivilege(session["AccountId"], 13):
-        PrivID = CreatePrivilege()
-        RAPLog(
-            session["AccountId"],
-            f"Created a new privilege group with the ID of {PrivID}",
-        )
-        return redirect(f"/privilege/edit/{PrivID}")
-    return NoPerm(session, request.path)
-
-
-@app.route("/actions/deletepriv/<PrivID>")
-def PrivDeath(PrivID: int):
-    if HasPrivilege(session["AccountId"], 13):
-        PrivData = GetPriv(PrivID)
-        DelPriv(PrivID)
-        RAPLog(
-            session["AccountId"],
-            f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})",
-        )
-        return redirect(url_for("EditPrivileges"))
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/action/rankset/<BeatmapSet>")
-def RankSet(BeatmapSet: int):
-    if HasPrivilege(session["AccountId"], 3):
-        SetBMAPSetStatus(BeatmapSet, 2, session)
-        RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/action/loveset/<BeatmapSet>")
-def LoveSet(BeatmapSet: int):
-    if HasPrivilege(session["AccountId"], 3):
-        SetBMAPSetStatus(BeatmapSet, 5, session)
-        RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/action/unrankset/<BeatmapSet>")
-def UnrankSet(BeatmapSet: int):
-    if HasPrivilege(session["AccountId"], 3):
-        SetBMAPSetStatus(BeatmapSet, 0, session)
-        RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/action/deleterankreq/<ReqID>")
-def MarkRequestAsDone(ReqID):
-    if HasPrivilege(session["AccountId"], 3):
-        DeleteBmapReq(ReqID)
-        return redirect("/rankreq/1")
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/action/kickclan/<AccountID>")
-def KickClanRoute(AccountID):
-    if HasPrivilege(session["AccountId"], 15):
-        KickFromClan(AccountID)
-        return redirect("/clans/1")
-    return NoPerm(session, request.path)
+    minimum_pp = int(request.form.get("minpp", 0))
+    return load_panel_template(
+        "stats.html",
+        title="Server Statistics",
+        StatData=GetStatistics(minimum_pp),
+        MinPP=minimum_pp,
+    )
 
 
 @app.route("/user/hwid/<user_id>/<page>")
 def view_user_hwid_route(user_id: int, page: int = 1):
     if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_USERS):
-        return NoPerm(session, request.path)
+        return no_permission_response(request.path)
 
     user_id = int(user_id)
     page = int(page)
@@ -1193,6 +766,353 @@ def view_user_hwid_route(user_id: int, page: int = 1):
         page=page,
         total_hwids=get_hwid_count(user_id),
     )
+
+
+# API for js
+@app.route("/js/pp/<id>")
+def panel_pp_api(id):
+    try:
+        return jsonify(
+            {
+                "pp": str(round(CalcPP(id), 2)),
+                "dtpp": str(round(CalcPPDT(id), 2)),
+                "code": 200,
+            },
+        )
+    except:
+        return jsonify({"code": 500})
+
+
+# api mirrors
+@app.route("/js/status/api")
+def panel_api_status_api():
+    try:
+        return jsonify(
+            requests.get(
+                UserConfig["ServerURL"] + "api/v1/ping",
+                verify=False,
+                timeout=1,
+            ).json(),
+        )
+    except Exception as err:
+        print("[ERROR] /js/status/api: ", err)
+        return jsonify({"code": 503})
+
+
+@app.route("/js/status/lets")
+def panel_lets_status_api():
+    try:
+        return jsonify(
+            requests.get(
+                UserConfig["LetsAPI"] + "v1/status",
+                verify=False,
+                timeout=1,
+            ).json(),
+        )  # this url to provide a predictable result
+    except Exception as err:
+        print("[ERROR] /js/status/lets: ", err)
+        return jsonify({"server_status": 0})
+
+
+@app.route("/js/status/bancho")
+def panel_bancho_status_api():
+    try:
+        return jsonify(
+            requests.get(
+                UserConfig["BanchoURL"] + "api/v1/serverStatus",
+                verify=False,
+                timeout=1,
+            ).json(),
+        )  # this url to provide a predictable result
+    except Exception as err:
+        print("[ERROR] /js/status/bancho: ", err)
+        return jsonify({"result": 0})
+
+
+# actions
+@app.route("/actions/comment/profile/<AccountID>")
+def panel_delete_profile_comments_action(AccountID: int):
+    """Wipe all comments made on this user's profile"""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        DeleteProfileComments(AccountID)
+
+        RAPLog(
+            session["AccountId"],
+            f"has removed all comments made on {Account['Username']}'s profile ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/comment/user/<AccountID>")
+def panel_delete_user_commants_action(AccountID: int):
+    """Wipe all comments made by this user"""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        DeleteUserComments(AccountID)
+
+        RAPLog(
+            session["AccountId"],
+            f"has removed all comments made by {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/wipe/<AccountID>")
+def panel_wipe_user_action(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeAccount(AccountID)
+        RAPLog(
+            session["AccountId"],
+            f"has wiped the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/wipeap/<AccountID>")
+def panel_wipe_user_ap_action(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeAutopilot(AccountID)
+        RAPLog(
+            session["AccountId"],
+            f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/wiperx/<AccountID>")
+def panel_wipe_user_rx_action(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeRelax(AccountID)
+        RAPLog(
+            session["AccountId"],
+            f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/wipeva/<AccountID>")
+def panel_wipe_user_va_action(AccountID: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 11):
+        Account = GetUser(AccountID)
+        WipeVanilla(AccountID)
+        RAPLog(
+            session["AccountId"],
+            f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/restrict/<id>")
+def panel_restict_user_action(id: int):
+    """The wipe action."""
+    if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
+        if ResUnTrict(id, request.args.get("note"), request.args.get("reason")):
+            RAPLog(
+                session["AccountId"],
+                f"has restricted the account {Account['Username']} ({id})",
+            )
+        else:
+            RAPLog(
+                session["AccountId"],
+                f"has unrestricted the account {Account['Username']} ({id})",
+            )
+        return redirect(f"/user/edit/{id}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/freeze/<id>")
+def panel_freeze_user_action(id: int):
+    if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
+        FreezeHandler(id)
+        RAPLog(
+            session["AccountId"],
+            f"has frozen the account {Account['Username']} ({id})",
+        )
+        return redirect(f"/user/edit/{id}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/ban/<id>")
+def panel_ban_user_action(id: int):
+    """Do the FBI to the person."""
+    if HasPrivilege(session["AccountId"], 5):
+        Account = GetUser(id)
+        if BanUser(id, request.args.get("reason")):
+            RAPLog(
+                session["AccountId"],
+                f"has banned the account {Account['Username']} ({id})",
+            )
+        else:
+            RAPLog(
+                session["AccountId"],
+                f"has unbanned the account {Account['Username']} ({id})",
+            )
+        return redirect(f"/user/edit/{id}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/hwid/<id>")
+def panel_wipe_user_hwid_action(id: int):
+    """Clear HWID matches."""
+    if HasPrivilege(session["AccountId"], 6):
+        Account = GetUser(id)
+        ClearHWID(id)
+        RAPLog(
+            session["AccountId"],
+            f"has cleared the HWID matches for the account {Account['Username']} ({id})",
+        )
+        return redirect(f"/user/edit/{id}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/delete/<id>")
+def panel_delete_user_action(id: int):
+    """Account goes bye bye forever."""
+    if HasPrivilege(session["AccountId"], 6):
+        AccountToBeDeleted = GetUser(id)
+        DeleteAccount(id)
+        RAPLog(
+            session["AccountId"],
+            f"has deleted the account {AccountToBeDeleted['Username']} ({id})",
+        )
+        return redirect("/users/1")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/kick/<id>")
+def panel_kick_user_action(id: int):
+    """Kick from bancho"""
+    if HasPrivilege(session["AccountId"], 12):
+        Account = GetUser(id)
+        BanchoKick(id, "You have been kicked by an admin!")
+        RAPLog(
+            session["AccountId"],
+            f"has kicked the account {Account['Username']} ({id})",
+        )
+        return redirect(f"/user/edit/{id}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/deletebadge/<id>")
+def panel_delete_badge_action(id: int):
+    if HasPrivilege(session["AccountId"], 4):
+        DeleteBadge(id)
+        RAPLog(session["AccountId"], f"deleted the badge with the ID of {id}")
+        return redirect(url_for("panel_view_badges"))
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/createbadge")
+def panel_create_badge_action():
+    if HasPrivilege(session["AccountId"], 4):
+        Badge = CreateBadge()
+        RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
+        return redirect(f"/badge/edit/{Badge}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/actions/createprivilege")
+def panel_create_privilege_action():
+    if HasPrivilege(session["AccountId"], 13):
+        PrivID = CreatePrivilege()
+        RAPLog(
+            session["AccountId"],
+            f"Created a new privilege group with the ID of {PrivID}",
+        )
+        return redirect(f"/privilege/edit/{PrivID}")
+    return no_permission_response(request.path)
+
+
+@app.route("/actions/deletepriv/<PrivID>")
+def panel_delete_privilege_action(PrivID: int):
+    if HasPrivilege(session["AccountId"], 13):
+        PrivData = GetPriv(PrivID)
+        DelPriv(PrivID)
+        RAPLog(
+            session["AccountId"],
+            f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})",
+        )
+        return redirect(url_for("panel_view_privileges"))
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/action/rankset/<BeatmapSet>")
+def panel_rank_set_action(BeatmapSet: int):
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 2, session)
+        RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/action/loveset/<BeatmapSet>")
+def panel_love_set_action(BeatmapSet: int):
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 5, session)
+        RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/action/unrankset/<BeatmapSet>")
+def panel_unrank_set_action(BeatmapSet: int):
+    if HasPrivilege(session["AccountId"], 3):
+        SetBMAPSetStatus(BeatmapSet, 0, session)
+        RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/action/deleterankreq/<ReqID>")
+def panel_complete_rank_request_action(ReqID):
+    if HasPrivilege(session["AccountId"], 3):
+        DeleteBmapReq(ReqID)
+        return redirect("/rankreq/1")
+    else:
+        return no_permission_response(request.path)
+
+
+@app.route("/action/kickclan/<AccountID>")
+def panel_kick_user_from_clan_action(AccountID):
+    if HasPrivilege(session["AccountId"], 15):
+        KickFromClan(AccountID)
+        return redirect("/clans/1")
+    return no_permission_response(request.path)
 
 
 # error handlers
@@ -1216,16 +1136,15 @@ def BeforeRequest():
             session[x] = ServSession[x]
 
 
-def NoPerm(session, path):
+def no_permission_response(path: str):
     """If not logged it, returns redirect to login. Else 403s. This is for convienience when page is reloaded after restart."""
     if session["LoggedIn"]:
         return render_template("403.html")
-    else:
-        return redirect(f"/login?redirect={path}")
+
+    return redirect(f"/login?redirect={path}")
 
 
 if __name__ == "__main__":
     Thread(target=PlayerCountCollection, args=(True,)).start()
-    UpdateCachedStore()
     app.run(host="127.0.0.1", port=UserConfig["Port"], threaded=False)
     handleUpdate()  # handle update...
