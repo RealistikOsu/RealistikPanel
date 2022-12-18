@@ -171,7 +171,6 @@ def BanchoSettings():
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog("Error while editing bancho settings!", f"{e}", 3)
                 return render_template(
                     "banchosettings.html",
                     preset=FetchBSData(),
@@ -221,7 +220,6 @@ def RankMap(id):
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog(f"Error while ranking beatmap ({id})!", f"{e}", 3)
                 return render_template(
                     "beatrank.html",
                     title="Rank Beatmap!",
@@ -335,7 +333,6 @@ def SystemSettings():
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog("Error while editing system settings!", f"{e}", 3)
                 return render_template(
                     "syssettings.html",
                     data=DashData(),
@@ -394,7 +391,6 @@ def EditUser(id):
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog("Error while editing user!", f"{e}", 3)
                 return render_template(
                     "edituser.html",
                     data=DashData(),
@@ -533,7 +529,6 @@ def EditBadge(BadgeID: int):
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog("Error while editing badge!", f"{e}", 3)
                 return render_template(
                     "editbadge.html",
                     data=DashData(),
@@ -593,7 +588,6 @@ def EditPrivilege(Privilege: int):
                 )
             except Exception as e:
                 print(e)
-                ConsoleLog("Error while editing privilege!", f"{e}", 3)
                 Priv = GetPriv(Privilege)
                 return render_template(
                     "editprivilege.html",
@@ -604,21 +598,6 @@ def EditPrivilege(Privilege: int):
                     privileges=Priv,
                     error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
-    else:
-        return NoPerm(session, request.path)
-
-
-@app.route("/console")
-def Console():
-    if HasPrivilege(session["AccountId"], 14):
-        return render_template(
-            "consolelogs.html",
-            data=DashData(),
-            session=session,
-            title="Console Logs",
-            config=UserConfig,
-            logs=GetLog(),
-        )
     else:
         return NoPerm(session, request.path)
 
@@ -1224,8 +1203,6 @@ def not_found_error_handler(_):
 
 @app.errorhandler(500)
 def code_error_handler(error):
-    ConsoleLog("Misc unhandled error!", f"{error}", 3)
-
     return render_template("500.html")
 
 
