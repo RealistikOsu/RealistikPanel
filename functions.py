@@ -5,7 +5,6 @@ import datetime
 import hashlib
 import json
 import math
-import os
 import random
 import string
 import time
@@ -67,7 +66,7 @@ try:
         port=UserConfig["RedisPort"],
         password=UserConfig["RedisPassword"],
         db=UserConfig["RedisDb"],
-    )  # establishes redis connection
+    )
     print(f"{Fore.GREEN} Successfully connected to Redis!")
 except Exception as e:
     print(
@@ -77,8 +76,8 @@ except Exception as e:
 
 mycursor = mydb.cursor(
     buffered=True,
-)  # creates a thing to allow us to run mysql commands
-mycursor.execute(f"USE {UserConfig['SQLDatabase']}")  # Sets the db to ripple
+)
+mycursor.execute(f"USE {UserConfig['SQLDatabase']}")
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 # fix potential crashes
@@ -110,7 +109,7 @@ def decode_int_or(value: Optional[bytes], default: int = 0) -> int:
     return int(value.decode("utf-8"))
 
 
-def DashData() -> dict:
+def load_dashboard_data() -> dict:
     """Grabs all the values for the dashboard."""
     mycursor.execute(
         "SELECT value_string FROM system_settings WHERE name = 'website_global_alert'",
@@ -121,18 +120,18 @@ def DashData() -> dict:
     else:
         alert_message = alert[0]
 
-    totalPP = decode_int_or(r.get("ripple:total_pp"))
-    RegisteredUsers = decode_int_or(r.get("ripple:registered_users"))
-    OnlineUsers = decode_int_or(r.get("ripple:online_users"))
-    TotalPlays = decode_int_or(r.get("ripple:total_plays"))
-    TotalScores = decode_int_or(r.get("ripple:total_submitted_scores"))
+    total_pp = decode_int_or(r.get("ripple:total_pp"))
+    registered_users = decode_int_or(r.get("ripple:registered_users"))
+    online_users = decode_int_or(r.get("ripple:online_users"))
+    total_plays = decode_int_or(r.get("ripple:total_plays"))
+    total_scores = decode_int_or(r.get("ripple:total_submitted_scores"))
 
     response = {
-        "RegisteredUsers": RegisteredUsers,
-        "OnlineUsers": OnlineUsers,
-        "TotalPP": f"{int(totalPP):,}",
-        "TotalPlays": f"{int(TotalPlays):,}",
-        "TotalScores": f"{int(TotalScores):,}",
+        "RegisteredUsers": registered_users,
+        "OnlineUsers": online_users,
+        "TotalPP": f"{total_pp:,}",
+        "TotalPlays": f"{total_plays:,}",
+        "TotalScores": f"{total_scores:,}",
         "Alert": alert_message,
     }
     return response
@@ -211,7 +210,7 @@ LIMIT %s
 """
 
 
-def RecentPlays(total_plays: int = 20, minimum_pp: int = 0):
+def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
     """Returns recent plays."""
     divisor = 1
     if UserConfig["HasRelax"]:
@@ -299,53 +298,43 @@ def FetchBSData() -> dict:
     }
 
 
-def BSPostHandler(post, session):
-    BanchoMan = post[0]
-    MenuIcon = post[1]
-    LoginNotif = post[2]
-
+def handle_bancho_settings_edit(
+    bancho_maintenence: str,
+    menu_icon: str,
+    login_notification: str,
+    user_id: int,
+) -> None:
     # setting blanks to bools
-    if BanchoMan == "On":
-        BanchoMan = True
-    else:
-        BanchoMan = False
-    if MenuIcon == "":
-        MenuIcon = False
-    if LoginNotif == "":
-        LoginNotif = False
+    bancho_maintenence = bancho_maintenence == "On"
 
     # SQL Queries
-    if MenuIcon != False:  # this might be doable with just if not BanchoMan
+    if menu_icon:
         mycursor.execute(
             "UPDATE bancho_settings SET value_string = %s, value_int = 1 WHERE name = 'menu_icon'",
-            (MenuIcon,),
+            (menu_icon,),
         )
     else:
         mycursor.execute(
             "UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'menu_icon'",
         )
 
-    if LoginNotif != False:
+    if login_notification:
         mycursor.execute(
             "UPDATE bancho_settings SET value_string = %s, value_int = 1 WHERE name = 'login_notification'",
-            (LoginNotif,),
+            (login_notification,),
         )
     else:
         mycursor.execute(
             "UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'login_notification'",
         )
 
-    if BanchoMan:
-        mycursor.execute(
-            "UPDATE bancho_settings SET value_int = 1 WHERE name = 'bancho_maintenance'",
-        )
-    else:
-        mycursor.execute(
-            "UPDATE bancho_settings SET value_int = 0 WHERE name = 'bancho_maintenance'",
-        )
+    mycursor.execute(
+        "UPDATE bancho_settings SET value_int = %s WHERE name = 'bancho_maintenance'",
+        (int(bancho_maintenence),),
+    )
 
     mydb.commit()
-    RAPLog(session["AccountId"], "modified the bancho settings")
+    RAPLog(user_id, "modified the bancho settings")
 
 
 def GetBmapInfo(id):
@@ -1643,18 +1632,18 @@ def FindWithIp(Ip):
 def PlayerCountCollection(loop=True):
     """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
     while loop:
-        CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
+        CurrentCount = decode_int_or(r.get("ripple:online_users"), 0)
         PlayerCount.append(CurrentCount)
         time.sleep(UserConfig["UserCountFetchRate"] * 60)
         # so graph doesnt get too huge
         if len(PlayerCount) >= 100:
             PlayerCount.remove(PlayerCount[0])
     if not loop:
-        CurrentCount = int(r.get("ripple:online_users").decode("utf-8"))
+        CurrentCount = decode_int_or(r.get("ripple:online_users"), 0)
         PlayerCount.append(CurrentCount)
 
 
-def DashActData():
+def get_playcount_graph_data():
     """Returns data for dash graphs."""
     Data = {}
     Data["PlayerCount"] = json.dumps(PlayerCount)  # string for easier use in js
@@ -2592,7 +2581,7 @@ def GetStatistics(MinPP=0):
         RegisterList.append(GetUsersRegisteredBetween(24 * Days))
         Days -= 1
     UsersActiveToday = GetUsersActiveBetween()
-    RecentPlay = RecentPlays(500, MinPP)
+    RecentPlay = get_recent_plays(500, MinPP)
     ResctictedCount = CountRestricted()
 
     return {

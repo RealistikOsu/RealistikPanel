@@ -42,7 +42,7 @@ def load_panel_template(file: str, title: str, **kwargs) -> str:
         file,
         title=title,
         session=session,
-        data=DashData(),
+        data=load_dashboard_data(),
         config=UserConfig,
         **kwargs,
     )
@@ -64,13 +64,21 @@ def panel_dashboard():
     return load_panel_template(
         title="Dashboard",
         file="dash.html",
-        plays=RecentPlays(),
-        Graph=DashActData(),
+        plays=get_recent_plays(),
+        Graph=get_playcount_graph_data(),
         MostPlayed=GetMostPlayed(),
     )
 
 
 IP_REDIRS = {}
+
+# TODO: MOVE
+def _set_session(new_session: dict) -> None:
+    session.clear()
+
+    for key, value in new_session.items():
+        session[key] = value
+
 
 # TODO: rework
 @app.route("/login", methods=["GET", "POST"])
@@ -95,9 +103,7 @@ def panel_login():
                     conf=UserConfig,
                 )
             else:
-                # TODO: Write an abstraction for setting session data.
-                for key in data:
-                    session[key] = data[key]  # type: ignore
+                _set_session(data)
 
                 redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
                 if redir:
@@ -111,8 +117,7 @@ def panel_login():
 
 @app.route("/logout")
 def panel_session_logout():
-    for key in ServSession:
-        session[key] = ServSession[key]
+    _set_session(ServSession)
     return redirect(url_for("panel_home_redirect"))
 
 
@@ -124,14 +129,12 @@ def panel_bancho_settings():
     error = success = None
     if request.method == "POST":
         try:
-            BSPostHandler(
-                [
-                    request.form["banchoman"],
-                    request.form["mainmemuicon"],
-                    request.form["loginnotif"],
-                ],
-                session,
-            )  # handles all the changes
+            handle_bancho_settings_edit(
+                request.form["banchoman"],
+                request.form["mainmemuicon"],
+                request.form["loginnotif"],
+                int(session["AccountId"]),
+            )
             success = "Bancho settings were successfully edited!"
         except Exception as e:
             error = f"Failed to save Bancho settings with error {e}!"
@@ -240,7 +243,7 @@ def panel_system_settings():
         if request.method == "GET":
             return render_template(
                 "syssettings.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title="System Settings",
                 SysData=SystemSettingsValues(),
@@ -260,7 +263,7 @@ def panel_system_settings():
                 )  # why didnt i just pass request
                 return render_template(
                     "syssettings.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="System Settings",
                     SysData=SystemSettingsValues(),
@@ -271,7 +274,7 @@ def panel_system_settings():
                 print(e)
                 return render_template(
                     "syssettings.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="System Settings",
                     SysData=SystemSettingsValues(),
@@ -288,7 +291,7 @@ def panel_edit_user(id):
         if HasPrivilege(session["AccountId"], 6):
             return render_template(
                 "edituser.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title="Edit User",
                 config=UserConfig,
@@ -312,7 +315,7 @@ def panel_edit_user(id):
                 )
                 return render_template(
                     "edituser.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Edit User",
                     config=UserConfig,
@@ -329,7 +332,7 @@ def panel_edit_user(id):
                 print(e)
                 return render_template(
                     "edituser.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Edit User",
                     config=UserConfig,
@@ -351,7 +354,7 @@ def panel_view_logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template(
             "raplogs.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Logs",
             config=UserConfig,
@@ -372,7 +375,7 @@ def panel_delete_user_confirm(id):
         AccountToBeDeleted = GetUser(id)
         return render_template(
             "confirm.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Confirmation Required",
             config=UserConfig,
@@ -391,7 +394,7 @@ def panel_view_user_ip(ip):
         UserLen = len(IPUserLookup)
         return render_template(
             "iplookup.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="IP Lookup",
             config=UserConfig,
@@ -408,7 +411,7 @@ def panel_view_ban_logs(page):
     if HasPrivilege(session["AccountId"], 7):
         return render_template(
             "ban_logs.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Ban Logs",
             config=UserConfig,
@@ -425,7 +428,7 @@ def panel_view_badges():
     if HasPrivilege(session["AccountId"], 4):
         return render_template(
             "badges.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Badges",
             config=UserConfig,
@@ -441,7 +444,7 @@ def panel_edit_badge(BadgeID: int):
         if request.method == "GET":
             return render_template(
                 "editbadge.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title="Edit Badge",
                 config=UserConfig,
@@ -456,7 +459,7 @@ def panel_edit_badge(BadgeID: int):
                 )
                 return render_template(
                     "editbadge.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Edit Badge",
                     config=UserConfig,
@@ -467,7 +470,7 @@ def panel_edit_badge(BadgeID: int):
                 print(e)
                 return render_template(
                     "editbadge.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Edit Badge",
                     config=UserConfig,
@@ -483,7 +486,7 @@ def panel_view_privileges():
     if HasPrivilege(session["AccountId"], 13):
         return render_template(
             "privileges.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Privileges",
             config=UserConfig,
@@ -499,7 +502,7 @@ def panel_edit_privilege(Privilege: int):
         if request.method == "GET":
             return render_template(
                 "editprivilege.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title="Privileges",
                 config=UserConfig,
@@ -515,7 +518,7 @@ def panel_edit_privilege(Privilege: int):
                 )
                 return render_template(
                     "editprivilege.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Privileges",
                     config=UserConfig,
@@ -527,7 +530,7 @@ def panel_edit_privilege(Privilege: int):
                 Priv = GetPriv(Privilege)
                 return render_template(
                     "editprivilege.html",
-                    data=DashData(),
+                    data=load_dashboard_data(),
                     session=session,
                     title="Privileges",
                     config=UserConfig,
@@ -543,7 +546,7 @@ def panel_view_changelogs():
     if HasPrivilege(session["AccountId"]):
         return render_template(
             "changelog.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Change Logs",
             config=UserConfig,
@@ -594,7 +597,7 @@ def panel_edit_user_password(AccountID):
             User = GetUser(int(AccountID))
             return render_template(
                 "changepass.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title=f"Change the Password for {User['Username']}",
                 config=UserConfig,
@@ -615,7 +618,7 @@ def panel_award_user_donor(AccountID):
             User = GetUser(int(AccountID))
             return render_template(
                 "donoraward.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title=f"Award Donor to {User['Username']}",
                 config=UserConfig,
@@ -647,7 +650,7 @@ def panel_view_rank_requests(Page):
     if HasPrivilege(session["AccountId"], 3):
         return render_template(
             "rankreq.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Ranking Requests",
             config=UserConfig,
@@ -663,7 +666,7 @@ def panel_view_clans(Page):
     if HasPrivilege(session["AccountId"], 15):
         return render_template(
             "clansview.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Clans",
             config=UserConfig,
@@ -681,7 +684,7 @@ def panel_edit_clan(ClanID):
         if request.method == "GET":
             return render_template(
                 "editclan.html",
-                data=DashData(),
+                data=load_dashboard_data(),
                 session=session,
                 title="Clans",
                 config=UserConfig,
@@ -693,7 +696,7 @@ def panel_edit_clan(ClanID):
         ApplyClanEdit(request.form, session)
         return render_template(
             "editclan.html",
-            data=DashData(),
+            data=load_dashboard_data(),
             session=session,
             title="Clans",
             config=UserConfig,
