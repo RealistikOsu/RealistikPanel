@@ -35,15 +35,8 @@ DefaultConfig = {  # THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
     "HasAutopilot": True,
     "AvatarDir": "/home/RIPPLE/avatarserver/av/",
     "Webhook": "",  # Discord webhook for posting newly ranked maps
-    # Recaptcha v2 for the login page
-    "UseRecaptcha": False,
-    "RecaptchaSecret": "",
-    "RecaptchaSiteKey": "",
     # RealistikPanel Settings
     "PageSize": 50,  # number of elements per page
-    "SecretKey": b64encode(urandom(64)).decode(
-        "utf-8",
-    ),  # generates random encryption key
     "DevBuild": False,  # for developers only to create a new buildinfo.json code
     "UserCountFetchRate": 5,  # In minutes. The interval between grabbing the player count
     "GitHubRepo": "https://github.com/RealistikOsu/RealistikPanel",  # AGPL requirement i believe
