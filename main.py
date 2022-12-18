@@ -24,7 +24,6 @@ from updater import *
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 print(f" {Fore.BLUE}Running Build {GetBuild()}")
-ConsoleLog(f"RealistikPanel (Build {GetBuild()}) started!")
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # encrypts the session cookie
