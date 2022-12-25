@@ -19,7 +19,6 @@ from panel import web
 from panel.config import config
 from panel.defaults import *
 from panel.functions import *
-from panel.updater import handle_update
 from panel.web.responses import load_panel_template
 
 # TODO: Make better routers.
