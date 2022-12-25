@@ -1,19 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Danger Area!</h2>
-<div class="card card-danger">
-    <div class="card-header">
-        Are you sure you want to <b>{{ action }}</b>
-    </div>
+  <h2 class="section-title">Danger Area!</h2>
+  <div class="card card-danger">
+    <div class="card-header">Are you sure you want to <b>{{ action }}</b></div>
     <div class="card-body">
-        <b style="color: #eb4034;">THIS ACTION CAN BE REALLY DANGEROUS! PROCEED ONLY IF YOU KNOW WHAT YOURE DOING!</b><br>
-        <div class="buttons">
-            <a href="{{ yeslink }}" class="btn btn-danger">I know what I'm doing.</a>
-            <a href="{{ backlink }}" class="btn btn-success">Bring me back to safety!</a>
-        </div>
+      <b style="color: #eb4034;"
+        >THIS ACTION CAN BE REALLY DANGEROUS! PROCEED ONLY IF YOU KNOW WHAT
+        YOURE DOING!</b
+      ><br />
+      <div class="buttons">
+        <a href="{{ yeslink }}" class="btn btn-danger"
+          >I know what I'm doing.</a
+        >
+        <a href="{{ backlink }}" class="btn btn-success"
+          >Bring me back to safety!</a
+        >
+      </div>
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel</div>
+  </div>
 {% endblock %}

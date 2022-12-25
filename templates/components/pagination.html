@@ -1,0 +1,79 @@
+{%- macro pagination(pagination_url, page, pages) -%}
+  <div style="justify-content: center; display: flex;">
+    <ul class="pagination" style="display: block ruby">
+      <li class="page-item" id="first-page">
+        <a class="page-link" href="{{ pagination_url }}/1" aria-label="First">
+          <span aria-hidden="true">««</span>
+          <span class="sr-only">First</span>
+        </a>
+      </li>
+      <li class="page-item" id="page-before">
+        <a
+          class="page-link"
+          href="{{ pagination_url }}/{{ page-1 }}"
+          aria-label="Previous"
+        >
+          <span aria-hidden="true">«</span>
+          <span class="sr-only">Previous</span>
+        </a>
+      </li>
+      <span id="page-items"></span>
+      <li class="page-item" id="page-after">
+        <a
+          class="page-link"
+          href="{{ pagination_url }}/{{ page+1 }}"
+          aria-label="Next"
+        >
+          <span aria-hidden="true">»</span>
+          <span class="sr-only">Next</span>
+        </a>
+      </li>
+      <li class="page-item" id="last-page">
+        <a
+          class="page-link"
+          href="{{ pagination_url }}/{{ pages }}"
+          aria-label="Last"
+        >
+          <span aria-hidden="true">»»</span>
+          <span class="sr-only">Last</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+{%- endmacro -%}
+{%- macro paginationJs(pagination_url, page, pages) -%}
+  <script>
+    // cap = 10
+    const pageItems = document.querySelectorAll("[id=page-items]");
+    const pageLen = parseInt("{{ pages }}") + 1;
+    const page = parseInt("{{ page }}");
+    const plen = Math.max(page - 5, 1);
+
+    for (let i = plen; i < Math.min(plen + 5 * 2, pageLen); i++) {
+      pageItems.forEach((value) => {
+        value.innerHTML += `
+            <li class="page-item ${i == page ? "active" : ""}">
+                <a class="page-link" href="{{ pagination_url }}/${i}">${i}</a>
+            </li>
+        `;
+      });
+    }
+
+    if (page <= 1) {
+      document.querySelectorAll("[id=page-before]").forEach((value) => {
+        value.classList.add("disabled");
+      });
+      document.querySelectorAll("[id=first-page]").forEach((value) => {
+        value.classList.add("disabled");
+      });
+    }
+    if (page >= pageLen - 1) {
+      document.querySelectorAll("[id=page-after]").forEach((value) => {
+        value.classList.add("disabled");
+      });
+      document.querySelectorAll("[id=last-page]").forEach((value) => {
+        value.classList.add("disabled");
+      });
+    }
+  </script>
+{%- endmacro -%}

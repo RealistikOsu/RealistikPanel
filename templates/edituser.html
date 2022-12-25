@@ -1,284 +1,439 @@
 {% extends "base.html" %}
-
 {% block head %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/static/css/selectize.bootstrap4.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
+    integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk="
+    crossorigin="anonymous"
+  ></script>
+  <link rel="stylesheet" href="/static/css/selectize.bootstrap4.css" />
 
-<script>
-    document.addEventListener('DOMContentLoaded', function(event) {
-        $('#countryselect').selectize({
-			create: true,
-			sortField: {
-				field: 'text',
-				direction: 'asc'
-			},
-			//dropdownParent: 'body'
-		});
+  <script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+      $("#countryselect").selectize({
+        create: true,
+        sortField: {
+          field: "text",
+          direction: "asc",
+        },
+        //dropdownParent: 'body'
+      });
     });
-</script>
+  </script>
 {% endblock %}
-
 {% block content %}
-<h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
+  <h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
 
-<div class="card">
+  <div class="card">
     <div class="card-header">
-        <img alt="image" src="{{ config.api_avatar_url }}{{ UserData['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        <h4><b>{{ UserData['Username'] }}</b> | </h4>
-        {% if UserData["IsOnline"] %}
+      <img
+        alt="image"
+        src="{{ config.api_avatar_url }}{{ UserData['Id'] }}"
+        class="rounded-circle mr-1"
+        style="width:100%; max-width:30px; max-height:30px;"
+      />
+      <h4><b>{{ UserData['Username'] }}</b> |</h4>
+      {% if UserData["IsOnline"] %}
         <span style="color: #32a852;">● Online</span>
-        {% else %}
+      {% else %}
         <span style="color: #eb4034;">● Offline</span>
-        {% endif %}
+      {% endif %}
     </div>
     <div class="card-body">
-        <b>{{ UserData['Username'] }}</b> is a player from {{ UserData["CountryFull"] }}
-        {% if UserData['Country'] == "XX" %}
-        <img src="https://ussr.pl/static/images/new-flags/xx.png" class="nflag"><br>
-        {% else %}
-        <img src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg" class="nflag"><br>
-        {% endif %}
-        Their status on {{ config.srv_name }} is
-        {% if UserData["Privileges"] >= 3 %}
+      <b>{{ UserData['Username'] }}</b> is a player from
+      {{ UserData["CountryFull"] }}
+      {% if UserData['Country'] == "XX" %}
+        <img
+          src="https://ussr.pl/static/images/new-flags/xx.png"
+          class="nflag"
+        /><br />
+      {% else %}
+        <img
+          src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg"
+          class="nflag"
+        /><br />
+      {% endif %}
+      Their status on {{ config.srv_name }} is
+      {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
-        {% else %}
+      {% else %}
         <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
-        {% endif %}
-        {% if UserData["HasSupporter"] %}
-        <br>
-        <span style="color: #e8b923;">Their Donor rank expires <b>{{ UserData["DonorExpireStr"] }}</b>.</span>
-        {% endif %}
-        {% if UserData["IsSilenced"] %}
-        <br>
-        <span style="color: #eb4034;">They are currently silenced for the reason: <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced {{ UserData["SilenceEndAgo"] }}.</span>
-        {% endif %}
-        {% if UserData["IsBanned"] %}
-        <br>
-        <span style="color: #eb4034;">They were banned {{ UserData["BanedAgo"] }}</span>
-        {% endif %}
-        {% if UserData["IsFrozen"] %}
-        <br>
-        <span style="color: #eb4034;">They are currently frozen. They will be autorestricted {{ UserData["FreezeDate"] }} if they do not submit a liveplay.</span>
-        {% endif %}
+      {% endif %}
+      {% if UserData["HasSupporter"] %}
+        <br />
+        <span style="color: #e8b923;"
+          >Their Donor rank expires
+          <b>{{ UserData["DonorExpireStr"] }}</b>.</span
+        >
+      {% endif %}
+      {% if UserData["IsSilenced"] %}
+        <br />
+        <span style="color: #eb4034;"
+          >They are currently silenced for the reason:
+          <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced
+          {{ UserData["SilenceEndAgo"] }}.</span
+        >
+      {% endif %}
+      {% if UserData["IsBanned"] %}
+        <br />
+        <span style="color: #eb4034;"
+          >They were banned {{ UserData["BanedAgo"] }}</span
+        >
+      {% endif %}
+      {% if UserData["IsFrozen"] %}
+        <br />
+        <span style="color: #eb4034;"
+          >They are currently frozen. They will be autorestricted
+          {{ UserData["FreezeDate"] }}
+          if they do not submit a liveplay.</span
+        >
+      {% endif %}
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
-<div class="card">
+    <div class="card-footer">RealistikPanel</div>
+  </div>
+  <div class="card">
     <div class="card-header">
-        <h4>Edit</h4>
+      <h4>Edit</h4>
     </div>
     <div class="card-body">
-        <form action="/user/edit/{{ UserData['Id'] }}" method="post">
-            <div class="form-group">
-                <label>User ID</label>
-                <input type="text" class="form-control" name="userid" value="{{ UserData['Id'] }}" readonly>
-            </div>
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" class="form-control" name="username" value="{{ UserData['Username'] }}">
-            </div>
-            <div class="form-group">
-                <label>Also known as</label>
-                <input type="text" class="form-control" name="aka" value="{{ UserData['Aka'] }}">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="text" class="form-control" name="email" value="{{ UserData['Email'] }}">
-            </div>
-            <div class="form-group">
-                <label>Country</label>
-                {% include 'countryselect.html' %}
-            </div>
-            <div class="form-group">
-                <label>User Page</label>
-                <textarea type="text" class="form-control" name="userpage" rows=15>{{ UserData['UserpageContent'] }}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Privilege</label>
-                <select name="privilege" class="form-control" id="privselect">
-                    {% for priv in Privs %}
-                    {% if priv["Priv"] == UserData["Privileges"] %}
-                    <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
-                    {% else %}
-                    <option value="{{ priv['Priv'] }}">{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
-                    {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Badges</label>
-                <select name="Badge1" class="form-control" id="Badge1">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select><br>
-                <select name="Badge2" class="form-control" id="Badge2">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select><br>
-                <select name="Badge3" class="form-control" id="Badge3">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select><br>
-                <select name="Badge4" class="form-control" id="Badge4">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select><br>
-                <select name="Badge5" class="form-control" id="Badge5">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select><br>
-                <select name="Badge6" class="form-control" id="Badge6">
-                    {% for badge in badges %}
-                    <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Admin Notes</label>
-                <textarea type="text" class="form-control" name="notes" rows=15>{{ UserData['Notes'] }}</textarea>
-            </div>
-            <div class="form-group">
-                <label>HWID Bypass:</label>
-                <select name="hwid_bypass" class="form-control">
-                    {% if UserData["BypassHWID"] %}
-                        <option value="1" selected>Yes</option>
-                        <option value="0">No</option>
-                    {% else %}
-                        <option value="1">Yes</option>
-                        <option value="0" selected>No</option>
-                    {% endif %}
-                </select>
-            </div>
-            {% if ShowIPs %}
-            <div class="form-group" id="iptext">
-                <b>IP: </b>{{ UserData['Ip'] }}
-            </div>
-            {% endif %}
-            <button class="btn btn-success" type="submit" name="">Apply!</button>
-        </form>
-    </div>
-</div>
-<h2 class="section-title">{{ UserData['Username'] }}'s Ban Logs</h2>
-{% if ban_logs %}
-{% for log in ban_logs %}
-
-<div class= "card">
-    <div class="card-header">
-        <img alt="image" src="https://a.ussr.pl/{{ log["from_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        <h4>{{ log["from_name"] }}</h4> to
-        <img alt="image" src="https://a.ussr.pl/{{ log["to_id"] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;">
-        <h4>{{ log["to_name"] }}</h4> for {{ log["summary"] }}
-    </div>
-    <div class="card-body">
-        {{ log["detail"] }}
-    </div>
-    <div class="card-footer">
-        Banned {{ log["expity_timeago"] }}
-    </div>
-</div>
-
-{% endfor %}
-{% else %}
-<div>{{ UserData['Username'] }} has no ban logs associated with them.</div>
-{% endif %}
-<h2 class="section-title">{{ UserData['Username'] }}'s Hardware Information</h2>
-<div class="card">
-    <div class="card-header">
-        <h4>Hardware Log History</h4>
-    </div>
-    <div class="card-body">
-        {{ UserData['Username'] }} has a total of <b>{{ hwid_count }}</b> HWID logs.
-        <div class="buttons">
-            <a href="/user/hwid/{{ UserData['Id'] }}/1" class="btn btn-success">View HWIDs</a>
-        </div>
-    </div>
-</div>
-<h2 class="section-title">Admin Centre</h2>
-<div class="card">
-    <div class="card-header">
-        <h4>Community Management</h4>
-    </div>
-    <div class="card-body">
+      <form action="/user/edit/{{ UserData['Id'] }}" method="post">
         <div class="form-group">
-            <label>Ban Reason</label>
-            <textarea class="form-control" id="ban_reason">{{ UserData["BanReason"] }}</textarea>
+          <label>User ID</label>
+          <input
+            type="text"
+            class="form-control"
+            name="userid"
+            value="{{ UserData['Id'] }}"
+            readonly
+          />
         </div>
-        <div class="buttons">
-            <a href="javascript:restrictUser('{{ UserData['Id'] }}')" class="btn btn-danger">Restrict/Unrestrict</a>
-            <a href="javascript:banUser('{{ UserData['Id'] }}')" class="btn btn-danger" id="ban">Ban/Unban</a>
+        <div class="form-group">
+          <label>Username</label>
+          <input
+            type="text"
+            class="form-control"
+            name="username"
+            value="{{ UserData['Username'] }}"
+          />
         </div>
-
-        {% if UserData["IsBanned"] %}
-            <b>Banned Since: </b><span>{{ UserData["BanedAgo"] }}</span>
+        <div class="form-group">
+          <label>Also known as</label>
+          <input
+            type="text"
+            class="form-control"
+            name="aka"
+            value="{{ UserData['Aka'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="text"
+            class="form-control"
+            name="email"
+            value="{{ UserData['Email'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          {% include 'components/countryselect.html' %}
+        </div>
+        <div class="form-group">
+          <label>User Page</label>
+          <textarea type="text" class="form-control" name="userpage" rows="15">
+            {{ UserData['UserpageContent'] }}
+            </textarea
+          >
+        </div>
+        <div class="form-group">
+          <label>Privilege</label>
+          <select name="privilege" class="form-control" id="privselect">
+            {% for priv in Privs %}
+              {% if priv["Priv"] == UserData["Privileges"] %}
+                <option value="{{ priv['Priv'] }}" selected>
+                  {{ priv['Name'] }}
+                  ({{ priv['Priv'] }})
+                </option>
+              {% else %}
+                <option value="{{ priv['Priv'] }}">
+                  {{ priv['Name'] }}
+                  ({{ priv['Priv'] }})
+                </option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Badges</label>
+          <select name="Badge1" class="form-control" id="Badge1">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}</select
+          ><br />
+          <select name="Badge2" class="form-control" id="Badge2">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}</select
+          ><br />
+          <select name="Badge3" class="form-control" id="Badge3">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}</select
+          ><br />
+          <select name="Badge4" class="form-control" id="Badge4">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}</select
+          ><br />
+          <select name="Badge5" class="form-control" id="Badge5">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}</select
+          ><br />
+          <select name="Badge6" class="form-control" id="Badge6">
+            {% for badge in badges %}
+              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Admin Notes</label>
+          <textarea type="text" class="form-control" name="notes" rows="15">
+            {{ UserData['Notes'] }}
+            </textarea
+          >
+        </div>
+        <div class="form-group">
+          <label>HWID Bypass:</label>
+          <select name="hwid_bypass" class="form-control">
+            {% if UserData["BypassHWID"] %}
+              <option value="1" selected>Yes</option>
+              <option value="0">No</option>
+            {% else %}
+              <option value="1">Yes</option>
+              <option value="0" selected>No</option>
+            {% endif %}
+          </select>
+        </div>
+        {% if ShowIPs %}
+          <div class="form-group" id="iptext">
+            <b>IP: </b>{{ UserData['Ip'] }}
+          </div>
         {% endif %}
+        <button class="btn btn-success" type="submit" name="">Apply!</button>
+      </form>
     </div>
-</div>
-<div class="card">
+  </div>
+  <h2 class="section-title">{{ UserData['Username'] }}'s Ban Logs</h2>
+  {% if ban_logs %}
+    {% for log in ban_logs %}
+      <div class="card">
+        <div class="card-header">
+          <img
+            alt="image"
+            src="https://a.ussr.pl/{{ log["from_id"] }}"
+            class="rounded-circle mr-1"
+            style="width:100%; max-width:30px; max-height:30px;"
+          />
+          <h4>{{ log["from_name"] }}</h4>
+          to
+          <img
+            alt="image"
+            src="https://a.ussr.pl/{{ log["to_id"] }}"
+            class="rounded-circle mr-1"
+            style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;"
+          />
+          <h4>{{ log["to_name"] }}</h4>
+          for {{ log["summary"] }}
+        </div>
+        <div class="card-body">
+          {{ log["detail"] }}
+        </div>
+        <div class="card-footer">Banned {{ log["expity_timeago"] }}</div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div>{{ UserData['Username'] }} has no ban logs associated with them.</div>
+  {% endif %}
+  <h2 class="section-title">
+    {{ UserData['Username'] }}'s
+    Hardware Information
+  </h2>
+  <div class="card">
     <div class="card-header">
-        <h4>Admin Actions</h4>
+      <h4>Hardware Log History</h4>
     </div>
     <div class="card-body">
-        This is the <b>danger zone!</b> These actions could mess up someone's profile if done without reason.
-        <p></p>
-        <div class="buttons">
-            <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success">IP Lookup</a>
-            <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning">Change Password</a>
-            <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning">Award Donor</a>
-            {% if UserData["HasSupporter"] %}
-            <a href="/donorremove/{{ UserData['Id'] }}" class="btn btn-warning">Remove Donor</a>
-            {% endif %}
-        </div>
-        <div class="buttons">
-            <a href="/actions/comment/profile/{{ UserData['Id'] }}" class="btn btn-danger">Delete all comments on this user's profile</a>
-            <a href="/actions/comment/user/{{ UserData['Id'] }}" class="btn btn-danger">Delete all comments made by this user</a>
-        </div>
-        <div class="buttons">
-            <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger">Freeze/Unfreeze</a>
-            <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
-            <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
-            <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
-            {% if config.srv_supports_relax or config.srv_supports_autopilot %}
-            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Full Wipe</a>
-            <a href="/actions/wipeva/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Vanilla</a>
-            {% else %}
-            <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
-            {% endif %}
-            {% if config.srv_supports_relax %}
-            <a href="/actions/wiperx/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Relax</a>
-            {% endif %}
-            {% if config.srv_supports_autopilot %}
-            <a href="/actions/wipeap/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Autopilot</a>
-            {% endif %}
-        </div>
+      {{ UserData['Username'] }}
+      has a total of <b>{{ hwid_count }}</b> HWID logs.
+      <div class="buttons">
+        <a href="/user/hwid/{{ UserData['Id'] }}/1" class="btn btn-success"
+          >View HWIDs</a
+        >
+      </div>
     </div>
-    <div class="card-footer">
-        RealistikPanel
+  </div>
+  <h2 class="section-title">Admin Centre</h2>
+  <div class="card">
+    <div class="card-header">
+      <h4>Community Management</h4>
     </div>
-</div>
-<script>
-    const restrictUser = (id) => window.location.replace(`/actions/restrict/${id}?reason=${document.getElementById("ban_reason").value || ""}`);
-    const banUser = (id) => window.location.replace(`/actions/ban/${id}?reason=${document.getElementById("ban_reason").value || ""}`);
+    <div class="card-body">
+      <div class="form-group">
+        <label>Ban Reason</label>
+        <textarea class="form-control" id="ban_reason">
+            {{ UserData["BanReason"] }}
+        </textarea
+        >
+      </div>
+      <div class="buttons">
+        <a
+          href="javascript:restrictUser('{{ UserData['Id'] }}')"
+          class="btn btn-danger"
+          >Restrict/Unrestrict</a
+        >
+        <a
+          href="javascript:banUser('{{ UserData['Id'] }}')"
+          class="btn btn-danger"
+          id="ban"
+          >Ban/Unban</a
+        >
+      </div>
+
+      {% if UserData["IsBanned"] %}
+        <b>Banned Since: </b><span>{{ UserData["BanedAgo"] }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h4>Admin Actions</h4>
+    </div>
+    <div class="card-body">
+      This is the <b>danger zone!</b> These actions could mess up someone's
+      profile if done without reason.
+      <p></p>
+      <div class="buttons">
+        <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success"
+          >IP Lookup</a
+        >
+        <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning"
+          >Change Password</a
+        >
+        <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning"
+          >Award Donor</a
+        >
+        {% if UserData["HasSupporter"] %}
+          <a href="/donorremove/{{ UserData['Id'] }}" class="btn btn-warning"
+            >Remove Donor</a
+          >
+        {% endif %}
+      </div>
+      <div class="buttons">
+        <a
+          href="/actions/comment/profile/{{ UserData['Id'] }}"
+          class="btn btn-danger"
+          >Delete all comments on this user's profile</a
+        >
+        <a
+          href="/actions/comment/user/{{ UserData['Id'] }}"
+          class="btn btn-danger"
+          >Delete all comments made by this user</a
+        >
+      </div>
+      <div class="buttons">
+        <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger"
+          >Freeze/Unfreeze</a
+        >
+        <a
+          href="/actions/hwid/{{ UserData['Id'] }}"
+          class="btn btn-danger"
+          id="hwid"
+          >Clear HWID</a
+        >
+        <a
+          href="/action/confirm/delete/{{ UserData['Id'] }}"
+          class="btn btn-danger"
+          ,
+          id="delete"
+          >Delete Account</a
+        >
+        <a
+          href="/actions/kick/{{ UserData['Id'] }}"
+          class="btn btn-warning"
+          id="kick"
+          >Kick User</a
+        >
+        {% if config.srv_supports_relax or config.srv_supports_autopilot %}
+          <a
+            href="/actions/wipe/{{ UserData['Id'] }}"
+            class="btn btn-danger"
+            id="wipe"
+            >Full Wipe</a
+          >
+          <a
+            href="/actions/wipeva/{{ UserData['Id'] }}"
+            class="btn btn-danger"
+            id="wipe"
+            >Wipe Vanilla</a
+          >
+        {% else %}
+          <a
+            href="/actions/wipe/{{ UserData['Id'] }}"
+            class="btn btn-danger"
+            id="wipe"
+            >Wipe</a
+          >
+        {% endif %}
+        {% if config.srv_supports_relax %}
+          <a
+            href="/actions/wiperx/{{ UserData['Id'] }}"
+            class="btn btn-danger"
+            id="wipe"
+            >Wipe Relax</a
+          >
+        {% endif %}
+        {% if config.srv_supports_autopilot %}
+          <a
+            href="/actions/wipeap/{{ UserData['Id'] }}"
+            class="btn btn-danger"
+            id="wipe"
+            >Wipe Autopilot</a
+          >
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer">RealistikPanel</div>
+  </div>
+  <script>
+    const restrictUser = (id) =>
+      window.location.replace(
+        `/actions/restrict/${id}?reason=${
+          document.getElementById("ban_reason").value || ""
+        }`
+      );
+    const banUser = (id) =>
+      window.location.replace(
+        `/actions/ban/${id}?reason=${
+          document.getElementById("ban_reason").value || ""
+        }`
+      );
 
     //sets default country to one from UserData
-    document.getElementById("countryselect").value = "{{ UserData['Country'] }}";
+    document.getElementById("countryselect").value =
+      "{{ UserData['Country'] }}";
     //ip lookup, did it via js not to slow down the loading with a request
     let url = "{{ config.api_geoloc_url }}{{ UserData['Ip'] }}";
     fetch(url)
-    .then(res => res.json())
-    .then((out) => {
-    document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} ("+out["country"]+")"
-    })
-    .catch(err => {
-        document.getElementById("iptext").innerHTML = "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)"
-    });
+      .then((res) => res.json())
+      .then((out) => {
+        document.getElementById("iptext").innerHTML =
+          "<b>IP:</b> {{ UserData['Ip'] }} (" + out["country"] + ")";
+      })
+      .catch((err) => {
+        document.getElementById("iptext").innerHTML =
+          "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)";
+      });
 
     //setting default  badges
     document.getElementById("Badge1").value = "{{ UserBadges[0] }}";
@@ -292,29 +447,31 @@
     var PrivSelect = document.getElementById("privselect");
 
     if (PrivSelect.value != UserPriv) {
-        //so users with unknown privilege groups dont get accidentally banned
-        //create Unknown Option
-        var NewOption = document.createElement("option");
-        NewOption.appendChild(document.createTextNode("Unknown (" + UserPriv + ")"));
-        NewOption.value = UserPriv
-        //adds to priv option
-        PrivSelect.appendChild(NewOption)
-        //select it
-        PrivSelect.value = NewOption.value
+      //so users with unknown privilege groups dont get accidentally banned
+      //create Unknown Option
+      var NewOption = document.createElement("option");
+      NewOption.appendChild(
+        document.createTextNode("Unknown (" + UserPriv + ")")
+      );
+      NewOption.value = UserPriv;
+      //adds to priv option
+      PrivSelect.appendChild(NewOption);
+      //select it
+      PrivSelect.value = NewOption.value;
     }
 
     var AdminPerms = "{{ session['Privilege'] }}";
     //disabling buttons the person has no perm to use
     if (!(AdminPerms & 128)) {
-        document.getElementById("wipe").remove();
-        document.getElementById("hwid").remove();
-        document.getElementById("delete").remove();
+      document.getElementById("wipe").remove();
+      document.getElementById("hwid").remove();
+      document.getElementById("delete").remove();
     }
     if (!(AdminPerms & 32)) {
-        document.getElementById("ban").remove()
+      document.getElementById("ban").remove();
     }
     if (!(AdminPerms & 524288)) {
-        document.getElementById("kick").remove()
+      document.getElementById("kick").remove();
     }
-</script>
+  </script>
 {% endblock %}

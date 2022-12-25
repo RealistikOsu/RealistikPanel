@@ -6,3 +6,6 @@ rpusers.json
 test.py
 static/servers.json
 config.json.save
+venv/
+node_modules/
+.vscode/

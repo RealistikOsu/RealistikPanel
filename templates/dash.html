@@ -1,209 +1,241 @@
 {% extends "base.html" %}
-
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 {% endblock %}
-
 {% block content %}
-<h2 class="section-title">Dashboard</h2>
-<p class="section-lead">This is the RealistikPanel dashboard! The home of RealistikPanel!</p>
-<div class="buttons" id="statuses">
+  <h2 class="section-title">Dashboard</h2>
+  <p class="section-lead">
+    This is the RealistikPanel dashboard! The home of RealistikPanel!
+  </p>
+  <div class="buttons" id="statuses">
     <div class="btn btn-primary">
-        <div>
-            <h3>{{ data["RegisteredUsers"] }}</h3>
-        </div>
-        <div>
-            Registered Users
-        </div>
+      <div>
+        <h3>{{ data["RegisteredUsers"] }}</h3>
+      </div>
+      <div>Registered Users</div>
     </div>
     <div class="btn btn-success">
-        <div>
-            <h3>{{ data["OnlineUsers"] }}</h3>
-        </div>
-        <div>
-            Online Users
-        </div>
+      <div>
+        <h3>{{ data["OnlineUsers"] }}</h3>
+      </div>
+      <div>Online Users</div>
     </div>
     <div class="btn btn-secondary">
-        <div>
-            <h3>{{ data["TotalPP"] }}</h3>
-        </div>
-        <div>
-            Total PP
-        </div>
+      <div>
+        <h3>{{ data["TotalPP"] }}</h3>
+      </div>
+      <div>Total PP</div>
     </div>
     <div class="btn btn-warning">
-        <div>
-            <h3>{{ data["TotalPlays"] }}</h3>
-        </div>
-        <div>
-            Total Plays
-        </div>
+      <div>
+        <h3>{{ data["TotalPlays"] }}</h3>
+      </div>
+      <div>Total Plays</div>
     </div>
     <div class="btn btn-info">
-        <div>
-            <h3>{{ data["TotalScores"] }}</h3>
-        </div>
-        <div>
-            Total Scores
-        </div>
+      <div>
+        <h3>{{ data["TotalScores"] }}</h3>
+      </div>
+      <div>Total Scores</div>
     </div>
-</div>
-<p></p>
-<div class="row">
+  </div>
+  <p></p>
+  <div class="row">
     <div class="col-12 col-md-6 col-lg-6">
-        <div class="card">
-            <div class="card-header">
-                <h4>Online Users</h4>
-            </div>
-            <div class="card-body">
-                <canvas id="PlayerChart" height="50"></canvas>
-            </div>
-            <div class="card-footer">
-                RealistikPanel
-            </div>
+      <div class="card">
+        <div class="card-header">
+          <h4>Online Users</h4>
         </div>
+        <div class="card-body">
+          <canvas id="PlayerChart" height="50"></canvas>
+        </div>
+        <div class="card-footer">RealistikPanel</div>
+      </div>
     </div>
     <div class="col-12 col-md-6 col-lg-6">
-        <article class="article">
-            <div class="article-header">
-                <div class="article-image" data-background="{{ MostPlayed['Cover'] }}" style="background-image: url(&quot;assets/img/news/img08.jpg&quot;);">
-            </div>
-            <div class="article-title">
-                <h2><a href="#">{{ MostPlayed["SongName"] }}</a></h2>
-            </div>
-            </div>
-            <div class="article-details">
-                <p>
-                    The most played beatmap is <b>{{ MostPlayed["SongName"] }}</b>. <br>
-                    This beatmap has a playcount of <b>{{ MostPlayed["Playcount"] }}</b>
-                </p>
-                <div class="article-cta">
-                    <a href="{{ config.srv_url }}b/{{ MostPlayed['BeatmapId'] }}" class="btn btn-primary">View Map</a>
-                </div>
-            </div>
-        </article>
+      <article class="article">
+        <div class="article-header">
+          <div
+            class="article-image"
+            data-background="{{ MostPlayed['Cover'] }}"
+            style='background-image: url("assets/img/news/img08.jpg");'
+          ></div>
+          <div class="article-title">
+            <h2><a href="#">{{ MostPlayed["SongName"] }}</a></h2>
+          </div>
+        </div>
+        <div class="article-details">
+          <p>
+            The most played beatmap is <b>{{ MostPlayed["SongName"] }}</b>.
+            <br />
+            This beatmap has a playcount of <b>{{ MostPlayed["Playcount"] }}</b>
+          </p>
+          <div class="article-cta">
+            <a
+              href="{{ config.srv_url }}b/{{ MostPlayed['BeatmapId'] }}"
+              class="btn btn-primary"
+              >View Map</a
+            >
+          </div>
+        </div>
+      </article>
     </div>
-</div>
-<div class="section-title">Recent Plays</div>
-<table class="table table-striped">
+  </div>
+  <div class="section-title">Recent Plays</div>
+  <table class="table table-striped">
     <thead>
-        <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Player</th>
-            <th scope="col">Song</th>
-            <th scope="col">Score</th>
-            <th scope="col">PP</th>
-        </tr>
+      <tr>
+        <th scope="col">Time</th>
+        <th scope="col">Player</th>
+        <th scope="col">Song</th>
+        <th scope="col">Score</th>
+        <th scope="col">PP</th>
+      </tr>
     </thead>
     <tbody>
-        {% for play in plays %}
+      {% for play in plays %}
         <tr>
-            <td>{{ play["Time"] }}</td>
-            <td><a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
-            <td>{{ play["SongName"] }}  <i>({{ play["Accuracy"] }}%)</i></td>
-            <td>{{ play["Score"] }}</td>
-            <td>{{ play["pp"] }}</td>
+          <td>{{ play["Time"] }}</td>
+          <td>
+            <a
+              href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
+              target="_blank"
+              >{{ play["Player"] }}</a
+            >
+          </td>
+          <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
+          <td>{{ play["Score"] }}</td>
+          <td>{{ play["pp"] }}</td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
-</table>
-<script>
-//Dash data
-var labels = {{ Graph["IntervalList"]|safe }};
-var data = {{ Graph["PlayerCount"]|safe }};
-var ctx = document.getElementById("PlayerChart").getContext('2d');
-var myChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: 'Online Players',
-      data: data,
-      borderWidth: 2,
-      backgroundColor: 'rgba(63,82,227,.8)',
-      borderWidth: 0,
-      borderColor: 'transparent',
-      pointBorderWidth: 0,
-      pointRadius: 3.5,
-      pointBackgroundColor: 'transparent',
-      pointHoverBackgroundColor: 'rgba(63,82,227,.8)',
-    }]
-  },
-  options: {
-    legend: {
-      display: false
-    },
-    scales: {
-      yAxes: [{
-        gridLines: {
-          drawBorder: false,
-          color: '#f2f2f2',
-        },
-        ticks: {
-          beginAtZero: true,
-          stepSize: 200,
-          callback: function(value, index, values) {
-            return value;
-          }
-        }
-      }],
-      xAxes: [{
-        gridLines: {
+  </table>
+  <script>
+    //Dash data
+    var labels = '{{ Graph["IntervalList"]|safe }}';
+    var data = '{{ Graph["PlayerCount"]|safe }}';
+    var ctx = document.getElementById("PlayerChart").getContext("2d");
+    var myChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Online Players",
+            data: data,
+            borderWidth: 2,
+            backgroundColor: "rgba(63,82,227,.8)",
+            borderWidth: 0,
+            borderColor: "transparent",
+            pointBorderWidth: 0,
+            pointRadius: 3.5,
+            pointBackgroundColor: "transparent",
+            pointHoverBackgroundColor: "rgba(63,82,227,.8)",
+          },
+        ],
+      },
+      options: {
+        legend: {
           display: false,
-          tickMarkLength: 15,
-        }
-      }]
-    },
-  }
-});
+        },
+        scales: {
+          yAxes: [
+            {
+              gridLines: {
+                drawBorder: false,
+                color: "#f2f2f2",
+              },
+              ticks: {
+                beginAtZero: true,
+                stepSize: 200,
+                callback: function (value, index, values) {
+                  return value;
+                },
+              },
+            },
+          ],
+          xAxes: [
+            {
+              gridLines: {
+                display: false,
+                tickMarkLength: 15,
+              },
+            },
+          ],
+        },
+      },
+    });
 
-/*
+    /*
 statuses for things like
 lets
 bancho
 api
 maybe soon hanayo
 */
-//json getting from url
+    //json getting from url
 
-var API_URL = "https://"+ window.location.host +"/js/status/api"
-var LetsAPI = "https://"+ window.location.host +"/js/status/lets"
-var BanchoURL = "https://"+ window.location.host +"/js/status/bancho"
+    var API_URL = "https://" + window.location.host + "/js/status/api";
+    var LetsAPI = "https://" + window.location.host + "/js/status/lets";
+    var BanchoURL = "https://" + window.location.host + "/js/status/bancho";
 
-fetch(LetsAPI)
-.then(res => res.json())
-.then((out) => {
-    if (out["server_status"] == 1) {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>'
-    } else {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>'
-    }
-})
-.catch(err => { document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>' });
-fetch(BanchoURL)
-.then(res => res.json())
-.then((out) => {
-    if (out["result"] == 1) {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>'
-    }
-    else if (out["result"] == -1){
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-warning"><div><h3>Restarting</h3></div><div>Bancho</div></div>'
-    }
-    else {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>'
-    }
-})
-.catch(err => { document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>' });
-fetch(API_URL)
-.then(res => res.json())
-.then((out) => {
-    if (out["code"] == 200) {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>'
-    } else {
-        document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>'
-    }
-})
-.catch(err => { document.getElementById("statuses").innerHTML = document.getElementById("statuses").innerHTML+'<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>' });
-</script>
+    fetch(LetsAPI)
+      .then((res) => res.json())
+      .then((out) => {
+        if (out["server_status"] == 1) {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>';
+        } else {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>';
+        }
+      })
+      .catch((err) => {
+        document.getElementById("statuses").innerHTML =
+          document.getElementById("statuses").innerHTML +
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+      });
+    fetch(BanchoURL)
+      .then((res) => res.json())
+      .then((out) => {
+        if (out["result"] == 1) {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>';
+        } else if (out["result"] == -1) {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-warning"><div><h3>Restarting</h3></div><div>Bancho</div></div>';
+        } else {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+        }
+      })
+      .catch((err) => {
+        document.getElementById("statuses").innerHTML =
+          document.getElementById("statuses").innerHTML +
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+      });
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((out) => {
+        if (out["code"] == 200) {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>';
+        } else {
+          document.getElementById("statuses").innerHTML =
+            document.getElementById("statuses").innerHTML +
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>';
+        }
+      })
+      .catch((err) => {
+        document.getElementById("statuses").innerHTML =
+          document.getElementById("statuses").innerHTML +
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>';
+      });
+  </script>
 {% endblock %}

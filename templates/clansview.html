@@ -1,75 +1,50 @@
 {% extends "base.html" %}
-
+{% import "components/pagination.html" as pagination %}
 {% block content %}
-<h2 class="section-title">Clans</h2>
-<p class="section-lead">View, edit and manage user-made clans!</p>
+  <h2 class="section-title">Clans</h2>
+  <p class="section-lead">View, edit and manage user-made clans!</p>
 
-<div class="card">
-    <div class="card-header">
-        Badges
-    </div>
+  {{ pagination.pagination('/clans', page, Pages) }}
+
+  <div class="card">
+    <div class="card-header">Badges</div>
     <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for Clan in Clans %}
-                <tr>
-                    <td>{{ Clan["ID"] }}</td>
-                    <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
-                    <td>{{ Clan["Description"] }}</td>
-                    <td>
-                        <div class="buttons">
-                            <a class="btn btn-warning" href="/clan/{{ Clan['ID'] }}">Edit</a>
-                            <a class="btn btn-danger" href="/clan/confirmdelete/{{ Clan['ID'] }}">Disband</a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Description</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for Clan in Clans %}
+            <tr>
+              <td>{{ Clan["ID"] }}</td>
+              <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
+              <td>{{ Clan["Description"] }}</td>
+              <td>
+                <div class="buttons">
+                  <a class="btn btn-warning" href="/clan/{{ Clan['ID'] }}"
+                    >Edit</a
+                  >
+                  <a
+                    class="btn btn-danger"
+                    href="/clan/confirmdelete/{{ Clan['ID'] }}"
+                    >Disband</a
+                  >
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel</div>
+  </div>
 
-<!--The page buttons-->
-<ul class="pagination">
-    {% if page <= 1 %}
-    <li class="page-item disabled">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/clans/{{ page-1 }}" aria-label="Previous">
-            <span aria-hidden="true">«</span>
-            <span class="sr-only">Previous</span>
-        </a>
-    </li>
-    {% for Page in Pages %}
-    {% if page == Page %}
-    <li class="page-item active">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/clans/{{ Page }}">{{ Page }}</a>
-    </li>
-    {% endfor %}
-    {% if page == Pages[-1] %}
-    <li class="page-item disabled">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/clans/{{ page+1 }}" aria-label="Next">
-            <span aria-hidden="true">»</span>
-            <span class="sr-only">Next</span>
-        </a>
-    </li>
-</ul>
+  <!--The page buttons-->
+  {{ pagination.pagination('/clans', page, Pages) }}
+  {{ pagination.paginationJs('/clans', page, Pages) }}
 {% endblock %}

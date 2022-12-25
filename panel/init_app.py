@@ -192,7 +192,7 @@ def configure_routes(app: Flask) -> None:
             title="Search Users",
             UserData=user_data,
             page=page,
-            Pages=UserPageCount(),
+            pages=UserPageCount(),
         )
 
     @app.route("/index.php")
@@ -600,6 +600,7 @@ def configure_routes(app: Flask) -> None:
                 config=config,
                 RankRequests=GetRankRequests(int(Page)),
                 page=int(Page),
+                pages=request_pages(),
             )
         else:
             return no_permission_response(request.path)
@@ -705,6 +706,7 @@ def configure_routes(app: Flask) -> None:
             hwid_logs=page_info["results"],
             user=page_info["user"],
             page=page,
+            pages=hwid_pages(user_id),
             total_hwids=get_hwid_count(user_id),
         )
 

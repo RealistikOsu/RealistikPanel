@@ -1,114 +1,95 @@
-{% extends "base.html" %} {% block content %}
-<style>
+{% extends "base.html" %}
+{% import "components/pagination.html" as pagination %}
+{% block content %}
+  <style>
     #page-items li {
-        display: inline-block;
+      display: inline-block;
     }
 
-    #page-after, #page-before {
-        display: inline-block;
+    #page-after,
+    #page-before {
+      display: inline-block;
     }
-</style>
-<h2 class="section-title">Users</h2>
-<p class="section-lead">This is the users panel. It lists all registered users and provides links to actions that can be quickly done to the users.</p>
-<div class="card">
-    <div class="card-header">
-        Search for users.
-    </div>
+  </style>
+  <h2 class="section-title">Users</h2>
+  <p class="section-lead">
+    This is the users panel. It lists all registered users and provides links to
+    actions that can be quickly done to the users.
+  </p>
+
+  <div class="card">
+    <div class="card-header">Search for users.</div>
     <div class="card-body">
-        <form action="/users/1" method="post">
-            <div class="form-group">
-                <input type="text" class="form-control" name="user" placeholder="Username or Email" value="{{ User }}">
-            </div>
-            <button class="btn btn-success" type="submit" name="">Search</button>
-        </form>
+      <form action="/users/1" method="post">
+        <div class="form-group">
+          <input
+            type="text"
+            class="form-control"
+            name="user"
+            placeholder="Username or Email"
+            value="{{ User }}"
+          />
+        </div>
+        <button class="btn btn-success" type="submit" name="">Search</button>
+      </form>
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
-<table class="table table-striped">
+    <div class="card-footer">RealistikPanel</div>
+  </div>
+  {{ pagination.pagination('/users', page, pages) }}
+  <table class="table table-striped">
     <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Privilege</th>
-            <th scope="col">Allowed</th>
-            <th scope="col">Actions</th>
-        </tr>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Privilege</th>
+        <th scope="col">Allowed</th>
+        <th scope="col">Actions</th>
+      </tr>
     </thead>
     <tbody>
-        {% for user in UserData %}
+      {% for user in UserData %}
         <tr>
-            <td>{{ user["Id"] }}</td>
-            <td>
-                {% if not user['Country'] == "XX" %}
-                <img class="nflag" src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg">
-                {% else %}
-                <img class="nflag" src="https://ussr.pl/static/images/new-flags/xx.png">
-                {% endif %}
-                <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a>
-            </td>
-            <td><a class="badge badge-{{ user['Privilege']['Colour'] }}" style="color: white;">{{ user["Privilege"]["Name"] }}</a></td>
-            {% if user["Allowed"] %}
-            <td><a class="badge badge-success" style="color: white;">Yes</a></td>
+          <td>{{ user["Id"] }}</td>
+          <td>
+            {% if not user['Country'] == "XX" %}
+              <img
+                class="nflag"
+                src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
+              />
             {% else %}
-            <td><a class="badge badge-danger" style="color: white;">No</a></td>
+              <img
+                class="nflag"
+                src="https://ussr.pl/static/images/new-flags/xx.png"
+              />
             {% endif %}
-            <td><a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}">Edit</a></td>
+            <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
+              >{{ user["Name"] }}</a
+            >
+          </td>
+          <td>
+            <a
+              class="badge badge-{{ user['Privilege']['Colour'] }}"
+              style="color: white;"
+              >{{ user["Privilege"]["Name"] }}</a
+            >
+          </td>
+          {% if user["Allowed"] %}
+            <td>
+              <a class="badge badge-success" style="color: white;">Yes</a>
+            </td>
+          {% else %}
+            <td><a class="badge badge-danger" style="color: white;">No</a></td>
+          {% endif %}
+          <td>
+            <a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}"
+              >Edit</a
+            >
+          </td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
-</table>
+  </table>
 
-<ul class="pagination">
-    <li class="page-item" id="first-page">
-        <a class="page-link" href="/users/1" aria-label="First">
-            <span aria-hidden="true">««</span>
-            <span class="sr-only">First</span>
-        </a>
-    </li>
-    <li class="page-item" id="page-before">
-        <a class="page-link" href="/users/{{ page-1 }}" aria-label="Previous">
-            <span aria-hidden="true">«</span>
-            <span class="sr-only">Previous</span>
-        </a>
-    </li>
-    <span id="page-items"></span>
-    <li class="page-item" id="page-after">
-        <a class="page-link" href="/users/{{ page+1 }}" aria-label="Next">
-            <span aria-hidden="true">»</span>
-            <span class="sr-only">Next</span>
-        </a>
-    </li>
-    <li class="page-item" id="last-page">
-        <a class="page-link" href="/users/{{ Pages }}" aria-label="Last">
-            <span aria-hidden="true">»»</span>
-            <span class="sr-only">Last</span>
-        </a>
-    </li>
-</ul>
-<script>
-    // cap = 10
-    const pageItems = document.querySelector("#page-items");
-    const pageLen = {{ Pages }} + 1;
-    const page = {{ page }};
-    const plen = Math.max(page-5, 1);
-
-    for (let i = plen; i < Math.min(plen+(5*2), pageLen); i++) {
-        pageItems.innerHTML += `
-            <li class="page-item ${i == page ? "active" : ""}">
-                <a class="page-link" href="/users/${i}">${i}</a>
-            </li>
-        `;
-    }
-
-    if (page <= 1) {
-        document.getElementById("page-before").classList.add("disabled");
-        document.getElementById("first-page").classList.add("disabled");
-    }
-    if (page >= pageLen-1) {
-        document.getElementById("page-after").classList.add("disabled");
-        document.getElementById("last-page").classList.add("disabled");
-    }
-</script>
+  {{ pagination.pagination('/users', page, pages) }}
+  {{ pagination.paginationJs('/users', page, pages) }}
 {% endblock %}

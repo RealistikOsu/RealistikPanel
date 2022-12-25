@@ -1,64 +1,42 @@
 {% extends "base.html" %}
-
+{% import "components/pagination.html" as pagination %}
 {% block content %}
-<h2 class="section-title">Logs</h2>
-<p class="section-lead">See all the actions moderators have taken! Catch any traitors or abusers.</p>
-<div class="card">
+  <h2 class="section-title">Logs</h2>
+  <p class="section-lead">
+    See all the actions moderators have taken! Catch any traitors or abusers.
+  </p>
+  <div class="card">
     <div class="card-header">
-        <h4>Actions Log</h4>
+      <h4>Actions Log</h4>
     </div>
     <div class="card-body">
-        Here, you can view any administritive actions taken by administrators, as well as any Fokabot errors. This can be used to view any mistakes moderators have taken or catch any misbehaviour within the staff team.
+      Here, you can view any administritive actions taken by administrators, as
+      well as any Fokabot errors. This can be used to view any mistakes
+      moderators have taken or catch any misbehaviour within the staff team.
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
-{% for log in Logs %}
-<div class="card">
-    <div class="card-header">
-        <img alt="image" src="{{ config.api_avatar_url }}{{ log['AccountData']['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        <h4>{{ log["AccountData"]["Username"] }}</h4>
-    </div>
-    <div class="card-body">
-        <b>{{ log["AccountData"]["Username"] }}</b> {{ log['Text'] }}
-    </div>
-    <div class="card-footer">
-        At {{ log["Time"] }} via {{ log["Via"] }}
-    </div>
-</div>
-{% endfor %}
+    <div class="card-footer">RealistikPanel</div>
+  </div>
 
-<!--The page buttons-->
-<ul class="pagination">
-    {% if page <= 1 %}
-    <li class="page-item disabled">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/logs/{{ page-1 }}" aria-label="Previous">
-            <span aria-hidden="true">«</span>
-            <span class="sr-only">Previous</span>
-        </a>
-    </li>
-    {% for Page in Pages %}
-    {% if page == Page %}
-    <li class="page-item active">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/logs/{{ Page }}">{{ Page }}</a>
-    </li>
-    {% endfor %}
-    {% if page == Pages[-1] %}
-    <li class="page-item disabled">
-    {% else %}
-    <li class="page-item">
-    {% endif %}
-        <a class="page-link" href="/logs/{{ page+1 }}" aria-label="Next">
-            <span aria-hidden="true">»</span>
-            <span class="sr-only">Next</span>
-        </a>
-    </li>
-</ul>
+  {{ pagination.pagination('/logs', page, Pages) }}
+  {% for log in Logs %}
+    <div class="card">
+      <div class="card-header">
+        <img
+          alt="image"
+          src="{{ config.api_avatar_url }}{{ log['AccountData']['Id'] }}"
+          class="rounded-circle mr-1"
+          style="width:100%; max-width:30px; max-height:30px;"
+        />
+        <h4>{{ log["AccountData"]["Username"] }}</h4>
+      </div>
+      <div class="card-body">
+        <b>{{ log["AccountData"]["Username"] }}</b> {{ log['Text'] }}
+      </div>
+      <div class="card-footer">At {{ log["Time"] }} via {{ log["Via"] }}</div>
+    </div>
+  {% endfor %}
+
+  <!--The page buttons-->
+  {{ pagination.pagination('/logs', page, Pages) }}
+  {{ pagination.paginationJs('/logs', page, Pages) }}
 {% endblock %}

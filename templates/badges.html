@@ -1,42 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Badges</h2>
-<p class="section-lead">Modify or edit profile badges!</p>
-<div class="card">
-    <div class="card-header">
-        Badges
-    </div>
+  <h2 class="section-title">Badges</h2>
+  <p class="section-lead">Modify or edit profile badges!</p>
+  <div class="card">
+    <div class="card-header">Badges</div>
     <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Icon</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for badge in badges %}
-                <tr>
-                    <td>{{ badge["Id"] }}</td>
-                    <td>{{ badge["Name"] }}</td>
-                    <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
-                    <td>
-                        <div class="buttons">
-                            <a href="/actions/deletebadge/{{ badge['Id'] }}" class="btn btn-danger">Delete</a>
-                            <a href="/badge/edit/{{ badge['Id'] }}" class="btn btn-primary">Edit</a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Icon</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for badge in badges %}
+            <tr>
+              <td>{{ badge["Id"] }}</td>
+              <td>{{ badge["Name"] }}</td>
+              <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
+              <td>
+                <div class="buttons">
+                  <a
+                    href="/actions/deletebadge/{{ badge['Id'] }}"
+                    class="btn btn-danger"
+                    >Delete</a
+                  >
+                  <a
+                    href="/badge/edit/{{ badge['Id'] }}"
+                    class="btn btn-primary"
+                    >Edit</a
+                  >
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     <div class="card-footer">
-        <div class="buttons">
-            <a href="/actions/createbadge" class="btn btn-success">Create Badge</a>
-        </div>
+      <div class="buttons">
+        <a href="/actions/createbadge" class="btn btn-success">Create Badge</a>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

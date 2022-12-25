@@ -1,42 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Privileges</h2>
-<p class="section-lead">Modify or edit privilege groups!</p>
-<div class="card">
-    <div class="card-header">
-        Privileges
-    </div>
+  <h2 class="section-title">Privileges</h2>
+  <p class="section-lead">Modify or edit privilege groups!</p>
+  <div class="card">
+    <div class="card-header">Privileges</div>
     <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Privileges</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for priv in privileges %}
-                <tr>
-                    <td>{{ priv["Id"] }}</td>
-                    <td>{{ priv["Name"] }}</td>
-                    <td>{{ priv["Priv"] }}</td>
-                    <td>
-                        <div class="buttons">
-                            <a href="/actions/deletepriv/{{ priv['Id'] }}" class="btn btn-danger">Delete</a>
-                            <a href="/privilege/edit/{{ priv['Id'] }}" class="btn btn-primary">Edit</a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Privileges</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for priv in privileges %}
+            <tr>
+              <td>{{ priv["Id"] }}</td>
+              <td>{{ priv["Name"] }}</td>
+              <td>{{ priv["Priv"] }}</td>
+              <td>
+                <div class="buttons">
+                  <a
+                    href="/actions/deletepriv/{{ priv['Id'] }}"
+                    class="btn btn-danger"
+                    >Delete</a
+                  >
+                  <a
+                    href="/privilege/edit/{{ priv['Id'] }}"
+                    class="btn btn-primary"
+                    >Edit</a
+                  >
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     <div class="card-footer">
-        <div class="buttons">
-            <a href="/actions/createprivilege" class="btn btn-success">Create Privilege</a>
-        </div>
+      <div class="buttons">
+        <a href="/actions/createprivilege" class="btn btn-success"
+          >Create Privilege</a
+        >
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}

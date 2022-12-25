@@ -1,39 +1,51 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2 class="section-title">Bancho Settings</h2>
-<p class="section-lead">Change the settings of your osu! server. This includes things such as login messeges, menu icons and more!</p>
-<div class="card">
+  <h2 class="section-title">Bancho Settings</h2>
+  <p class="section-lead">
+    Change the settings of your osu! server. This includes things such as login
+    messeges, menu icons and more!
+  </p>
+  <div class="card">
     <div class="card-header">
-        <h4>Settings</h4>
+      <h4>Settings</h4>
     </div>
     <div class="card-body">
-        <form action="/bancho/settings" method="post">
-            <div class="form-group">
-                <label>Bancho Maintenance Mode</label>
-                <select class="form-control" name="banchoman">
-                    {% if preset["BanchoMan"] %}
-                    <option selected>On</option>
-                    <option>Off</option>
-                    {% else %}
-                    <option>On</option>
-                    <option selected>Off</option>
-                    {% endif %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Main Menu Icon</label>
-                <input type="text" class="form-control" name="mainmemuicon" value="{{ preset['MenuIcon'] }}">
-            </div>
-            <div class="form-group">
-                <label>Login Notification</label>
-                <input type="text" class="form-control" name="loginnotif" value="{{ preset['LoginNotif'] }}">
-            </div>
-            <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
-        </form>
+      <form action="/bancho/settings" method="post">
+        <div class="form-group">
+          <label>Bancho Maintenance Mode</label>
+          <select class="form-control" name="banchoman">
+            {% if preset["BanchoMan"] %}
+              <option selected>On</option>
+              <option>Off</option>
+            {% else %}
+              <option>On</option>
+              <option selected>Off</option>
+            {% endif %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Main Menu Icon</label>
+          <input
+            type="text"
+            class="form-control"
+            name="mainmemuicon"
+            value="{{ preset['MenuIcon'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Login Notification</label>
+          <input
+            type="text"
+            class="form-control"
+            name="loginnotif"
+            value="{{ preset['LoginNotif'] }}"
+          />
+        </div>
+        <button class="btn btn-primary mr-1" type="submit" name="">
+          Submit
+        </button>
+      </form>
     </div>
-    <div class="card-footer">
-        RealistikPanel!
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel!</div>
+  </div>
 {% endblock %}

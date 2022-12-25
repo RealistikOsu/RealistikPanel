@@ -1,33 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Edit Badge</h2>
-<p class="section-lead">Edit, change or remove the badge!</p>
-<div class="card">
+  <h2 class="section-title">Edit Badge</h2>
+  <p class="section-lead">Edit, change or remove the badge!</p>
+  <div class="card">
     <div class="card-header">
-        <h4>Edit <b>{{ badge['Name'] }}</b></h4>
+      <h4>Edit <b>{{ badge['Name'] }}</b></h4>
     </div>
     <div class="card-body">
-        <form action="/badge/edit/{{ badge['Id'] }}" method="post">
-            <div class="form-group">
-                <label>Badge ID</label>
-                <input type="text" class="form-control" name="badgeid" value="{{ badge['Id'] }}" readonly>
-            </div>
-            <div class="form-group">
-                <label>Badge Name</label>
-                <input type="text" class="form-control" name="name" value="{{ badge['Name'] }}">
-            </div>
-            <div class="form-group">
-                <label>Badge Icon</label>
-                <input type="text" class="form-control" name="icon" value="{{ badge['Icon'] }}">
-            </div>
-            <div class="buttons">
-                <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
-                <a href="/actions/deletebadge/{{ badge['Id'] }}" class="btn btn-danger">Delete</a>
-            </div>
-        </form>
+      <form action="/badge/edit/{{ badge['Id'] }}" method="post">
+        <div class="form-group">
+          <label>Badge ID</label>
+          <input
+            type="text"
+            class="form-control"
+            name="badgeid"
+            value="{{ badge['Id'] }}"
+            readonly
+          />
+        </div>
+        <div class="form-group">
+          <label>Badge Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="name"
+            value="{{ badge['Name'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Badge Icon</label>
+          <input
+            type="text"
+            class="form-control"
+            name="icon"
+            value="{{ badge['Icon'] }}"
+          />
+        </div>
+        <div class="buttons">
+          <button class="btn btn-primary mr-1" type="submit" name="">
+            Submit
+          </button>
+          <a
+            href="/actions/deletebadge/{{ badge['Id'] }}"
+            class="btn btn-danger"
+            >Delete</a
+          >
+        </div>
+      </form>
     </div>
-    <div class="card-footer">
-        RealistikPanel!
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel!</div>
+  </div>
 {% endblock %}

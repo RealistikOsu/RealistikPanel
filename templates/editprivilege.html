@@ -1,170 +1,393 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Edit Privilege</h2>
-<p class="section-lead">Edit, change or remove the privilege!</p>
-<div class="card">
+  <h2 class="section-title">Edit Privilege</h2>
+  <p class="section-lead">Edit, change or remove the privilege!</p>
+  <div class="card">
     <div class="card-header">
-        <h4>Edit <b>{{ privileges['Name'] }}</b></h4>
+      <h4>Edit <b>{{ privileges['Name'] }}</b></h4>
     </div>
     <div class="card-body">
-        <form action="/privilege/edit/{{ privileges['Id'] }}" method="post">
-            <div class="form-group">
-                <label>Privilege Group ID</label>
-                <input type="text" class="form-control" name="id" value="{{ privileges['Id'] }}" readonly>
-            </div>
-            <div class="form-group">
-                <label>Privilege Group Name</label>
-                <input type="text" class="form-control" name="name" value="{{ privileges['Name'] }}">
-            </div>
-            <div class="form-group">
-                <label>Privileges</label>
-                <br>
-                <div class="form-check">
-                    <input name="privileges" value="1" id="1" type="checkbox" onclick="updatePrivileges();" class="form-check-input"> UserPublic<br>
-                    <input name="privileges" value="2" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="2">UserNormal<br>
-                    <input name="privileges" value="4" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="3">UserDonor<br>
-                    <input name="privileges" value="8" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="4">AdminAccessRAP<br>
-                    <input name="privileges" value="16" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="5">AdminManageUsers<br>
-                    <input name="privileges" value="32" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="6">AdminBanUsers<br>
-                    <input name="privileges" value="64" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="7">AdminSilenceUsers<br>
-                    <input name="privileges" value="128" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="8">AdminWipeUsers<br>
-                    <input name="privileges" value="256" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="9">AdminManageBeatmaps<br>
-                    <input name="privileges" value="512" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="10">AdminManageServers<br>
-                    <input name="privileges" value="1024" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="11">AdminManageSettings<br>
-                    <input name="privileges" value="2048" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="12">AdminManageBetaKeys<br>
-                    <input name="privileges" value="4096" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="13">AdminManageReports<br>
-                    <input name="privileges" value="8192" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="14">AdminManageDocs<br>
-                    <input name="privileges" value="16384" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="15">AdminManageBadges<br>
-                    <input name="privileges" value="32768" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="16">AdminViewRAPLogs<br>
-                    <input name="privileges" value="65536" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="17">AdminManagePrivileges<br>
-                    <input name="privileges" value="131072" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="18">AdminSendAlerts<br>
-                    <input name="privileges" value="262144" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="19">AdminChatMod<br>
-                    <input name="privileges" value="524288" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="20">AdminKickUsers<br>
-                    <input name="privileges" value="1048576" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="21">UserPendingVerification<br>
-                    <input name="privileges" value="2097152" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="22">UserTournamentStaff<br>
-                    <input name="privileges" value="4194304" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="23">AdminCaker<br>
-                    <input name="privileges" value="8388608" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="24">AdminViewTopScores<br>
-                    <!--Placeholder for RealistikPanel specific perms-->
-                    <input name="privileges" value="134217728" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="25">RPErrorLogs<br>
-                    <input name="privileges" value="268435456" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="26">RPManageClans<br>
-                    <input name="privileges" value="536870912" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="27">RPViewIPs<br>
-                    <input name="privileges" value="1073741824" type="checkbox" onclick="updatePrivileges();" class="form-check-input" id="28">RealistikOsuBot<br>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Privilege Integer</label>
-                <input type="text" class="form-control" name="privilege" value="{{ privileges['Privileges'] }}" id="privileges-value">
-            </div>
-            <div class="form-group">
-                <label>Colour</label>
-                <input type="text" class="form-control" name="colour" value="{{ privileges['Colour'] }}">
-            </div>
-            <div class="buttons">
-                <button class="btn btn-primary mr-1" type="submit" name="">Submit</button>
-                <a href="/actions/deletepriv/{{ privileges['Id'] }}" class="btn btn-danger">Delete</a>
-            </div>
-        </form>
+      <form action="/privilege/edit/{{ privileges['Id'] }}" method="post">
+        <div class="form-group">
+          <label>Privilege Group ID</label>
+          <input
+            type="text"
+            class="form-control"
+            name="id"
+            value="{{ privileges['Id'] }}"
+            readonly
+          />
+        </div>
+        <div class="form-group">
+          <label>Privilege Group Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="name"
+            value="{{ privileges['Name'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Privileges</label>
+          <br />
+          <div class="form-check">
+            <input
+              name="privileges"
+              value="1"
+              id="1"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+            />
+            UserPublic<br />
+            <input
+              name="privileges"
+              value="2"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="2"
+            />UserNormal<br />
+            <input
+              name="privileges"
+              value="4"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="3"
+            />UserDonor<br />
+            <input
+              name="privileges"
+              value="8"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="4"
+            />AdminAccessRAP<br />
+            <input
+              name="privileges"
+              value="16"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="5"
+            />AdminManageUsers<br />
+            <input
+              name="privileges"
+              value="32"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="6"
+            />AdminBanUsers<br />
+            <input
+              name="privileges"
+              value="64"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="7"
+            />AdminSilenceUsers<br />
+            <input
+              name="privileges"
+              value="128"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="8"
+            />AdminWipeUsers<br />
+            <input
+              name="privileges"
+              value="256"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="9"
+            />AdminManageBeatmaps<br />
+            <input
+              name="privileges"
+              value="512"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="10"
+            />AdminManageServers<br />
+            <input
+              name="privileges"
+              value="1024"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="11"
+            />AdminManageSettings<br />
+            <input
+              name="privileges"
+              value="2048"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="12"
+            />AdminManageBetaKeys<br />
+            <input
+              name="privileges"
+              value="4096"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="13"
+            />AdminManageReports<br />
+            <input
+              name="privileges"
+              value="8192"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="14"
+            />AdminManageDocs<br />
+            <input
+              name="privileges"
+              value="16384"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="15"
+            />AdminManageBadges<br />
+            <input
+              name="privileges"
+              value="32768"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="16"
+            />AdminViewRAPLogs<br />
+            <input
+              name="privileges"
+              value="65536"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="17"
+            />AdminManagePrivileges<br />
+            <input
+              name="privileges"
+              value="131072"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="18"
+            />AdminSendAlerts<br />
+            <input
+              name="privileges"
+              value="262144"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="19"
+            />AdminChatMod<br />
+            <input
+              name="privileges"
+              value="524288"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="20"
+            />AdminKickUsers<br />
+            <input
+              name="privileges"
+              value="1048576"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="21"
+            />UserPendingVerification<br />
+            <input
+              name="privileges"
+              value="2097152"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="22"
+            />UserTournamentStaff<br />
+            <input
+              name="privileges"
+              value="4194304"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="23"
+            />AdminCaker<br />
+            <input
+              name="privileges"
+              value="8388608"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="24"
+            />AdminViewTopScores<br />
+            <!--Placeholder for RealistikPanel specific perms-->
+            <input
+              name="privileges"
+              value="134217728"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="25"
+            />RPErrorLogs<br />
+            <input
+              name="privileges"
+              value="268435456"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="26"
+            />RPManageClans<br />
+            <input
+              name="privileges"
+              value="536870912"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="27"
+            />RPViewIPs<br />
+            <input
+              name="privileges"
+              value="1073741824"
+              type="checkbox"
+              onclick="updatePrivileges();"
+              class="form-check-input"
+              id="28"
+            />RealistikOsuBot<br />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Privilege Integer</label>
+          <input
+            type="text"
+            class="form-control"
+            name="privilege"
+            value="{{ privileges['Privileges'] }}"
+            id="privileges-value"
+          />
+        </div>
+        <div class="form-group">
+          <label>Colour</label>
+          <input
+            type="text"
+            class="form-control"
+            name="colour"
+            value="{{ privileges['Colour'] }}"
+          />
+        </div>
+        <div class="buttons">
+          <button class="btn btn-primary mr-1" type="submit" name="">
+            Submit
+          </button>
+          <a
+            href="/actions/deletepriv/{{ privileges['Id'] }}"
+            class="btn btn-danger"
+            >Delete</a
+          >
+        </div>
+      </form>
     </div>
-    <div class="card-footer">
-        RealistikPanel!
-    </div>
-</div>
-<script>
-//Snippet taken from Ripple's old-frontend
-function updatePrivileges() {
-   var result = 0;
-   $("input:checkbox[name=privileges]:checked").each(function(){
+    <div class="card-footer">RealistikPanel!</div>
+  </div>
+  <script>
+    //Snippet taken from Ripple's old-frontend
+    function updatePrivileges() {
+      var result = 0;
+      $("input:checkbox[name=privileges]:checked").each(function () {
         result = Number(result) + Number($(this).val());
-    });
-    $("#privileges-value").attr("value", result);
-}
+      });
+      $("#privileges-value").attr("value", result);
+    }
 
-//
-var Privilege = "{{ privileges['Privileges'] }}";
-var PrivInt = parseInt(Privilege);
+    //
+    var Privilege = "{{ privileges['Privileges'] }}";
+    var PrivInt = parseInt(Privilege);
 
-//porting HasPrivilege to JS
-//uh oh i dont like this
-if (PrivInt & 1) {
-    document.getElementById("1").checked = true;
-}
-if (PrivInt & 2) {
-    document.getElementById("2").checked = true;
-}
-if (PrivInt & 4) {
-    document.getElementById("3").checked = true;
-}
-if (PrivInt & 8) {
-    document.getElementById("4").checked = true;
-}
-if (PrivInt & 16) {
-    document.getElementById("5").checked = true;
-}
-if (PrivInt & 32) {
-    document.getElementById("6").checked = true;
-}
-if (PrivInt & 64) {
-    document.getElementById("7").checked = true;
-}
-if (PrivInt & 128) {
-    document.getElementById("8").checked = true;
-}
-if (PrivInt & 256) {
-    document.getElementById("9").checked = true;
-}
-if (PrivInt & 512) {
-    document.getElementById("10").checked = true;
-}
-if (PrivInt & 1024) {
-    document.getElementById("11").checked = true;
-}
-if (PrivInt & 2048) {
-    document.getElementById("12").checked = true;
-}
-if (PrivInt & 4096) {
-    document.getElementById("13").checked = true;
-}
-if (PrivInt & 8192) {
-    document.getElementById("14").checked = true;
-}
-if (PrivInt & 16384) {
-    document.getElementById("15").checked = true;
-}
-if (PrivInt & 32768) {
-    document.getElementById("16").checked = true;
-}
-if (PrivInt & 65536) {
-    document.getElementById("17").checked = true;
-}
-if (PrivInt & 131072) {
-    document.getElementById("18").checked = true;
-}
-if (PrivInt & 262144) {
-    document.getElementById("19").checked = true;
-}
-if (PrivInt & 524288) {
-    document.getElementById("20").checked = true;
-}
-if (PrivInt & 1048576) {
-    document.getElementById("21").checked = true;
-}
-if (PrivInt & 2097152) {
-    document.getElementById("22").checked = true;
-}
-if (PrivInt & 4194304) {
-    document.getElementById("23").checked = true;
-}
-if (PrivInt & 8388608) {
-    document.getElementById("24").checked = true;
-}
-if (PrivInt & 134217728) {
-    document.getElementById("25").checked = true;
-}
-if (PrivInt & 268435456) {
-    document.getElementById("26").checked = true;
-}
-if (PrivInt & 536870912) {
-    document.getElementById("27").checked = true;
-}
-</script>
+    //porting HasPrivilege to JS
+    //uh oh i dont like this
+    if (PrivInt & 1) {
+      document.getElementById("1").checked = true;
+    }
+    if (PrivInt & 2) {
+      document.getElementById("2").checked = true;
+    }
+    if (PrivInt & 4) {
+      document.getElementById("3").checked = true;
+    }
+    if (PrivInt & 8) {
+      document.getElementById("4").checked = true;
+    }
+    if (PrivInt & 16) {
+      document.getElementById("5").checked = true;
+    }
+    if (PrivInt & 32) {
+      document.getElementById("6").checked = true;
+    }
+    if (PrivInt & 64) {
+      document.getElementById("7").checked = true;
+    }
+    if (PrivInt & 128) {
+      document.getElementById("8").checked = true;
+    }
+    if (PrivInt & 256) {
+      document.getElementById("9").checked = true;
+    }
+    if (PrivInt & 512) {
+      document.getElementById("10").checked = true;
+    }
+    if (PrivInt & 1024) {
+      document.getElementById("11").checked = true;
+    }
+    if (PrivInt & 2048) {
+      document.getElementById("12").checked = true;
+    }
+    if (PrivInt & 4096) {
+      document.getElementById("13").checked = true;
+    }
+    if (PrivInt & 8192) {
+      document.getElementById("14").checked = true;
+    }
+    if (PrivInt & 16384) {
+      document.getElementById("15").checked = true;
+    }
+    if (PrivInt & 32768) {
+      document.getElementById("16").checked = true;
+    }
+    if (PrivInt & 65536) {
+      document.getElementById("17").checked = true;
+    }
+    if (PrivInt & 131072) {
+      document.getElementById("18").checked = true;
+    }
+    if (PrivInt & 262144) {
+      document.getElementById("19").checked = true;
+    }
+    if (PrivInt & 524288) {
+      document.getElementById("20").checked = true;
+    }
+    if (PrivInt & 1048576) {
+      document.getElementById("21").checked = true;
+    }
+    if (PrivInt & 2097152) {
+      document.getElementById("22").checked = true;
+    }
+    if (PrivInt & 4194304) {
+      document.getElementById("23").checked = true;
+    }
+    if (PrivInt & 8388608) {
+      document.getElementById("24").checked = true;
+    }
+    if (PrivInt & 134217728) {
+      document.getElementById("25").checked = true;
+    }
+    if (PrivInt & 268435456) {
+      document.getElementById("26").checked = true;
+    }
+    if (PrivInt & 536870912) {
+      document.getElementById("27").checked = true;
+    }
+  </script>
 {% endblock %}

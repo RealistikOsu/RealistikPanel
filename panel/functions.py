@@ -2155,15 +2155,7 @@ def UserPageCount():
     mycursor.execute("SELECT count(*) FROM users")
     TheNumber = mycursor.fetchone()[0]
     # working with page number (this is a mess...)
-    TheNumber /= 50
-    # if not single digit, round up
-    if len(str(TheNumber)) != 0:
-        NewNumber = round(TheNumber)
-        # if number was rounded down
-        if NewNumber == round(int(str(TheNumber).split(".")[0])):
-            NewNumber += 1
-        TheNumber = NewNumber
-    return TheNumber
+    return math.ceil(TheNumber / PAGE_SIZE)
 
 
 def RapLogCount():
@@ -2171,22 +2163,8 @@ def RapLogCount():
     # i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM rap_logs")
     TheNumber = mycursor.fetchone()[0]
-    # working with page number (this is a mess...)
-    TheNumber /= 50
-    # if not single digit, round up
-    if len(str(TheNumber)) != 0:
-        NewNumber = round(TheNumber)
-        # if number was rounded down
-        if NewNumber == round(int(str(TheNumber).split(".")[0])):
-            NewNumber += 1
-        TheNumber = NewNumber
-    # makign page dict
-    Pages = []
-    while TheNumber != 0:
-        Pages.append(TheNumber)
-        TheNumber -= 1
-    Pages.reverse()
-    return Pages
+
+    return math.ceil(TheNumber / PAGE_SIZE)
 
 
 def GetClans(Page: int = 1):
@@ -2630,6 +2608,19 @@ def ban_pages() -> int:
     return math.ceil(ban_count() / PAGE_SIZE)
 
 
+def request_count() -> int:
+    """Returns the total number of requests."""
+
+    mycursor.execute("SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0")
+    return mycursor.fetchone()[0]
+
+
+def request_pages() -> int:
+    """Returns the number of pages in the request."""
+
+    return math.ceil(request_count() / PAGE_SIZE)
+
+
 def fetch_user_banlogs(user_id: int) -> list[BanLog]:
     """Fetches all ban logs targetting a specific user.
 
@@ -2817,6 +2808,12 @@ def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
 def get_hwid_count(user_id: int) -> int:
     mycursor.execute("SELECT COUNT(*) FROM hw_user WHERE userid = %s", (user_id,))
     return mycursor.fetchone()[0]
+
+
+def hwid_pages(user_id: int) -> int:
+    """Returns the number of pages in the ban log."""
+
+    return math.ceil(get_hwid_count(user_id) / PAGE_SIZE)
 
 
 class HWIDResult(TypedDict):

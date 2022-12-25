@@ -1,68 +1,85 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="section-title">Beatmap Ranking</h2>
-<p class="section-lead">Change the ranking of a beatmap! This can be ranked, loved or qualified.</p>
-<div class="card">
+  <h2 class="section-title">Beatmap Ranking</h2>
+  <p class="section-lead">
+    Change the ranking of a beatmap! This can be ranked, loved or qualified.
+  </p>
+  <div class="card">
     <div class="card-header">
-        <h4>Rank a beatmap!</h4>
+      <h4>Rank a beatmap!</h4>
     </div>
     <div class="card-body">
-        <form action="/rank" method="post">
-            <div class="form-group">
-                Make sure all the difficulties have been loaded at least once so they are added to the database!<br>
-                <label>Beatmap ID</label>
-                <input type="text" class="form-control" name="bmapid">
-            </div>
-            <button class="btn btn-primary mr-1" type="submit" name="">Search</button>
-        </form>
+      <form action="/rank" method="post">
+        <div class="form-group">
+          Make sure all the difficulties have been loaded at least once so they
+          are added to the database!<br />
+          <label>Beatmap ID</label>
+          <input type="text" class="form-control" name="bmapid" />
+        </div>
+        <button class="btn btn-primary mr-1" type="submit" name="">
+          Search
+        </button>
+      </form>
     </div>
-    <div class="card-footer">
-        RealistikPanel!
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel!</div>
+  </div>
 
-<h2 class="section-title">Suggested Ranking</h2>
-<p class="section-lead">Here are the most popular unranked beatmaps.</p>
-<div class="row">
+  <h2 class="section-title">Suggested Ranking</h2>
+  <p class="section-lead">Here are the most popular unranked beatmaps.</p>
+  <div class="row">
     <div class="col-12 col-md-6 col-lg-6">
-        {% for Beatmap in SuggestedBmaps[0] %}
+      {% for Beatmap in SuggestedBmaps[0] %}
         <article class="article">
-            <div class="article-header">
-                <div class="article-image" data-background="{{ Beatmap['Cover'] }}" style="background-image: url(&quot;{{ Beatmap['Cover'] }}&quot;);"></div>
-                <div class="article-title">
-                    <h2>{{ Beatmap["SongName"] }}</h2>
-                </div>
+          <div class="article-header">
+            <div
+              class="article-image"
+              data-background="{{ Beatmap['Cover'] }}"
+              style='background-image: url("{{ Beatmap['Cover'] }}");'
+            ></div>
+            <div class="article-title">
+              <h2>{{ Beatmap["SongName"] }}</h2>
             </div>
-            <div class="article-details">
-                This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on this server!
-            </div>
-            <div class="article-cta buttons">
-                <center>
-                    <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary">Manage Beatmap</a>
-                </center>
-            </div>
+          </div>
+          <div class="article-details">
+            This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
+            this server!
+          </div>
+          <div class="article-cta buttons">
+            <center>
+              <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary"
+                >Manage Beatmap</a
+              >
+            </center>
+          </div>
         </article>
-        {% endfor %}
+      {% endfor %}
     </div>
     <div class="col-12 col-md-6 col-lg-6">
-        {% for Beatmap in SuggestedBmaps[1] %}
+      {% for Beatmap in SuggestedBmaps[1] %}
         <article class="article">
-            <div class="article-header">
-                <div class="article-image" data-background="{{ Beatmap['Cover'] }}" style="background-image: url(&quot;{{ Beatmap['Cover'] }}&quot;);"></div>
-                <div class="article-title">
-                    <h2>{{ Beatmap["SongName"] }}</h2>
-                </div>
+          <div class="article-header">
+            <div
+              class="article-image"
+              data-background="{{ Beatmap['Cover'] }}"
+              style="background-image: url(`{{ Beatmap['Cover'] }}`);"
+            ></div>
+            <div class="article-title">
+              <h2>{{ Beatmap["SongName"] }}</h2>
             </div>
-            <div class="article-details">
-                This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on this server!
-            </div>
-            <div class="article-cta buttons">
-                <center>
-                    <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary">Manage Beatmap</a>
-                </center>
-            </div>
+          </div>
+          <div class="article-details">
+            This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
+            this server!
+          </div>
+          <div class="article-cta buttons">
+            <center>
+              <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary"
+                >Manage Beatmap</a
+              >
+            </center>
+          </div>
         </article>
-        {% endfor %}
+      {% endfor %}
     </div>
-</div>
+  </div>
 {% endblock %}

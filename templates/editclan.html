@@ -1,98 +1,156 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
+  <div class="card">
     <div class="card-header">
-        {% if Clan["Icon"] %}
-        <img alt="image" src="{{ Clan['Icon'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        {% endif %}
-        <h4><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</h4>
+      {% if Clan["Icon"] %}
+        <img
+          alt="image"
+          src="{{ Clan['Icon'] }}"
+          class="rounded-circle mr-1"
+          style="width:100%; max-width:30px; max-height:30px;"
+        />
+      {% endif %}
+      <h4><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</h4>
     </div>
     <div class="card-body">
-        <b>{{ Clan["Description"] }}</b><br>
-        This clan currently has {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
+      <b>{{ Clan["Description"] }}</b><br />
+      This clan currently has
+      {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
     </div>
     <div class="card-footer">
-        <img alt="image" src="{{ config.api_avatar_url }}{{ ClanOwner['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        This clan is led by <b>{{ ClanOwner["Username"] }}</b>
+      <img
+        alt="image"
+        src="{{ config.api_avatar_url }}{{ ClanOwner['AccountID'] }}"
+        class="rounded-circle mr-1"
+        style="width:100%; max-width:30px; max-height:30px;"
+      />
+      This clan is led by <b>{{ ClanOwner["Username"] }}</b>
     </div>
-</div>
-<div class="card">
-    <div class="card-header">
-        Clan Options
-    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">Clan Options</div>
     <div class="card-body">
-        <form action="/clan/{{ Clan['ID'] }}" method="post">
-            <div class="form-group">
-                <label>Clan ID</label>
-                <input type="text" class="form-control" name="id" value="{{ Clan['ID'] }}">
-            </div>
-            <div class="form-group">
-                <label>Clan Name</label>
-                <input type="text" class="form-control" name="name" value="{{ Clan['Name'] }}">
-            </div>
-            <div class="form-group">
-                <label>Clan Tag</label>
-                <input type="text" class="form-control" name="tag" value="{{ Clan['Tag'] }}">
-            </div>
-            <div class="form-group">
-                <label>Clan Description</label>
-                <input type="text" class="form-control" name="desc" value="{{ Clan['Description'] }}">
-            </div>
-            <div class="form-group">
-                <label>Clan Icon</label>
-                <input type="text" class="form-control" name="icon" value="{{ Clan['Icon'] }}">
-            </div>
-            <div class="form-group">
-                <label>Member Limit</label>
-                <input type="number" class="form-control" name="limit" value="{{ Clan['MemberLimit'] }}">
-            </div>
-            <div class="buttons">
-                <button class="btn btn-success" type="submit" name="">Apply!</button>
-                <a class="btn btn-danger" href="/clan/confirmdelete/{{ Clan['ID'] }}">Disband</a>
-            </div>
-        </form>
-    </div>
-</div>
-<h2 class="section-title">Clan Members</h2>
-<div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-        {% for Member in Members[0] %}
-        <div class="card">
-            <div class="card-header">
-                <img alt="image" src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-                <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
-            </div>
-            <div class="card-body">
-                They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
-                <div class="buttons" style="margin-top: 20px;">
-                    <a class="btn btn-danger" href="/action/kickclan/{{ Member['AccountID'] }}">Kick from Clan</a>
-                </div>
-            </div>
+      <form action="/clan/{{ Clan['ID'] }}" method="post">
+        <div class="form-group">
+          <label>Clan ID</label>
+          <input
+            type="text"
+            class="form-control"
+            name="id"
+            value="{{ Clan['ID'] }}"
+          />
         </div>
-        {% endfor %}
+        <div class="form-group">
+          <label>Clan Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="name"
+            value="{{ Clan['Name'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Clan Tag</label>
+          <input
+            type="text"
+            class="form-control"
+            name="tag"
+            value="{{ Clan['Tag'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Clan Description</label>
+          <input
+            type="text"
+            class="form-control"
+            name="desc"
+            value="{{ Clan['Description'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Clan Icon</label>
+          <input
+            type="text"
+            class="form-control"
+            name="icon"
+            value="{{ Clan['Icon'] }}"
+          />
+        </div>
+        <div class="form-group">
+          <label>Member Limit</label>
+          <input
+            type="number"
+            class="form-control"
+            name="limit"
+            value="{{ Clan['MemberLimit'] }}"
+          />
+        </div>
+        <div class="buttons">
+          <button class="btn btn-success" type="submit" name="">Apply!</button>
+          <a class="btn btn-danger" href="/clan/confirmdelete/{{ Clan['ID'] }}"
+            >Disband</a
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+  <h2 class="section-title">Clan Members</h2>
+  <div class="row">
+    <div class="col-12 col-md-6 col-lg-6">
+      {% for Member in Members[0] %}
+        <div class="card">
+          <div class="card-header">
+            <img
+              alt="image"
+              src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}"
+              class="rounded-circle mr-1"
+              style="width:100%; max-width:30px; max-height:30px;"
+            />
+            <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
+          </div>
+          <div class="card-body">
+            They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
+            <div class="buttons" style="margin-top: 20px;">
+              <a
+                class="btn btn-danger"
+                href="/action/kickclan/{{ Member['AccountID'] }}"
+                >Kick from Clan</a
+              >
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
     <div class="col-12 col-md-6 col-lg-6">
-        {% for Member in Members[1] %}
+      {% for Member in Members[1] %}
         <div class="card">
-            <div class="card-header">
-                <img alt="image" src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-                <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
+          <div class="card-header">
+            <img
+              alt="image"
+              src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}"
+              class="rounded-circle mr-1"
+              style="width:100%; max-width:30px; max-height:30px;"
+            />
+            <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
+          </div>
+          <div class="card-body">
+            They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
+            <div class="buttons" style="margin-top: 20px;">
+              <a
+                class="btn btn-danger"
+                href="/action/kickclan/{{ Member['AccountID'] }}"
+                >Kick from Clan</a
+              >
             </div>
-            <div class="card-body">
-                They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
-                <div class="buttons" style="margin-top: 20px;">
-                    <a class="btn btn-danger" href="/action/kickclan/{{ Member['AccountID'] }}">Kick from Clan</a>
-                </div>
-            </div>
+          </div>
         </div>
-        {% endfor %}
+      {% endfor %}
     </div>
-</div>
-<h2 class="section-title">Clan Invites</h2>
+  </div>
+  <h2 class="section-title">Clan Invites</h2>
 
-{% if not clan_invites %}
-<p>This clan has no active invite links!</p>
-{% else %}
-{% endif %}
-
+  {% if not clan_invites %}
+    <p>This clan has no active invite links!</p>
+  {% else %}
+  {% endif %}
 {% endblock %}

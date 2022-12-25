@@ -1,29 +1,30 @@
 <!DOCTYPE html>
 <!--Login form made by TheRealCed-->
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <link rel="stylesheet" href="/static/css/loginstyle.css">
-        <link rel="icon" type="image/png" href="/static/img/rosu.ico">
-        <title>RealistikPanel! - Login</title>
-    </head>
-    <body>
-        {% if alert %}
-        <div class="alert">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            {{ alert }}
-        </div>
-        {% endif %}
-        <form class="box" action="/login" method="post">
-            <h1>RealistikPanel!</h1>
-            <div class="text1">Log in comrade!</div>
-            <input type="text" name="username" placeholder="Username">
-            <input type="password" name="password" placeholder="Password">
-            <input type="submit" name="" value="Login">
-        </form>
-        <footer>
-            <a href="{{ conf.app_repo_url }}">Source</a>
-        </footer>
-    </body>
-</html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="stylesheet" href="/static/css/loginstyle.css" />
+  <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
+  <title>RealistikPanel! - Login</title>
+</head>
+<body>
+  {% if alert %}
+    <div class="alert">
+      <span class="closebtn" onclick="this.parentElement.style.display='none';"
+        >&times;</span
+      >
+      {{ alert }}
+    </div>
+  {% endif %}
+  <form class="box" action="/login" method="post">
+    <h1>RealistikPanel!</h1>
+    <div class="text1">Log in comrade!</div>
+    <input type="text" name="username" placeholder="Username" />
+    <input type="password" name="password" placeholder="Password" />
+    <input type="submit" name="" value="Login" />
+  </form>
+  <footer>
+    <a href="{{ conf.app_repo_url }}">Source</a>
+  </footer>
+</body>

@@ -1,155 +1,124 @@
 {% extends "base.html" %}
+{% import "components/pagination.html" as pagination %}
 {% block content %}
-<h2 class="section-title">{{ user["Username"] }}'s HWID History</h2>
+  <h2 class="section-title">{{ user["Username"] }}'s HWID History</h2>
 
-<div class="card">
+  <div class="card">
     <div class="card-header">
-        <img alt="image" src="{{ config.api_avatar_url }}{{ user['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
-        <h4><b>{{ user['Username'] }}</b></h4>
+      <img
+        alt="image"
+        src="{{ config.api_avatar_url }}{{ user['Id'] }}"
+        class="rounded-circle mr-1"
+        style="width:100%; max-width:30px; max-height:30px;"
+      />
+      <h4><b>{{ user['Username'] }}</b></h4>
     </div>
     <div class="card-body">
-        They have a total of <b>{{ total_hwids }}</b> HWID logs.
+      They have a total of <b>{{ total_hwids }}</b> HWID logs.
     </div>
-    <div class="card-footer">
-        RealistikPanel
-    </div>
-</div>
+    <div class="card-footer">RealistikPanel</div>
+  </div>
 
-<center>
-    <ul class="pagination">
-        {% if page <= 1 %}
-        <li class="page-item disabled">
-        {% else %}
-        <li class="page-item">
-        {% endif %}
-            <a class="page-link" href="/user/hwid/{{ user['Id'] }}/{{ page-1 }}" aria-label="Previous">
-                <span aria-hidden="true">«</span>
-                <span class="sr-only">Previous</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="/user/hwid/{{ user['Id'] }}/{{ page+1 }}" aria-label="Next">
-                <span aria-hidden="true">»</span>
-                <span class="sr-only">Next</span>
-            </a>
-        </li>
-    </ul>
-</center>
+  {{ pagination.pagination("/user/hwid/" + user['Id']|string,
+  page, pages) }}
 
-<!--Start of logs-->
-{% for log in hwid_logs %}
-<div class="card">
-    <div class="card-header">
+  <!--Start of logs-->
+  {% for log in hwid_logs %}
+    <div class="card">
+      <div class="card-header">
         Hardware Log <b>{{ log["result"]["id"] }}</b>
-    </div>
-    <div class="card-body">
+      </div>
+      <div class="card-body">
         <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">User ID</th>
-                    <th scope="col">Mac Hash</th>
-                    <th scope="col">Unique ID</th>
-                    <th scope="col">Disk Hash</th>
-                    <th scope="col">Occurences</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ log["result"]["id"] }}</td>
-                    <td>{{ log["result"]["user_id"] }}</td>
-                    <td>{{ log["result"]["mac"] }}</td>
-                    <td>{{ log["result"]["unique_id"] }}</td>
-                    <td>{{ log["result"]["disk_id"] }}</td>
-                    <td>{{ log["result"]["occurences"] }}</td>
-                </tr>
-            </tbody>
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">User ID</th>
+              <th scope="col">Mac Hash</th>
+              <th scope="col">Unique ID</th>
+              <th scope="col">Disk Hash</th>
+              <th scope="col">Occurences</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ log["result"]["id"] }}</td>
+              <td>{{ log["result"]["user_id"] }}</td>
+              <td>{{ log["result"]["mac"] }}</td>
+              <td>{{ log["result"]["unique_id"] }}</td>
+              <td>{{ log["result"]["disk_id"] }}</td>
+              <td>{{ log["result"]["occurences"] }}</td>
+            </tr>
+          </tbody>
         </table>
-        <hr>
+        <hr />
         <h4>Exact Matches</h4>
         These are usually a tell-tale sign of multiaccounting.
         {% if not log["exact_matches"] %}
-        <span style="color: #32a852;">All Good!</span>
+          <span style="color: #32a852;">All Good!</span>
         {% else %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">User ID</th>
-                        <th scope="col">Mac Hash</th>
-                        <th scope="col">Unique ID</th>
-                        <th scope="col">Disk Hash</th>
-                        <th scope="col">Occurences</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for exact_log in log["exact_matches"] %}
-                    <tr>
-                        <td>{{ exact_log["id"] }}</td>
-                        <td>{{ exact_log["user_id"] }}</td>
-                        <td>{{ exact_log["mac"] }}</td>
-                        <td>{{ exact_log["unique_id"] }}</td>
-                        <td>{{ exact_log["disk_id"] }}</td>
-                        <td>{{ exact_log["occurences"] }}</td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">User ID</th>
+                <th scope="col">Mac Hash</th>
+                <th scope="col">Unique ID</th>
+                <th scope="col">Disk Hash</th>
+                <th scope="col">Occurences</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for exact_log in log["exact_matches"] %}
+                <tr>
+                  <td>{{ exact_log["id"] }}</td>
+                  <td>{{ exact_log["user_id"] }}</td>
+                  <td>{{ exact_log["mac"] }}</td>
+                  <td>{{ exact_log["unique_id"] }}</td>
+                  <td>{{ exact_log["disk_id"] }}</td>
+                  <td>{{ exact_log["occurences"] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% endif %}
-        <hr>
+        <hr />
         <h4>Partial Matches</h4>
-        These show whenever the person's HWID bears any resemblence to any other's, meaning they frequently lead to false positives.
+        These show whenever the person's HWID bears any resemblence to any
+        other's, meaning they frequently lead to false positives.
         {% if not log["partial_matches"] %}
-        <span style="color: #32a852;">All Good!</span>
+          <span style="color: #32a852;">All Good!</span>
         {% else %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">User ID</th>
-                        <th scope="col">Mac Hash</th>
-                        <th scope="col">Unique ID</th>
-                        <th scope="col">Disk Hash</th>
-                        <th scope="col">Occurences</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for partial_log in log["partial_matches"] %}
-                    <tr>
-                        <td>{{ partial_log["id"] }}</td>
-                        <td>{{ partial_log["user_id"] }}</td>
-                        <td>{{ partial_log["mac"] }}</td>
-                        <td>{{ partial_log["unique_id"] }}</td>
-                        <td>{{ partial_log["disk_id"] }}</td>
-                        <td>{{ partial_log["occurences"] }}</td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">User ID</th>
+                <th scope="col">Mac Hash</th>
+                <th scope="col">Unique ID</th>
+                <th scope="col">Disk Hash</th>
+                <th scope="col">Occurences</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for partial_log in log["partial_matches"] %}
+                <tr>
+                  <td>{{ partial_log["id"] }}</td>
+                  <td>{{ partial_log["user_id"] }}</td>
+                  <td>{{ partial_log["mac"] }}</td>
+                  <td>{{ partial_log["unique_id"] }}</td>
+                  <td>{{ partial_log["disk_id"] }}</td>
+                  <td>{{ partial_log["occurences"] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         {% endif %}
+      </div>
     </div>
-</div>
-{% endfor %}
-
-<center>
-    <ul class="pagination">
-        {% if page <= 1 %}
-        <li class="page-item disabled">
-        {% else %}
-        <li class="page-item">
-        {% endif %}
-            <a class="page-link" href="/user/hwid/{{ user['Id'] }}/{{ page-1 }}" aria-label="Previous">
-                <span aria-hidden="true">«</span>
-                <span class="sr-only">Previous</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="/user/hwid/{{ user['Id'] }}/{{ page+1 }}" aria-label="Next">
-                <span aria-hidden="true">»</span>
-                <span class="sr-only">Next</span>
-            </a>
-        </li>
-    </ul>
-</center>
-
+  {% endfor %}
+  {{ pagination.pagination("/user/hwid/" + user['Id']|string,
+  page, pages) }}
+  {{ pagination.paginationJs("/user/hwid/" + user['Id']|string,
+  page, pages) }}
 {% endblock %}
