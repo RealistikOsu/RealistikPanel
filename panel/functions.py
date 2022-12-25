@@ -23,15 +23,12 @@ from discord_webhook import DiscordWebhook
 from osrparse import *
 
 from panel import logger
-from panel.changelogs import Changelogs
 from panel.common.cryprography import compare_password
 from panel.common.time import timestamp_as_date
 from panel.common.utils import decode_int_or
 from panel.common.utils import halve_list
 from panel.config import config
 from panel.constants.privileges import Privileges
-
-Changelogs.reverse()
 
 try:
     mydb = mysql.connector.connect(

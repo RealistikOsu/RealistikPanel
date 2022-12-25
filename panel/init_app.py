@@ -506,20 +506,6 @@ def configure_routes(app: Flask) -> None:
         else:
             return no_permission_response(request.path)
 
-    @app.route("/changelogs")
-    def panel_view_changelogs():
-        if HasPrivilege(session["AccountId"]):
-            return render_template(
-                "changelog.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Change Logs",
-                config=config,
-                logs=Changelogs,
-            )
-        else:
-            return no_permission_response(request.path)
-
     @app.route("/current.json")
     def panel_switcher_endpoints():
         """IPs for the Ripple switcher."""
