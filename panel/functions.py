@@ -20,7 +20,6 @@ import requests
 import timeago
 from discord_webhook import DiscordEmbed
 from discord_webhook import DiscordWebhook
-from osrparse import *
 
 from panel import logger
 from panel.common.cryprography import compare_password
