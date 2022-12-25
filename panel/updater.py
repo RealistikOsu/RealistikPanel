@@ -7,8 +7,8 @@ import time
 
 import requests
 
-import logger
-from config import config
+from panel import logger
+from panel.config import config
 
 
 ###########################

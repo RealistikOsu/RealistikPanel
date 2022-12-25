@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 
-from config import config
+from panel.config import config
 
 
 def timestamp_as_date(timestamp: int, exclude_date: bool = True) -> str:

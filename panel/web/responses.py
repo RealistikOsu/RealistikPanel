@@ -3,8 +3,8 @@ from __future__ import annotations
 from flask import render_template
 from flask import session
 
-from config import config
-from functions import load_dashboard_data
+from panel.config import config
+from panel.functions import load_dashboard_data
 
 
 def load_panel_template(file: str, title: str, **kwargs) -> str:

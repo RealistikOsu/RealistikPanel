@@ -22,14 +22,14 @@ from discord_webhook import DiscordEmbed
 from discord_webhook import DiscordWebhook
 from osrparse import *
 
-import logger
-from changelogs import Changelogs
-from common.cryprography import compare_password
-from common.time import timestamp_as_date
-from common.utils import decode_int_or
-from common.utils import halve_list
-from config import config
-from constants.privileges import Privileges
+from panel import logger
+from panel.changelogs import Changelogs
+from panel.common.cryprography import compare_password
+from panel.common.time import timestamp_as_date
+from panel.common.utils import decode_int_or
+from panel.common.utils import halve_list
+from panel.config import config
+from panel.constants.privileges import Privileges
 
 Changelogs.reverse()
 

@@ -8,7 +8,7 @@ from json import load
 from typing import Any
 from typing import get_type_hints
 
-import logger
+from panel import logger
 
 
 @dataclass

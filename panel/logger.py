@@ -8,7 +8,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-def init_logging(log_level: Union[str, int]) -> None:
+def configure_logging(log_level: Union[str, int]) -> None:
     logging.basicConfig(level=log_level)
 
 
