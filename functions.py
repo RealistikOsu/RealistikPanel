@@ -9,8 +9,6 @@ import random
 import string
 import time
 import traceback
-from enum import IntFlag
-from typing import Optional
 from typing import TypedDict
 from typing import Union
 
@@ -20,8 +18,6 @@ import pycountry
 import redis
 import requests
 import timeago
-from colorama import Fore
-from colorama import init
 from discord_webhook import DiscordEmbed
 from discord_webhook import DiscordWebhook
 from osrparse import *
@@ -35,19 +31,7 @@ from common.utils import halve_list
 from config import config
 from constants.privileges import Privileges
 
-init()  # initialises colourama for colours
 Changelogs.reverse()
-
-print(
-    rf"""{Fore.BLUE}  _____            _ _     _   _ _    _____                 _ _
- |  __ \          | (_)   | | (_) |  |  __ \               | | |
- | |__) |___  __ _| |_ ___| |_ _| | _| |__) |_ _ _ __   ___| | |
- |  _  // _ \/ _` | | / __| __| | |/ /  ___/ _` | '_ \ / _ \ | |
- | | \ \  __/ (_| | | \__ \ |_| |   <| |  | (_| | | | |  __/ |_|
- |_|  \_\___|\__,_|_|_|___/\__|_|_|\_\_|   \__,_|_| |_|\___|_(_)
- ---------------------------------------------------------------
-{Fore.RESET}""",
-)
 
 try:
     mydb = mysql.connector.connect(

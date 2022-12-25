@@ -5,8 +5,6 @@ import os
 import traceback
 from threading import Thread
 
-from colorama import Fore
-from colorama import init
 from flask import Flask
 from flask import jsonify
 from flask import redirect
