@@ -12,7 +12,7 @@
         This clan currently has {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
     </div>
     <div class="card-footer">
-        <img alt="image" src="{{ config['AvatarServer'] }}{{ ClanOwner['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        <img alt="image" src="{{ config.api_avatar_url }}{{ ClanOwner['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
         This clan is led by <b>{{ ClanOwner["Username"] }}</b>
     </div>
 </div>
@@ -59,11 +59,11 @@
         {% for Member in Members[0] %}
         <div class="card">
             <div class="card-header">
-                <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+                <img alt="image" src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
                 <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
             </div>
             <div class="card-body">
-                They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
+                They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
                 <div class="buttons" style="margin-top: 20px;">
                     <a class="btn btn-danger" href="/action/kickclan/{{ Member['AccountID'] }}">Kick from Clan</a>
                 </div>
@@ -75,11 +75,11 @@
         {% for Member in Members[1] %}
         <div class="card">
             <div class="card-header">
-                <img alt="image" src="{{ config['AvatarServer'] }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+                <img alt="image" src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
                 <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
             </div>
             <div class="card-body">
-                They registered on {{ config["ServerName"] }} {{ Member["RegisterAgo"] }}
+                They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
                 <div class="buttons" style="margin-top: 20px;">
                     <a class="btn btn-danger" href="/action/kickclan/{{ Member['AccountID'] }}">Kick from Clan</a>
                 </div>

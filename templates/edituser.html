@@ -24,7 +24,7 @@
 
 <div class="card">
     <div class="card-header">
-        <img alt="image" src="{{ config['AvatarServer'] }}{{ UserData['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
+        <img alt="image" src="{{ config.api_avatar_url }}{{ UserData['Id'] }}" class="rounded-circle mr-1" style="width:100%; max-width:30px; max-height:30px;">
         <h4><b>{{ UserData['Username'] }}</b> | </h4>
         {% if UserData["IsOnline"] %}
         <span style="color: #32a852;">● Online</span>
@@ -39,7 +39,7 @@
         {% else %}
         <img src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg" class="nflag"><br>
         {% endif %}
-        Their status on {{ config["ServerName"] }} is
+        Their status on {{ config.srv_name }} is
         {% if UserData["Privileges"] >= 3 %}
         <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
         {% else %}
@@ -245,16 +245,16 @@
             <a href="/actions/hwid/{{ UserData['Id'] }}" class="btn btn-danger" id="hwid">Clear HWID</a>
             <a href="/action/confirm/delete/{{ UserData['Id'] }}" class="btn btn-danger", id="delete">Delete Account</a>
             <a href="/actions/kick/{{ UserData['Id'] }}" class="btn btn-warning" id="kick">Kick User</a>
-            {% if config["HasRelax"] or config["HasAutopilot"] %}
+            {% if config.srv_supports_relax or config.srv_supports_autopilot %}
             <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Full Wipe</a>
             <a href="/actions/wipeva/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Vanilla</a>
             {% else %}
             <a href="/actions/wipe/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe</a>
             {% endif %}
-            {% if config["HasRelax"] %}
+            {% if config.srv_supports_relax %}
             <a href="/actions/wiperx/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Relax</a>
             {% endif %}
-            {% if config["HasAutopilot"] %}
+            {% if config.srv_supports_autopilot %}
             <a href="/actions/wipeap/{{ UserData['Id'] }}" class="btn btn-danger" id="wipe">Wipe Autopilot</a>
             {% endif %}
         </div>
@@ -270,7 +270,7 @@
     //sets default country to one from UserData
     document.getElementById("countryselect").value = "{{ UserData['Country'] }}";
     //ip lookup, did it via js not to slow down the loading with a request
-    let url = "{{ config['IpLookup'] }}{{ UserData['Ip'] }}";
+    let url = "{{ config.api_geoloc_url }}{{ UserData['Ip'] }}";
     fetch(url)
     .then(res => res.json())
     .then((out) => {

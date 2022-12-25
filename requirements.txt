@@ -5,4 +5,5 @@ flask==2.0.1
 mysql-connector==2.2.9
 pycountry==20.7.3
 redis==2.10.6
+structlog
 timeago==1.0.7

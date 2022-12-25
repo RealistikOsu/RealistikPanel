@@ -1,4 +1,4 @@
-# This file is responsible for all the functionality
+# Legacy panel functionality! DO NOT extend.
 from __future__ import annotations
 
 import datetime
@@ -8,10 +8,10 @@ import math
 import random
 import string
 import time
+import traceback
 from enum import IntFlag
 from typing import Optional
 from typing import TypedDict
-from typing import TypeVar
 from typing import Union
 
 import bcrypt
@@ -26,10 +26,14 @@ from discord_webhook import DiscordEmbed
 from discord_webhook import DiscordWebhook
 from osrparse import *
 
+import logger
 from changelogs import Changelogs
-from config import UserConfig
-
-T = TypeVar("T")
+from common.cryprography import compare_password
+from common.time import timestamp_as_date
+from common.utils import decode_int_or
+from common.utils import halve_list
+from config import config
+from constants.privileges import Privileges
 
 init()  # initialises colourama for colours
 Changelogs.reverse()
@@ -47,37 +51,37 @@ print(
 
 try:
     mydb = mysql.connector.connect(
-        host=UserConfig["SQLHost"],
-        port=UserConfig["SQLPort"],
-        user=UserConfig["SQLUser"],
-        passwd=UserConfig["SQLPassword"],
-    )  # connects to database
-    print(f"{Fore.GREEN} Successfully connected to MySQL!")
+        host=config.sql_host,
+        port=config.sql_port,
+        user=config.sql_user,
+        passwd=config.sql_password,
+        db=config.sql_database,
+    )
+    logger.info(f"Successfully connected to MySQL!")
     mydb.autocommit = True
-except Exception as e:
-    print(
-        f"{Fore.RED} Failed connecting to MySQL! Abandoning!\n Error: {e}{Fore.RESET}",
+except Exception:
+    logger.error(
+        f"Failed connecting to MySQL! Abandoning!\n" + traceback.format_exc(),
     )
     exit()
 
 try:
     r = redis.Redis(
-        host=UserConfig["RedisHost"],
-        port=UserConfig["RedisPort"],
-        password=UserConfig["RedisPassword"],
-        db=UserConfig["RedisDb"],
+        host=config.redis_host,
+        port=config.redis_port,
+        password=config.redis_password,
+        db=config.redis_db,
     )
-    print(f"{Fore.GREEN} Successfully connected to Redis!")
-except Exception as e:
-    print(
-        f"{Fore.RED} Failed connecting to Redis! Abandoning!\n Error: {e}{Fore.RESET}",
+    logger.info(f"Successfully connected to Redis!")
+except Exception:
+    logger.error(
+        f"Failed connecting to Redis! Abandoning!\n" + traceback.format_exc(),
     )
     exit()
 
 mycursor = mydb.cursor(
     buffered=True,
 )
-mycursor.execute(f"USE {UserConfig['SQLDatabase']}")
 mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 # fix potential crashes
@@ -85,28 +89,17 @@ mycursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 mycursor.execute("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
 BadUserCount = mycursor.fetchone()[0]
 if BadUserCount > 0:
-    print(
-        f"{Fore.RED} Found {BadUserCount} users with potentially problematic data!{Fore.RESET}",
+    logger.warning(
+        f"Found {BadUserCount} users with potentially problematic data!",
     )
-    print(" Fixing...", end="")  # end = "" means it doesnt do a newline
     mycursor.execute(
         "UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = ''",
     )
     mydb.commit()
-    print(" Done!")
+    logger.info("Fixed problematic data!")
 
 # public variables
 PlayerCount = []  # list of players
-
-
-def decode_int_or(value: Optional[bytes], default: int = 0) -> int:
-    """Decodes a byte stream and casts it to an int or returns a default value if `value`
-    is `None`."""
-
-    if value is None:
-        return default
-
-    return int(value.decode("utf-8"))
 
 
 def load_dashboard_data() -> dict:
@@ -166,7 +159,7 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
             return False, USER_NOT_FOUND_ERROR
 
         if has_privilege_value(user_id, Privileges.ADMIN_ACCESS_RAP):
-            if checkpw(password_md5, password):
+            if compare_password(password, password_md5):
                 return (
                     True,
                     {  # creating session
@@ -181,19 +174,6 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
                 return False, USER_PASSWORD_ERROR
         else:
             return False, USER_PRIVILEGE_ERROR
-
-
-def timestamp_as_date(timestamp: int, exclude_date: bool = True) -> str:
-    """Converts timestamps into readable time."""
-    date = datetime.datetime.fromtimestamp(timestamp)  # converting into datetime object
-    date += datetime.timedelta(
-        hours=UserConfig["TimezoneOffset"],
-    )  # adding timezone offset to current time
-
-    if exclude_date:
-        return date.strftime("%H:%M")
-
-    return date.strftime("%H:%M %d/%m/%Y")
 
 
 BASE_RECENT_QUERY = """
@@ -214,9 +194,9 @@ LIMIT %s
 def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
     """Returns recent plays."""
     divisor = 1
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         divisor += 1
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         divisor += 1
     plays_per_gamemode = total_plays // divisor
 
@@ -228,7 +208,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
         ),
     )
     plays = mycursor.fetchall()
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         # adding relax plays
         mycursor.execute(
             BASE_RECENT_QUERY.format("scores_relax"),
@@ -242,7 +222,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
             # addint them to the list
             plays_rx = list(plays_rx)
             plays.append(plays_rx)
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         # adding relax plays
         mycursor.execute(
             BASE_RECENT_QUERY.format("scores_ap"),
@@ -389,37 +369,6 @@ def GetBmapInfo(id):
     return BeatmapList
 
 
-class Privileges(IntFlag):
-    """Bitwise enumerations for Ripple privileges."""
-
-    USER_PUBLIC = 1
-    USER_NORMAL = 2 << 0
-    USER_DONOR = 2 << 1
-    ADMIN_ACCESS_RAP = 2 << 2
-    ADMIN_MANAGE_USERS = 2 << 3
-    ADMIN_BAN_USERS = 2 << 4
-    ADMIN_SILENCE_USERS = 2 << 5
-    ADMIN_WIPE_USERS = 2 << 6
-    ADMIN_MANAGE_BEATMAPS = 2 << 7
-    ADMIN_MANAGE_SERVERS = 2 << 8
-    ADMIN_MANAGE_SETTINGS = 2 << 9
-    ADMIN_MANAGE_BETAKEYS = 2 << 10
-    ADMIN_MANAGE_REPORTS = 2 << 11
-    ADMIN_MANAGE_DOCS = 2 << 12
-    ADMIN_MANAGE_BADGES = 2 << 13
-    ADMIN_VIEW_RAP_LOGS = 2 << 14
-    ADMIN_MANAGE_PRIVILEGES = 2 << 15
-    ADMIN_SEND_ALERTS = 2 << 16
-    ADMIN_CHAT_MOD = 2 << 17
-    ADMIN_KICK_USERS = 2 << 18
-    USER_PENDING_VERIFICATION = 2 << 19
-    USER_TOURNAMENT_STAFF = 2 << 20
-    ADMIN_CAKER = 20 << 21
-    PANEL_MANAGE_CLANS = 2 << 27
-    PANEL_VIEW_IPS = 2 << 28
-    BOT_USER = 1 << 30
-
-
 def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
     # Fetch privileges from database.
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (user_id,))
@@ -544,7 +493,7 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
     elif ActionName == "Unranked":
         ActionName = 0
     else:
-        print(" Received alien input from rank. what?")
+        logger.debug("Malformed action name input.")
         return
     mycursor.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
@@ -568,12 +517,12 @@ def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
 
 def FokaMessage(params) -> None:
     """Sends a fokabot message."""
-    requests.get(f"{UserConfig['BanchoURL']}api/v1/fokabotMessage", params=params)
+    requests.get(config.api_bancho_url + "api/v1/fokabotMessage", params=params)
 
 
 def Webhook(BeatmapId, ActionName, session):
     """Beatmap rank webhook."""
-    URL = UserConfig["Webhook"]
+    URL = config.webhook_ranked
     if URL == "":
         # if no webhook is set, dont do anything
         return
@@ -596,13 +545,13 @@ def Webhook(BeatmapId, ActionName, session):
     )  # this is giving me discord.py vibes
     embed.set_author(
         name=f"{mapa[0]} was just {TitleText}",
-        url=f"{UserConfig['ServerURL']}b/{BeatmapId}",
-        icon_url=f"{UserConfig['AvatarServer']}{session['AccountId']}",
+        url=config.srv_url + "b/{BeatmapId}",
+        icon_url=f"{config.api_avatar_url}{session['AccountId']}",
     )
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
     webhook.add_embed(embed)
-    print(" * Posting webhook!")
+    logger.info("Posting webhook....")
     webhook.execute()
     if ActionName == 0:
         Logtext = "unranked"
@@ -611,8 +560,8 @@ def Webhook(BeatmapId, ActionName, session):
     if ActionName == 5:
         Logtext = "loved"
     RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
-    ingamemsg = f"[https://{UserConfig['ServerURL']}u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
-    params = {"k": UserConfig["FokaKey"], "to": "#announce", "msg": ingamemsg}
+    ingamemsg = f"[https://{config.srv_url}u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
+    params = {"k": config.api_foka_key, "to": "#announce", "msg": ingamemsg}
     FokaMessage(params)
 
 
@@ -630,30 +579,18 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
     )
     mydb.commit()
     # webhook time
-    if UserConfig["AdminLogWebhook"] != "":
+    if config.webhook_admin_log:
         Username = GetUser(UserID)["Username"]
-        webhook = DiscordWebhook(UserConfig["AdminLogWebhook"])
+        webhook = DiscordWebhook(config.webhook_admin_log)
         embed = DiscordEmbed(description=f"{Username} {Text}", color=242424)
         embed.set_footer(text="RealistikPanel Admin Logs")
         embed.set_author(
             name=f"New action done by {Username}!",
-            url=f"{UserConfig['ServerURL']}u/{UserID}",
-            icon_url=f"{UserConfig['AvatarServer']}{UserID}",
+            url=f"{config.srv_url}u/{UserID}",
+            icon_url=f"{config.api_avatar_url}{UserID}",
         )
         webhook.add_embed(embed)
         webhook.execute()
-
-
-def checkpw(dbpassword: str, painpassword: str) -> bool:
-    """
-    By: kotypey
-    password checking...
-    """
-
-    result = hashlib.md5(painpassword.encode()).hexdigest().encode("utf-8")
-    dbpassword = dbpassword.encode("utf-8")
-
-    return bcrypt.checkpw(result, dbpassword)
 
 
 def SystemSettingsValues():
@@ -735,7 +672,7 @@ def IsOnline(AccountId: int) -> bool:
     """Checks if given user is online."""
     try:
         Online = requests.get(
-            url=f"{UserConfig['BanchoURL']}api/v1/isOnline?id={AccountId}",
+            url=f"{config.api_bancho_url}api/v1/isOnline?id={AccountId}",
         ).json()
         if Online["status"] == 200:
             return Online["result"]
@@ -747,13 +684,13 @@ def IsOnline(AccountId: int) -> bool:
 
 def CalcPP(BmapID):
     """Sends request to letsapi to calc PP for beatmap id."""
-    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}").json()
+    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
 
 def CalcPPDT(BmapID):
     """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
-    reqjson = requests.get(url=f"{UserConfig['LetsAPI']}v1/pp?b={BmapID}&m=64").json()
+    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=64").json()
     return round(reqjson["pp"][0], 2)
 
 
@@ -769,13 +706,10 @@ def Unique(Alist):
 def FetchUsers(page=0):
     """Fetches users for the users page."""
     # This is going to need a lot of patching up i can feel it
-    Offset = UserConfig["PageSize"] * page  # for the page system to work
+    Offset = 50 * page  # for the page system to work
     mycursor.execute(
-        "SELECT id, username, privileges, allowed, country FROM users LIMIT %s OFFSET %s",
-        (
-            UserConfig["PageSize"],
-            Offset,
-        ),
+        "SELECT id, username, privileges, allowed, country FROM users LIMIT 50 OFFSET %s",
+        (Offset,),
     )
     People = mycursor.fetchall()
 
@@ -925,7 +859,7 @@ def UserData(UserID):
     Data["DonorExpire"] = Data2[4]
     Data["SilenceEnd"] = Data2[5]
     Data["SilenceReason"] = Data2[6]
-    Data["Avatar"] = UserConfig["AvatarServer"] + str(UserID)
+    Data["Avatar"] = config.api_avatar_url + str(UserID)
     Data["Ip"] = Ip
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0]
@@ -958,13 +892,10 @@ def UserData(UserID):
 def RAPFetch(page=1):
     """Fetches RAP Logs."""
     page = int(page) - 1  # makes sure is int and is in ok format
-    Offset = UserConfig["PageSize"] * page
+    Offset = 50 * page
     mycursor.execute(
-        "SELECT * FROM rap_logs ORDER BY id DESC LIMIT %s OFFSET %s",
-        (
-            UserConfig["PageSize"],
-            Offset,
-        ),
+        "SELECT * FROM rap_logs ORDER BY id DESC LIMIT 50 OFFSET %s",
+        (Offset,),
     )
     Data = mycursor.fetchall()
 
@@ -1043,9 +974,6 @@ def ApplyUserEdit(form, session):
     Privilege = form.get("privilege", False)
     HWIDBypass = form.get("hwid_bypass", False) == "1"
 
-    if not UserId or not Username:
-        print("Yo you seriously messed up the form")
-        raise NameError
     # Creating safe username
     SafeUsername = RippleSafeUsername(Username)
 
@@ -1099,7 +1027,7 @@ def ApplyUserEdit(form, session):
             UserId,
         ),
     )
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         mycursor.execute(
             "UPDATE rx_stats SET username = %s WHERE id = %s",
             (
@@ -1107,7 +1035,7 @@ def ApplyUserEdit(form, session):
                 UserId,
             ),
         )
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         mycursor.execute(
             "UPDATE ap_stats SET username = %s WHERE id = %s",
             (
@@ -1213,14 +1141,14 @@ def WipeAccount(AccId):
             },
         ),
     )
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
     WipeVanilla(AccId)
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         WipeRelax(AccId)
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         WipeAutopilot(AccId)
 
 
@@ -1411,7 +1339,7 @@ def ResUnTrict(id: int, note: str = None, reason: str = None):
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
-        params = {"k": UserConfig["FokaKey"], "to": GetUser(id)["Username"], "msg": wip}
+        params = {"k": config.api_foka_key, "to": GetUser(id)["Username"], "msg": wip}
         FokaMessage(params)
         TimeBan = round(time.time())
         mycursor.execute(
@@ -1458,29 +1386,10 @@ def FreezeHandler(id: int):
             "UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s",
             (id,),
         )
-        mycursor.execute(
-            f"SELECT * FROM user_badges WHERE user = {id} AND badge = {UserConfig['VerifiedBadgeID']}",
-        )
-        bruh = mycursor.fetchall()
-        if bruh is None:
-            mycursor.execute(
-                "INSERT IGNORE INTO user_badges (user, badge) VALUES (%s, %s)",
-                (id, UserConfig["VerifiedBadgeID"]),
-            )  # award verification badge
         TheReturn = False
     else:
-        if UserConfig["TimestampType"] == "ainu":
-            # example: 20200716 instead of 478923793298473298432789437289472394379847329847328943829489432789473289
-            freezedateunix = int(
-                datetime.datetime.utcfromtimestamp(int(time.time()) + 432000).strftime(
-                    "%Y%m%d",
-                ),
-            )
-        else:
-            freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
-            freezedateunix = (
-                freezedate - datetime.datetime(1970, 1, 1)
-            ).total_seconds()
+        freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
+        freezedateunix = (freezedate - datetime.datetime(1970, 1, 1)).total_seconds()
         mycursor.execute(
             "UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s",
             (
@@ -1489,8 +1398,8 @@ def FreezeHandler(id: int):
             ),
         )
         TheReturn = True
-        wip = f"Your account has been frozen. Please join the {UserConfig['ServerName']} Discord and submit a liveplay to a staff member in order to be unfrozen"
-        params = {"k": UserConfig["FokaKey"], "to": GetUser(id)["Username"], "msg": wip}
+        wip = f"Your account has been frozen. Please join the {config.srv_name} Discord and submit a liveplay to a staff member in order to be unfrozen"
+        params = {"k": config.api_foka_key, "to": GetUser(id)["Username"], "msg": wip}
         FokaMessage(params)
     mydb.commit()
     return TheReturn
@@ -1533,7 +1442,7 @@ def BanUser(id: int, reason: str = None):
             json.dumps(
                 {  # lets the user know what is up
                     "userID": id,
-                    "reason": f"You have been banned from {UserConfig['ServerName']}. You will not be missed.",
+                    "reason": f"You have been banned from {config.srv_name}. You will not be missed.",
                 },
             ),
         )
@@ -1556,7 +1465,7 @@ def DeleteAccount(id: int):
         json.dumps(
             {  # lets the user know what is up
                 "userID": id,
-                "reason": f"You have been deleted from {UserConfig['ServerName']}. Bye!",
+                "reason": f"You have been deleted from {config.srv_name}. Bye!",
             },
         ),
     )
@@ -1593,10 +1502,10 @@ def DeleteAccount(id: int):
     mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
     mycursor.execute("DELETE FROM users_stats WHERE id = %s", (id,))
-    if UserConfig["HasRelax"]:
+    if config.srv_supports_relax:
         mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
         mycursor.execute("DELETE FROM rx_stats WHERE id = %s", (id,))
-    if UserConfig["HasAutopilot"]:
+    if config.srv_supports_autopilot:
         mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (id,))
         mycursor.execute("DELETE FROM ap_stats WHERE id = %s", (id,))
     mydb.commit()
@@ -1635,7 +1544,7 @@ def PlayerCountCollection(loop=True):
     while loop:
         CurrentCount = decode_int_or(r.get("ripple:online_users"), 0)
         PlayerCount.append(CurrentCount)
-        time.sleep(UserConfig["UserCountFetchRate"] * 60)
+        time.sleep(300)
         # so graph doesnt get too huge
         if len(PlayerCount) >= 100:
             PlayerCount.remove(PlayerCount[0])
@@ -1654,7 +1563,7 @@ def get_playcount_graph_data():
     IntervalList = []
     for x in PlayerCount:
         IntervalList.append(str(PrevNum) + "m")
-        PrevNum += UserConfig["UserCountFetchRate"]
+        PrevNum += 5
 
     IntervalList.reverse()
     Data["IntervalList"] = json.dumps(IntervalList)
@@ -1703,7 +1612,7 @@ def GiveSupporter(AccountID: int, Duration=30):
         # now we give them the badge
         mycursor.execute(
             "INSERT INTO user_badges (user, badge) VALUES (%s, %s)",
-            (AccountID, UserConfig["DonorBadgeID"]),
+            (AccountID, config.srv_donor_badge_id),
         )
         mydb.commit()
 
@@ -1731,7 +1640,7 @@ def RemoveSupporter(AccountID: int, session):
     # removing el donor badge
     mycursor.execute(
         "DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1",
-        (AccountID, UserConfig["DonorBadgeID"]),
+        (AccountID, config.srv_donor_badge_id),
     )
     mydb.commit()
     User = GetUser(AccountID)
@@ -1917,12 +1826,12 @@ def SetUserBadges(AccountID: int, Badges: list):
 
 
 def GetLog():
-    """Gets the newest x (userconfig page size) entries in the log."""
+    """Gets the newest 50 entries in the log."""
 
     with open("realistikpanel.log") as Log:
         Log = json.load(Log)
 
-    Log = Log[-UserConfig["PageSize"] :]
+    Log = Log[-50:]
     Log.reverse()  # still wondering why it doesnt return the reversed list and instead returns none
     LogNr = 0
     # format the timestamps
@@ -1949,13 +1858,6 @@ def GetUserID(Username: str):
     return Data[0][0]
 
 
-def halve_list(input: list[T]) -> tuple[list[T], list[T]]:
-    return (
-        input[::2],
-        input[1::2],
-    )
-
-
 def TimeToTimeAgo(Timestamp: int):
     """Converts a seconds timestamp to a timeago string."""
     DTObj = datetime.datetime.fromtimestamp(Timestamp)
@@ -1971,10 +1873,10 @@ def RemoveFromLeaderboard(UserID: int):
     for mode in Modes:
         # redis for each mode
         r.zrem(f"ripple:leaderboard:{mode}", UserID)
-        if UserConfig["HasRelax"]:
+        if config.srv_supports_relax:
             # removes from relax leaderboards
             r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
-        if UserConfig["HasAutopilot"]:
+        if config.srv_supports_autopilot:
             r.zrem(f"ripple:leaderboard_ap:{mode}", UserID)
 
         # removing from country leaderboards
@@ -1985,9 +1887,9 @@ def RemoveFromLeaderboard(UserID: int):
         Country = mycursor.fetchone()[0]
         if Country != "XX":  # check if the country is not set
             r.zrem(f"ripple:leaderboard:{mode}:{Country}", UserID)
-            if UserConfig["HasRelax"]:
+            if config.srv_supports_relax:
                 r.zrem(f"ripple:leaderboard_relax:{mode}:{Country}", UserID)
-            if UserConfig["HasAutopilot"]:
+            if config.srv_supports_autopilot:
                 r.zrem(f"ripple:leaderboard_ap:{mode}:{Country}", UserID)
 
 
@@ -2024,7 +1926,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     # Getting bmap name without diff
     BmapName = MapData[0].split("[")[0].rstrip()  # ¯\_(ツ)_/¯ might work
     # webhook, didnt use webhook function as it was too adapted for single map webhook
-    webhook = DiscordWebhook(url=UserConfig["Webhook"])
+    webhook = DiscordWebhook(url=config.webhook_ranked)
     embed = DiscordEmbed(
         description=f"Ranked by {session['AccountName']}",
         color=242424,
@@ -2037,7 +1939,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg")
     webhook.add_embed(embed)
-    print(" * Posting webhook!")
+    logger.info("Posting webhook...")
     webhook.execute()
 
     # Refresh all lbs.
@@ -2048,27 +1950,25 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
 def FindUserByUsername(User: str, Page):
     """Finds user by their username OR email."""
     # calculating page offsets
-    Offset = UserConfig["PageSize"] * (Page - 1)
+    Offset = 50 * (Page - 1)
     # checking if its an email
     Split = User.split("@")
     if (
         len(Split) == 2 and "." in Split[1]
     ):  # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
         mycursor.execute(
-            "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT %s OFFSET %s",
+            "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
-                UserConfig["PageSize"],
                 Offset,
             ),
         )  # i will keep the like statement unless it causes issues
     else:  # its a username
         User = f"%{User}%"  # for sql to treat is as substring
         mycursor.execute(
-            "SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT %s OFFSET %s",
+            "SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
-                UserConfig["PageSize"],
                 Offset,
             ),
         )
@@ -2169,13 +2069,10 @@ def GiveSupporterForm(form):
 def GetRankRequests(Page: int):
     """Gets all the rank requests. This may require some optimisation."""
     Page -= 1
-    Offset = UserConfig["PageSize"] * Page  # for the page system to work
+    Offset = 50 * Page  # for the page system to work
     mycursor.execute(
-        "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 LIMIT %s OFFSET %s",
-        (
-            UserConfig["PageSize"],
-            Offset,
-        ),
+        "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 LIMIT 50 OFFSET %s",
+        (Offset,),
     )
     RankRequests = mycursor.fetchall()
     # turning what we have so far into
@@ -2278,7 +2175,7 @@ def UserPageCount():
     mycursor.execute("SELECT count(*) FROM users")
     TheNumber = mycursor.fetchone()[0]
     # working with page number (this is a mess...)
-    TheNumber /= UserConfig["PageSize"]
+    TheNumber /= 50
     # if not single digit, round up
     if len(str(TheNumber)) != 0:
         NewNumber = round(TheNumber)
@@ -2295,7 +2192,7 @@ def RapLogCount():
     mycursor.execute("SELECT count(*) FROM rap_logs")
     TheNumber = mycursor.fetchone()[0]
     # working with page number (this is a mess...)
-    TheNumber /= UserConfig["PageSize"]
+    TheNumber /= 50
     # if not single digit, round up
     if len(str(TheNumber)) != 0:
         NewNumber = round(TheNumber)
@@ -2316,11 +2213,11 @@ def GetClans(Page: int = 1):
     """Gets a list of all clans (v1)."""
     # offsets and limits
     Page = int(Page) - 1
-    Offset = UserConfig["PageSize"] * Page
+    Offset = 50 * Page
     # the sql part
     mycursor.execute(
-        "SELECT id, name, description, icon, tag FROM clans LIMIT %s OFFSET %s",
-        (UserConfig["PageSize"], Offset),
+        "SELECT id, name, description, icon, tag FROM clans LIMIT 50 OFFSET %s",
+        (Offset,),
     )
     ClansDB = mycursor.fetchall()
     # making cool, easy to work with dicts and arrays!
@@ -2343,7 +2240,7 @@ def GetClanPages():
     mycursor.execute("SELECT count(*) FROM clans")
     TheNumber = mycursor.fetchone()[0]
     # working with page number (this is a mess...)
-    TheNumber /= UserConfig["PageSize"]
+    TheNumber /= 50
     # if not single digit, round up
     if len(str(TheNumber)) != 0:
         NewNumber = round(TheNumber)

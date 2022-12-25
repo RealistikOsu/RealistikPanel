@@ -7,6 +7,9 @@ import time
 
 import requests
 
+import logger
+from config import config
+
 
 ###########################
 #                         #
@@ -18,9 +21,8 @@ import requests
 
 def checkUpdates(
     endpoint="https://raw.githubusercontent.com/RealistikOsu/RealistikPanel/master/buildinfo.json",
-    file="buildinfo.json",
 ):
-    with open(file) as f:
+    with open("buildinfo.json") as f:
         up = json.load(f)
 
         r = requests.get(endpoint)
@@ -35,54 +37,45 @@ def getLatestVersion(
     return r.json()["version"]
 
 
-def isDevBuild(config="config.json"):
-    with open(config) as f:
-        d = json.load(f)
-        return d["DevBuild"]
-
-
-def UpdateBuild(config="buildinfo.json"):
-
-    if not isDevBuild():
+def UpdateBuild():
+    if not config.app_developer_build:
         return
 
-    print(" Detected Development version... disabling update notify")
+    logger.info("Detected Development version... disabling update notify")
 
-    with open(config) as f:
+    with open("buildinfo.json") as f:
         d = json.load(f)
 
         currBuild = int(time.time())
 
         d["version"] = currBuild
 
-        with open(config, "w") as data:
-            json.dump(d, data)
+    with open("buildinfo.json", "w") as data:
+        json.dump(d, data)
 
 
 def update():
     build = getLatestVersion()
 
-    print(f"Updating to {build} version...")
-    os.system("git pull")
-    print(
-        "Panel should be updated if not updated DM me kotypey: Kotypey#9393 or RealistikDash#0077",
-    )
+    logger.info(f"Updating to {build} version...")
+    res = os.system("git pull")
+    if res:
+        logger.error("Failed to update panel using git.")
+    else:
+        logger.info("Panel updated.")
     exit()
 
 
-def handleUpdate():
-    if isDevBuild():
+def handle_update():
+    if config.app_developer_build:
         return UpdateBuild()
     CheckUpdates = checkUpdates()
     if not CheckUpdates:
         return
 
-    print(
+    logger.info(
         f" Update found: {getLatestVersion()}\n to update just run with arguments --update",
     )
     args = " ".join(sys.argv)
     if "--update" in args:
         update()
-
-
-handleUpdate()

@@ -1,110 +1,104 @@
-# the purpose of this file has changed to be a quick config fetcher
 from __future__ import annotations
 
-import json
-from base64 import b64encode
-from os import path
-from os import urandom
+import os
+from dataclasses import dataclass
+from dataclasses import field
+from json import dump
+from json import load
+from typing import Any
+from typing import get_type_hints
 
-from colorama import Fore
-from colorama import init
-
-init()  # Colorama thing
-DefaultConfig = {  # THESE ARE DEFAULT OPRIONS FOR THE CONFIG.
-    "Port": 1337,
-    # SQL Info
-    "SQLHost": "localhost",
-    "SQLPort": "3306",
-    "SQLUser": "",
-    "SQLDatabase": "ripple",
-    "SQLPassword": "",
-    # Redis Info
-    "RedisHost": "localhost",
-    "RedisPort": 6379,
-    "RedisDb": 0,
-    "RedisPassword": "",
-    # Server Settings
-    "ServerName": "RealistikOsu!",
-    "ServerURL": "https://ussr.pl/",
-    "LetsAPI": "https://old.ussr.pl/letsapi/",
-    "AvatarServer": "https://a.ussr.pl/",
-    "BanchoURL": "https://c.ussr.pl/",
-    "BeatmapMirror": "http://storage.ripple.moe/",
-    "IpLookup": "https://ip.zxq.co/",
-    "HasRelax": True,
-    "HasAutopilot": True,
-    "AvatarDir": "/home/RIPPLE/avatarserver/av/",
-    "Webhook": "",  # Discord webhook for posting newly ranked maps
-    # RealistikPanel Settings
-    "PageSize": 50,  # number of elements per page
-    "DevBuild": False,  # for developers only to create a new buildinfo.json code
-    "UserCountFetchRate": 5,  # In minutes. The interval between grabbing the player count
-    "GitHubRepo": "https://github.com/RealistikOsu/RealistikPanel",  # AGPL requirement i believe
-    "CurrentIP": "95.179.225.194",  # the IP for the /current.json (ripple based switchers)
-    "TimezoneOffset": 1,  # offset for hours, can be negative
-    "DonorBadgeID": 1002,  # This badge will be awarded to new donors!
-    "VerifiedBadgeID": 1005,  # The badge that will be awarded on unfreezing a person.
-    "AdminLogWebhook": "",  # if set, all admin logs (aka rap logs) will be sent to that webhook
-    "TimestampType": "unix",  # type of timestamps to use (for now only on freezes), current options: unix (seconds since 1/1/1970) | ainu (day thing)
-    "FokaKey": "take this from your pep.py config or it will not work",
-}
+import logger
 
 
-class JsonFile:
-    @classmethod
-    def SaveDict(self, Dict, File="config.json"):
-        """Saves a dict as a file"""
-        with open(File, "w") as json_file:
-            json.dump(Dict, json_file, indent=4)
+@dataclass
+class Config:
+    http_port: int = 1337
+    http_host: str = "127.0.0.1"
+    sql_host: str = "localhost"
+    sql_port: int = 3306
+    sql_user: str = "rosu"
+    sql_password: str = ""
+    sql_database: str = "rosu"
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: str = ""
+    srv_name: str = "RealistikOsu!"
+    srv_url: str = "https://ussr.pl/"
+    srv_supports_relax: bool = True
+    srv_supports_autopilot: bool = True
+    srv_switcher_ips: str = "173.249.42.180"
+    srv_donor_badge_id: int = 1002
+    api_lets_url: str = "https://old.ussr.pl/letsapi/"
+    api_avatar_url: str = "https://a.ussr.pl/"
+    api_bancho_url: str = "https://c.ussr.pl/"
+    api_geoloc_url: str = "https://ip.zxq.co/"
+    api_foka_key: str = ""
+    webhook_ranked: str = ""
+    webhook_admin_log: str = ""
+    app_repo_url: str = "https://github.com/RealistikOsu/RealistikPanel"
+    app_time_offset: int = 0
+    app_developer_build: bool = False
 
-    @classmethod
-    def GetDict(self, File="config.json"):
-        """Returns a dict from file name"""
-        if not path.exists(File):
-            return {}
-        else:
-            with open(File) as f:
-                data = json.load(f)
-            return data
+
+def read_config_json() -> dict[str, Any]:
+    with open("config.json") as f:
+        return load(f)
 
 
-UserConfig = JsonFile.GetDict("config.json")
-# Config Checks
-if UserConfig == {}:
-    print(Fore.YELLOW + " No config found! Generating!" + Fore.RESET)
-    JsonFile.SaveDict(DefaultConfig, "config.json")
-    print(
-        Fore.WHITE
-        + " Config created! It is named config.json. Edit it accordingly and start RealistikPanel again!",
-    )
-    exit()
-else:
-    # config check and updater
-    AllGood = True
-    NeedSet = []
-    for key in list(DefaultConfig.keys()):
-        if key not in list(UserConfig.keys()):
-            AllGood = False
-            NeedSet.append(key)
+def write_config(config: Config):
+    with open("config.json", "w") as f:
+        dump(config.__dict__, f, indent=4)
 
-    if AllGood:
-        print(
-            Fore.GREEN + " Configuration loaded successfully! Loading..." + Fore.RESET,
-        )
-    else:
-        # fixes config
-        print(Fore.BLUE + " Updating config..." + Fore.RESET)
-        for Key in NeedSet:
-            UserConfig[Key] = DefaultConfig[Key]
-            print(
-                Fore.BLUE
-                + f" Option {Key} added to config. Set default to '{DefaultConfig[Key]}'."
-                + Fore.RESET,
-            )
-        print(
-            Fore.GREEN
-            + " Config updated! Please edit the new values to your liking."
-            + Fore.RESET,
-        )
-        JsonFile.SaveDict(UserConfig, "config.json")
-        exit()
+
+def load_json_config() -> Config:
+    """Loads the config from the file, handling config updates.
+    Note:
+        Raises `SystemExit` on config update.
+    """
+
+    config_dict = {}
+
+    if os.path.exists("config.json"):
+        config_dict = read_config_json()
+
+    # Compare config json attributes with config class attributes
+    missing_keys = [key for key in Config.__annotations__ if key not in config_dict]
+
+    # Remove extra fields
+    for key in tuple(
+        config_dict,
+    ):  # Tuple cast is necessary to create a copy of the keys.
+        if key not in Config.__annotations__:
+            del config_dict[key]
+
+    # Create config regardless, populating it with missing keys.
+    config = Config(**config_dict)
+
+    if missing_keys:
+        logger.info(f"Your config has been updated with {len(missing_keys)} new keys.")
+        logger.debug("Missing keys: " + ", ".join(missing_keys))
+        write_config(config)
+        raise SystemExit(0)
+
+    return config
+
+
+def load_env_config() -> Config:
+    conf = Config()
+
+    for key, cast in get_type_hints(conf).items():
+        if (env_value := os.environ.get(key.upper())) is not None:
+            setattr(conf, key, cast(env_value))
+
+    return conf
+
+
+def load_config() -> Config:
+    if os.environ.get("USE_ENV_CONFIG") == "1":
+        return load_env_config()
+    return load_json_config()
+
+
+config = load_config()

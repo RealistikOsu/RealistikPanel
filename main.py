@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import traceback
 from threading import Thread
 
 from colorama import Fore
@@ -15,37 +16,15 @@ from flask import send_from_directory
 from flask import session
 from flask import url_for
 
-from config import UserConfig
+import logger
+from common.responses import load_panel_template
+from config import config
 from defaults import *
 from functions import *
-from updater import *
-
-print(f" {Fore.BLUE}Running Build {GetBuild()}")
+from updater import handle_update
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # encrypts the session cookie
-
-
-def load_panel_template(file: str, title: str, **kwargs) -> str:
-    """Creates a JINJA template response, forwarding the necessary information into the
-    template.
-
-    Note:
-        This passes the `title`, `session`, `data` (dash data) and `config`.
-
-    Args:
-        file (str): The location of the html file within the `templates` directory.
-        title (str): The title of the page (as displayed to the user).
-    """
-
-    return render_template(
-        file,
-        title=title,
-        session=session,
-        data=load_dashboard_data(),
-        config=UserConfig,
-        **kwargs,
-    )
 
 
 @app.route("/")
@@ -89,7 +68,7 @@ def panel_login():
             if redir:
                 IP_REDIRS[request.headers.get("X-Real-IP")] = redir
 
-            return render_template("login.html", conf=UserConfig)
+            return render_template("login.html", conf=config)
 
         if request.method == "POST":
             success, data = LoginHandler(
@@ -100,7 +79,7 @@ def panel_login():
                 return render_template(
                     "login.html",
                     alert=data,
-                    conf=UserConfig,
+                    conf=config,
                 )
             else:
                 _set_session(data)
@@ -167,7 +146,7 @@ def panel_rank_beatmap(beatmap_id: str):
             )
             success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
         except Exception as e:
-            print(e)  # TODO: PROPER logging using traceback module.
+            logger.error(traceback.format_exc())
             error = f"Failed to rank beatmap {beatmap_id} with error {e}!"
 
     return load_panel_template(
@@ -247,7 +226,7 @@ def panel_system_settings():
                 session=session,
                 title="System Settings",
                 SysData=SystemSettingsValues(),
-                config=UserConfig,
+                config=config,
             )
         if request.method == "POST":
             try:
@@ -267,18 +246,18 @@ def panel_system_settings():
                     session=session,
                     title="System Settings",
                     SysData=SystemSettingsValues(),
-                    config=UserConfig,
+                    config=config,
                     success="System settings successfully edited!",
                 )
             except Exception as e:
-                print(e)
+                logger.error(traceback.format_exc())
                 return render_template(
                     "syssettings.html",
                     data=load_dashboard_data(),
                     session=session,
                     title="System Settings",
                     SysData=SystemSettingsValues(),
-                    config=UserConfig,
+                    config=config,
                     error="An internal error has occured while saving system settings! An error has been logged to the console.",
                 )
         else:
@@ -294,7 +273,7 @@ def panel_edit_user(id):
                 data=load_dashboard_data(),
                 session=session,
                 title="Edit User",
-                config=UserConfig,
+                config=config,
                 UserData=UserData(id),
                 Privs=GetPrivileges(),
                 UserBadges=GetUserBadges(id),
@@ -318,7 +297,7 @@ def panel_edit_user(id):
                     data=load_dashboard_data(),
                     session=session,
                     title="Edit User",
-                    config=UserConfig,
+                    config=config,
                     UserData=UserData(id),
                     Privs=GetPrivileges(),
                     UserBadges=GetUserBadges(id),
@@ -329,13 +308,13 @@ def panel_edit_user(id):
                     hwid_count=get_hwid_count(int(id)),
                 )
             except Exception as e:
-                print(e)
+                logger.error(traceback.format_exc())
                 return render_template(
                     "edituser.html",
                     data=load_dashboard_data(),
                     session=session,
                     title="Edit User",
-                    config=UserConfig,
+                    config=config,
                     UserData=UserData(id),
                     Privs=GetPrivileges(),
                     UserBadges=GetUserBadges(id),
@@ -357,7 +336,7 @@ def panel_view_logs(page):
             data=load_dashboard_data(),
             session=session,
             title="Logs",
-            config=UserConfig,
+            config=config,
             Logs=RAPFetch(page),
             page=int(page),
             Pages=RapLogCount(),
@@ -378,7 +357,7 @@ def panel_delete_user_confirm(id):
             data=load_dashboard_data(),
             session=session,
             title="Confirmation Required",
-            config=UserConfig,
+            config=config,
             action=f"delete the user {AccountToBeDeleted['Username']}",
             yeslink=f"/actions/delete/{id}",
             backlink=f"/user/edit/{id}",
@@ -397,7 +376,7 @@ def panel_view_user_ip(ip):
             data=load_dashboard_data(),
             session=session,
             title="IP Lookup",
-            config=UserConfig,
+            config=config,
             ipusers=IPUserLookup,
             IPLen=UserLen,
             ip=ip,
@@ -414,7 +393,7 @@ def panel_view_ban_logs(page):
             data=load_dashboard_data(),
             session=session,
             title="Ban Logs",
-            config=UserConfig,
+            config=config,
             ban_logs=fetch_banlogs(int(page) - 1),
             page=int(page),
             pages=ban_pages(),
@@ -431,7 +410,7 @@ def panel_view_badges():
             data=load_dashboard_data(),
             session=session,
             title="Badges",
-            config=UserConfig,
+            config=config,
             badges=GetBadges(),
         )
     else:
@@ -447,7 +426,7 @@ def panel_edit_badge(BadgeID: int):
                 data=load_dashboard_data(),
                 session=session,
                 title="Edit Badge",
-                config=UserConfig,
+                config=config,
                 badge=GetBadge(BadgeID),
             )
         if request.method == "POST":
@@ -462,18 +441,18 @@ def panel_edit_badge(BadgeID: int):
                     data=load_dashboard_data(),
                     session=session,
                     title="Edit Badge",
-                    config=UserConfig,
+                    config=config,
                     badge=GetBadge(BadgeID),
                     success=f"Badge {BadgeID} has been successfully edited!",
                 )
             except Exception as e:
-                print(e)
+                logger.error(traceback.format_exc())
                 return render_template(
                     "editbadge.html",
                     data=load_dashboard_data(),
                     session=session,
                     title="Edit Badge",
-                    config=UserConfig,
+                    config=config,
                     badge=GetBadge(BadgeID),
                     error="An internal error has occured while editing the badge! An error has been logged to the console.",
                 )
@@ -489,7 +468,7 @@ def panel_view_privileges():
             data=load_dashboard_data(),
             session=session,
             title="Privileges",
-            config=UserConfig,
+            config=config,
             privileges=GetPrivileges(),
         )
     else:
@@ -505,7 +484,7 @@ def panel_edit_privilege(Privilege: int):
                 data=load_dashboard_data(),
                 session=session,
                 title="Privileges",
-                config=UserConfig,
+                config=config,
                 privileges=GetPriv(Privilege),
             )
         if request.method == "POST":
@@ -521,19 +500,19 @@ def panel_edit_privilege(Privilege: int):
                     data=load_dashboard_data(),
                     session=session,
                     title="Privileges",
-                    config=UserConfig,
+                    config=config,
                     privileges=Priv,
                     success=f"Privilege {Priv['Name']} has been successfully edited!",
                 )
             except Exception as e:
-                print(e)
+                logger.error(traceback.format_exc())
                 Priv = GetPriv(Privilege)
                 return render_template(
                     "editprivilege.html",
                     data=load_dashboard_data(),
                     session=session,
                     title="Privileges",
-                    config=UserConfig,
+                    config=config,
                     privileges=Priv,
                     error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
@@ -549,7 +528,7 @@ def panel_view_changelogs():
             data=load_dashboard_data(),
             session=session,
             title="Change Logs",
-            config=UserConfig,
+            config=config,
             logs=Changelogs,
         )
     else:
@@ -561,19 +540,19 @@ def panel_switcher_endpoints():
     """IPs for the Ripple switcher."""
     return jsonify(
         {
-            "osu.ppy.sh": UserConfig["CurrentIP"],
-            "c.ppy.sh": UserConfig["CurrentIP"],
-            "c1.ppy.sh": UserConfig["CurrentIP"],
-            "c2.ppy.sh": UserConfig["CurrentIP"],
-            "c3.ppy.sh": UserConfig["CurrentIP"],
-            "c4.ppy.sh": UserConfig["CurrentIP"],
-            "c5.ppy.sh": UserConfig["CurrentIP"],
-            "c6.ppy.sh": UserConfig["CurrentIP"],
-            "ce.ppy.sh": UserConfig["CurrentIP"],
-            "a.ppy.sh": UserConfig["CurrentIP"],
-            "s.ppy.sh": UserConfig["CurrentIP"],
-            "i.ppy.sh": UserConfig["CurrentIP"],
-            "bm6.ppy.sh": UserConfig["CurrentIP"],
+            "osu.ppy.sh": config.srv_switcher_ips,
+            "c.ppy.sh": config.srv_switcher_ips,
+            "c1.ppy.sh": config.srv_switcher_ips,
+            "c2.ppy.sh": config.srv_switcher_ips,
+            "c3.ppy.sh": config.srv_switcher_ips,
+            "c4.ppy.sh": config.srv_switcher_ips,
+            "c5.ppy.sh": config.srv_switcher_ips,
+            "c6.ppy.sh": config.srv_switcher_ips,
+            "ce.ppy.sh": config.srv_switcher_ips,
+            "a.ppy.sh": config.srv_switcher_ips,
+            "s.ppy.sh": config.srv_switcher_ips,
+            "i.ppy.sh": config.srv_switcher_ips,
+            "bm6.ppy.sh": config.srv_switcher_ips,
         },
     )
 
@@ -600,7 +579,7 @@ def panel_edit_user_password(AccountID):
                 data=load_dashboard_data(),
                 session=session,
                 title=f"Change the Password for {User['Username']}",
-                config=UserConfig,
+                config=config,
                 User=User,
             )
         if request.method == "POST":
@@ -621,7 +600,7 @@ def panel_award_user_donor(AccountID):
                 data=load_dashboard_data(),
                 session=session,
                 title=f"Award Donor to {User['Username']}",
-                config=UserConfig,
+                config=config,
                 User=User,
             )
         if request.method == "POST":
@@ -653,7 +632,7 @@ def panel_view_rank_requests(Page):
             data=load_dashboard_data(),
             session=session,
             title="Ranking Requests",
-            config=UserConfig,
+            config=config,
             RankRequests=GetRankRequests(int(Page)),
             page=int(Page),
         )
@@ -669,7 +648,7 @@ def panel_view_clans(Page):
             data=load_dashboard_data(),
             session=session,
             title="Clans",
-            config=UserConfig,
+            config=config,
             page=int(Page),
             Clans=GetClans(Page),
             Pages=GetClanPages(),
@@ -687,7 +666,7 @@ def panel_edit_clan(ClanID):
                 data=load_dashboard_data(),
                 session=session,
                 title="Clans",
-                config=UserConfig,
+                config=config,
                 Clan=GetClan(ClanID),
                 Members=halve_list(GetClanMembers(ClanID)),
                 ClanOwner=GetClanOwner(ClanID),
@@ -699,7 +678,7 @@ def panel_edit_clan(ClanID):
             data=load_dashboard_data(),
             session=session,
             title="Clans",
-            config=UserConfig,
+            config=config,
             Clan=GetClan(ClanID),
             Members=halve_list(GetClanMembers(ClanID)),
             ClanOwner=GetClanOwner(ClanID),
@@ -792,12 +771,12 @@ def panel_api_status_api():
     try:
         return jsonify(
             requests.get(
-                UserConfig["ServerURL"] + "api/v1/ping",
+                config.srv_url + "api/v1/ping",  # TODO: Make server api url
                 timeout=1,
             ).json(),
         )
-    except Exception as err:
-        print("[ERROR] /js/status/api: ", err)
+    except Exception:
+        logger.error(f"JavaScript API mirror responded with an error.")
         return jsonify({"code": 503})
 
 
@@ -806,12 +785,12 @@ def panel_lets_status_api():
     try:
         return jsonify(
             requests.get(
-                UserConfig["LetsAPI"] + "v1/status",
+                config.api_lets_url + "v1/status",
                 timeout=1,
             ).json(),
         )  # this url to provide a predictable result
-    except Exception as err:
-        print("[ERROR] /js/status/lets: ", err)
+    except Exception:
+        logger.error(f"JavaScript LetsAPI mirror responded with an error.")
         return jsonify({"server_status": 0})
 
 
@@ -820,12 +799,12 @@ def panel_bancho_status_api():
     try:
         return jsonify(
             requests.get(
-                UserConfig["BanchoURL"] + "api/v1/serverStatus",
+                config.api_bancho_url + "api/v1/serverStatus",
                 timeout=1,
             ).json(),
         )  # this url to provide a predictable result
-    except Exception as err:
-        print("[ERROR] /js/status/bancho: ", err)
+    except Exception:
+        logger.error(f"JavaScript BanchoAPI mirror responded with an error.")
         return jsonify({"result": 0})
 
 
@@ -1146,5 +1125,5 @@ def no_permission_response(path: str):
 
 if __name__ == "__main__":
     Thread(target=PlayerCountCollection, args=(True,)).start()
-    app.run(host="127.0.0.1", port=UserConfig["Port"], threaded=False)
-    handleUpdate()  # handle update...
+    app.run(host=config.http_host, port=config.http_port, threaded=False)
+    handle_update()

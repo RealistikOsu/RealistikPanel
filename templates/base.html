@@ -44,18 +44,18 @@
             <form class="form-inline mr-auto">
                 <ul class="navbar-nav mr-3">
                     <li id="sidetoggle"><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
-                    <li><a class="navbar-brand" href="/">{{ config['ServerName'] }}</a></li>
+                    <li><a class="navbar-brand" href="/">{{ config.srv_name }}</a></li>
                 </ul>
             </form>
             <ul class="navbar-nav navbar-right">
                 <li class="dropdown">
                     <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user" aria-expanded="false">
-                        <img alt="pfp" src="{{ config['AvatarServer'] }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
+                        <img alt="pfp" src="{{ config.api_avatar_url }}{{ session['AccountId'] }}" class="rounded-circle mr-1">
                         <div class="d-sm-none d-lg-inline-block">Hi, {{ session["AccountName"] }}!</div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
                         <div class="dropdown-title">RealistikPanel!</div>
-                        <a href="{{ config['ServerURL'] }}u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
+                        <a href="{{ config.srv_url }}u/{{ session['AccountId'] }}" class="dropdown-item has-icon">
                             <i class="far fa-user"></i> Profile
                         </a>
                         <div class="dropdown-divider"></div>
@@ -96,7 +96,7 @@
                          White Theme
                         {% endif %}
                         </span></a>
-                    <a href="{{ config['GitHubRepo'] }}" class="nav-link" target="_blank"><i class="fab fa-github-alt"></i><span> Source Code</span></a>
+                    <a href="{{ config.app_repo_url }}" class="nav-link" target="_blank"><i class="fab fa-github-alt"></i><span> Source Code</span></a>
                 </ul>
             </aside>
         </div>

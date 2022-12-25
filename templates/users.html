@@ -46,7 +46,7 @@
                 {% else %}
                 <img class="nflag" src="https://ussr.pl/static/images/new-flags/xx.png">
                 {% endif %}
-                <a href="{{ config['ServerURL'] }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a>
+                <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank">{{ user["Name"] }}</a>
             </td>
             <td><a class="badge badge-{{ user['Privilege']['Colour'] }}" style="color: white;">{{ user["Privilege"]["Name"] }}</a></td>
             {% if user["Allowed"] %}

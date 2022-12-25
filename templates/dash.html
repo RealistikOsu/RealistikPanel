@@ -79,7 +79,7 @@
                     This beatmap has a playcount of <b>{{ MostPlayed["Playcount"] }}</b>
                 </p>
                 <div class="article-cta">
-                    <a href="{{ config['ServerURL'] }}b/{{ MostPlayed['BeatmapId'] }}" class="btn btn-primary">View Map</a>
+                    <a href="{{ config.srv_url }}b/{{ MostPlayed['BeatmapId'] }}" class="btn btn-primary">View Map</a>
                 </div>
             </div>
         </article>
@@ -100,7 +100,7 @@
         {% for play in plays %}
         <tr>
             <td>{{ play["Time"] }}</td>
-            <td><a href="{{ config['ServerURL'] }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
+            <td><a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
             <td>{{ play["SongName"] }}  <i>({{ play["Accuracy"] }}%)</i></td>
             <td>{{ play["Score"] }}</td>
             <td>{{ play["pp"] }}</td>

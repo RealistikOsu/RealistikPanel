@@ -77,7 +77,7 @@
                 {% for play in StatData["RecentPlays"] %}
                 <tr>
                     <td>{{ play["Time"] }}</td>
-                    <td><a href="{{ config['ServerURL'] }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
+                    <td><a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank">{{ play["Player"] }}</a></td>
                     <td>{{ play["SongName"] }}  <i>({{ play["Accuracy"] }}%)</i></td>
                     <td>{{ play["Score"] }}</td>
                     <td>{{ play["pp"] }}</td>
