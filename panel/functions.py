@@ -240,7 +240,6 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
         Dicti["Accuracy"] = round(GetAccuracy(x[8], x[9], x[10], x[11]), 2)
         ReadableArray.append(Dicti)
 
-    ReadableArray.reverse()
     return ReadableArray
 
 
