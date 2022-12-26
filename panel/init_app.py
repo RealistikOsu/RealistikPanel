@@ -679,7 +679,7 @@ def configure_routes(app: Flask) -> None:
     @app.route("/stats", methods=["GET", "POST"])
     def panel_view_server_stats():
         if not has_privilege_value(session["AccountId"], Privileges.ADMIN_ACCESS_RAP):
-            return
+            return no_permission_response(request.path)
 
         minimum_pp = int(request.form.get("minpp", 0))
         return load_panel_template(
