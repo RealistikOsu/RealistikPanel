@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/static/css/components.css" />
   <link rel="stylesheet" href="/static/css/realistik.css" />
   <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
-  {% if session["Theme"] == "dark" %}
+  {% if session.theme == PanelTheme.DARK %}
     <link rel="stylesheet" href="/static/css/dark.css" />
   {% else %}
     <style>
@@ -97,17 +97,17 @@
           >
             <img
               alt="pfp"
-              src="{{ config.api_avatar_url }}{{ session['AccountId'] }}"
+              src="{{ config.api_avatar_url }}{{ session.user_id }}"
               class="rounded-circle mr-1"
             />
             <div class="d-sm-none d-lg-inline-block">
-              Hi, {{ session["AccountName"] }}!
+              Hi, {{ session.username }}!
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-right">
             <div class="dropdown-title">RealistikPanel!</div>
             <a
-              href="{{ config.srv_url }}u/{{ session['AccountId'] }}"
+              href="{{ config.srv_url }}u/{{ session.user_id }}"
               class="dropdown-item has-icon"
             >
               <i class="far fa-user"></i> Profile
@@ -175,7 +175,7 @@
           <a href="/toggledark" class="nav-link"
             ><i class="fas fa-lightbulb"></i
             ><span>
-              {% if session["Theme"] == "white" %}
+              {% if session.theme == PanelTheme.LIGHT %}
                 Dark Theme
               {% else %}
                 White Theme
@@ -235,7 +235,7 @@
   </div>
 </body>
 <script>
-  var UserPriv = "{{ session['Privilege'] }}";
+  var UserPriv = "{{ session.privileges.value }}";
   NoPriv = 0;
 
   //privileges

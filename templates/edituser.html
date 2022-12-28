@@ -460,7 +460,7 @@
       PrivSelect.value = NewOption.value;
     }
 
-    var AdminPerms = "{{ session['Privilege'] }}";
+    var AdminPerms = "{{ session.privileges.value }}";
     //disabling buttons the person has no perm to use
     if (!(AdminPerms & 128)) {
       document.getElementById("wipe").remove();

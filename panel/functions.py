@@ -9,6 +9,7 @@ import random
 import string
 import time
 import traceback
+from typing import NamedTuple
 from typing import TypedDict
 from typing import Union
 
@@ -116,7 +117,16 @@ USER_PASSWORD_ERROR = "The password you entered is incorrect."
 USER_PRIVILEGE_ERROR = "You do not have the required privileges to access this page."
 
 
-def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
+class LoginUserData(NamedTuple):
+    user_id: int
+    username: str
+    privileges: Privileges
+
+
+def LoginHandler(
+    username: str,
+    password: str,
+) -> tuple[bool, Union[str, LoginUserData]]:
     """Checks the passwords and handles the sessions."""
     mycursor.execute(
         "SELECT username, password_md5, privileges, id FROM users WHERE username_safe = %s LIMIT 1",
@@ -142,13 +152,11 @@ def LoginHandler(username: str, password: str) -> tuple[bool, Union[str, dict]]:
             if compare_password(password, password_md5):
                 return (
                     True,
-                    {  # creating session
-                        "LoggedIn": True,
-                        "AccountId": user_id,
-                        "AccountName": username,
-                        "Privilege": privileges,
-                        "Theme": "dark",
-                    },
+                    LoginUserData(
+                        user_id,
+                        username,
+                        Privileges(privileges),
+                    ),
                 )
             else:
                 return False, USER_PASSWORD_ERROR
@@ -587,7 +595,7 @@ def SystemSettingsValues():
     }
 
 
-def ApplySystemSettings(DataArray, Session):
+def ApplySystemSettings(DataArray, user_id: int):
     """Applies system settings."""
     WebMan = DataArray[0]
     GameMan = DataArray[1]
@@ -644,7 +652,7 @@ def ApplySystemSettings(DataArray, Session):
         )
 
     mydb.commit()  # applies the changes
-    RAPLog(Session["AccountId"], "updated the system settings.")
+    RAPLog(user_id, "updated the system settings.")
 
 
 def IsOnline(AccountId: int) -> bool:
@@ -940,7 +948,7 @@ def GetPrivileges():
     return Privs
 
 
-def ApplyUserEdit(form, session):
+def ApplyUserEdit(form, from_id: int):
     """Apples the user settings."""
     # getting variables from form
     UserId = int(form.get("userid", False))
@@ -962,9 +970,8 @@ def ApplyUserEdit(form, session):
 
     # stop people ascending themselves
     # OriginalPriv = int(session["Privilege"])
-    FromID = session["AccountId"]
-    if int(UserId) == FromID:
-        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (FromID,))
+    if int(UserId) == from_id:
+        mycursor.execute("SELECT privileges FROM users WHERE id = %s", (from_id,))
         OriginalPriv = mycursor.fetchall()
         if len(OriginalPriv) == 0:
             return
@@ -1027,6 +1034,10 @@ def ApplyUserEdit(form, session):
     # Refresh in pep.py - Rosu only
     r.publish("peppy:refresh_privs", json.dumps({"user_id": UserId}))
     refresh_username_cache(UserId, Username)
+    RAPLog(
+        from_id,
+        f"has edited the user {Username} ({UserId})",
+    )
 
 
 def ModToText(mod: int):

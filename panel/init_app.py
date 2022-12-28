@@ -11,30 +11,29 @@ from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import session
 from flask import url_for
 
 from panel import logger
 from panel import web
 from panel.config import config
-from panel.defaults import *
+from panel.constants.settings import PanelTheme
 from panel.functions import *
 from panel.web.responses import load_panel_template
+from panel.web.sessions import requires_privilege
 
 # TODO: Make better routers.
 def configure_routes(app: Flask) -> None:
     @app.route("/")
     def panel_home_redirect():
-        if session["LoggedIn"]:
+        session = web.sessions.get()
+        if session.logged_in:
             return redirect(url_for("panel_dashboard"))
         else:
             return redirect(url_for("panel_login"))
 
     @app.route("/dash/")
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     def panel_dashboard():
-        if not has_privilege_value(session["AccountId"], Privileges.ADMIN_ACCESS_RAP):
-            return no_permission_response(request.path)
-
         return load_panel_template(
             title="Dashboard",
             file="dash.html",
@@ -45,17 +44,12 @@ def configure_routes(app: Flask) -> None:
 
     IP_REDIRS = {}
 
-    # TODO: MOVE
-    def _set_session(new_session: dict) -> None:
-        session.clear()
-
-        for key, value in new_session.items():
-            session[key] = value
-
     # TODO: rework
     @app.route("/login", methods=["GET", "POST"])
     def panel_login():
-        if not session["LoggedIn"] and not HasPrivilege(session["AccountId"]):
+        session = web.sessions.get()  # TODO: maybe inject session decorator?
+        print(session)
+        if not session.logged_in and not HasPrivilege(session.user_id):
             if request.method == "GET":
                 redir = request.args.get("redirect")
                 if redir:
@@ -75,7 +69,11 @@ def configure_routes(app: Flask) -> None:
                         conf=config,
                     )
                 else:
-                    _set_session(data)
+                    session.logged_in = True
+                    session.privileges = data.privileges
+                    session.user_id = data.user_id
+                    session.username = data.username
+                    web.sessions.set(session)
 
                     redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
                     if redir:
@@ -88,17 +86,11 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/logout")
     def panel_session_logout():
-        _set_session(ServSession)
         return redirect(url_for("panel_home_redirect"))
 
     @app.route("/bancho/settings", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_SERVERS)
     def panel_bancho_settings():
-        if not has_privilege_value(
-            session["AccountId"],
-            Privileges.ADMIN_MANAGE_SERVERS,
-        ):
-            return no_permission_response(request.path)
-
         error = success = None
         if request.method == "POST":
             try:
@@ -122,13 +114,8 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/rank/<beatmap_id>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_rank_beatmap(beatmap_id: str):
-        if not has_privilege_value(
-            session["AccountId"],
-            Privileges.ADMIN_MANAGE_BEATMAPS,
-        ):
-            return no_permission_response(request.path)
-
         error = success = None
 
         if request.method == "POST":
@@ -155,16 +142,10 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/rank", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_rank_beatmap_search():
-        # We can skip the privilege check here since the endpoint we are redirecting to handles it.
         if request.method == "POST":
             return redirect(f"/rank/{request.form['bmapid']}")
-
-        if not has_privilege_value(
-            session["AccountId"],
-            Privileges.ADMIN_MANAGE_BEATMAPS,
-        ):
-            return no_permission_response(request.path)
 
         return load_panel_template(
             "rankform.html",
@@ -173,10 +154,8 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/users/<page_str>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_search_users(page_str: str = "1"):
-        if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_USERS):
-            return no_permission_response(request.path)
-
         page = int(page_str)
 
         if request.method == "POST":
@@ -212,198 +191,118 @@ def configure_routes(app: Flask) -> None:
         return redirect(url_for("panel_dashboard"))
 
     @app.route("/system/settings", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
     def panel_system_settings():
-        if HasPrivilege(session["AccountId"], 4):
-            if request.method == "GET":
-                return render_template(
-                    "syssettings.html",
-                    data=load_dashboard_data(),
-                    session=session,
-                    title="System Settings",
-                    SysData=SystemSettingsValues(),
-                    config=config,
-                )
-            if request.method == "POST":
-                try:
-                    ApplySystemSettings(
-                        [
-                            request.form["webman"],
-                            request.form["gameman"],
-                            request.form["register"],
-                            request.form["globalalert"],
-                            request.form["homealert"],
-                        ],
-                        session,
-                    )  # why didnt i just pass request
-                    return render_template(
-                        "syssettings.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="System Settings",
-                        SysData=SystemSettingsValues(),
-                        config=config,
-                        success="System settings successfully edited!",
-                    )
-                except Exception as e:
-                    logger.error(traceback.format_exc())
-                    return render_template(
-                        "syssettings.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="System Settings",
-                        SysData=SystemSettingsValues(),
-                        config=config,
-                        error="An internal error has occured while saving system settings! An error has been logged to the console.",
-                    )
-            else:
-                return no_permission_response(request.path)
-
-    @app.route("/user/edit/<id>", methods=["GET", "POST"])
-    def panel_edit_user(id):
-        if request.method == "GET":
-            if HasPrivilege(session["AccountId"], 6):
-                return render_template(
-                    "edituser.html",
-                    data=load_dashboard_data(),
-                    session=session,
-                    title="Edit User",
-                    config=config,
-                    UserData=UserData(id),
-                    Privs=GetPrivileges(),
-                    UserBadges=GetUserBadges(id),
-                    badges=GetBadges(),
-                    ShowIPs=HasPrivilege(session["AccountId"], 16),
-                    ban_logs=fetch_user_banlogs(int(id)),
-                    hwid_count=get_hwid_count(int(id)),
-                )
-            else:
-                return no_permission_response(request.path)
+        error = success = None
         if request.method == "POST":
-            if HasPrivilege(session["AccountId"], 6):
-                try:
-                    ApplyUserEdit(request.form, session)
-                    RAPLog(
-                        session["AccountId"],
-                        f"has edited the user {request.form.get('username', 'NOT FOUND')}",
-                    )
-                    return render_template(
-                        "edituser.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Edit User",
-                        config=config,
-                        UserData=UserData(id),
-                        Privs=GetPrivileges(),
-                        UserBadges=GetUserBadges(id),
-                        badges=GetBadges(),
-                        success=f"User {request.form.get('username', 'NOT FOUND')} has been successfully edited!",
-                        ShowIPs=HasPrivilege(session["AccountId"], 16),
-                        ban_logs=fetch_user_banlogs(int(id)),
-                        hwid_count=get_hwid_count(int(id)),
-                    )
-                except Exception as e:
-                    logger.error(traceback.format_exc())
-                    return render_template(
-                        "edituser.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Edit User",
-                        config=config,
-                        UserData=UserData(id),
-                        Privs=GetPrivileges(),
-                        UserBadges=GetUserBadges(id),
-                        badges=GetBadges(),
-                        error="An internal error has occured while editing the user! An error has been logged to the console.",
-                        ShowIPs=HasPrivilege(session["AccountId"], 16),
-                        ban_logs=fetch_user_banlogs(int(id)),
-                        hwid_count=get_hwid_count(int(id)),
-                    )
-            else:
-                return no_permission_response(request.path)
+            try:
+                session = web.sessions.get()
+                ApplySystemSettings(
+                    [
+                        request.form["webman"],
+                        request.form["gameman"],
+                        request.form["register"],
+                        request.form["globalalert"],
+                        request.form["homealert"],
+                    ],
+                    session.user_id,
+                )
+                success = "Successfully edited the system settings!"
+            except Exception as e:
+                logger.error(traceback.format_exc())
+                error = "An internal error has occured while saving system settings! An error has been logged to the console."
+
+        return load_panel_template(
+            "syssettings.html",
+            title="System Settings",
+            SysData=SystemSettingsValues(),
+            success=success,
+            error=error,
+        )
+
+    @app.route("/user/edit/<user_id_str>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_edit_user(user_id_str: str):
+        error = success = None
+        user_id = int(user_id_str)
+        session = web.sessions.get()
+        if request.method == "POST":
+            try:
+                ApplyUserEdit(request.form, session.user_id)
+                success = "User successfully edited!"
+            except Exception:
+                logger.error(traceback.format_exc())
+                error = "An internal error has occured while editing the user! An error has been logged to the console."
+
+        return load_panel_template(
+            "edituser.html",
+            title="Edit User",
+            UserData=UserData(user_id),
+            Privs=GetPrivileges(),
+            UserBadges=GetUserBadges(user_id),
+            badges=GetBadges(),
+            ShowIPs=has_privilege_value(session.user_id, Privileges.PANEL_VIEW_IPS),
+            ban_logs=fetch_user_banlogs(user_id),
+            hwid_count=get_hwid_count(user_id),
+            error=error,
+            success=success,
+        )
 
     @app.route("/logs/<page>")
+    @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_logs(page):
-        if HasPrivilege(session["AccountId"], 7):
-            return render_template(
-                "raplogs.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Logs",
-                config=config,
-                Logs=RAPFetch(page),
-                page=int(page),
-                Pages=RapLogCount(),
-            )
-        else:
-            return no_permission_response(request.path)
+        return load_panel_template(
+            "raplogs.html",
+            title="Admin Logs",
+            Logs=RAPFetch(page),
+            page=int(page),
+            Pages=RapLogCount(),
+        )
 
     @app.route("/action/confirm/delete/<id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_delete_user_confirm(id):
-        """Confirms deletion of acc so accidents dont happen"""
-        # i almost deleted my own acc lmao
-        # me forgetting to commit changes saved me
-        if HasPrivilege(session["AccountId"], 6):
-            AccountToBeDeleted = GetUser(id)
-            return render_template(
-                "confirm.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Confirmation Required",
-                config=config,
-                action=f"delete the user {AccountToBeDeleted['Username']}",
-                yeslink=f"/actions/delete/{id}",
-                backlink=f"/user/edit/{id}",
-            )
-        else:
-            return no_permission_response(request.path)
+        target = GetUser(id)
+        return load_panel_template(
+            "confirm.html",
+            title="Confirmation Required",
+            action=f"delete the user {target['Username']}",
+            yeslink=f"/actions/delete/{id}",
+            backlink=f"/user/edit/{id}",
+        )
 
     @app.route("/user/iplookup/<ip>")
+    @requires_privilege(Privileges.PANEL_VIEW_IPS)
     def panel_view_user_ip(ip):
-        if HasPrivilege(session["AccountId"], 16):
-            IPUserLookup = FindWithIp(ip)
-            UserLen = len(IPUserLookup)
-            return render_template(
-                "iplookup.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="IP Lookup",
-                config=config,
-                ipusers=IPUserLookup,
-                IPLen=UserLen,
-                ip=ip,
-            )
-        else:
-            return no_permission_response(request.path)
+        IPUserLookup = FindWithIp(ip)
+        UserLen = len(IPUserLookup)
+        return load_panel_template(
+            "iplookup.html",
+            title="IP Lookup",
+            ipusers=IPUserLookup,
+            IPLen=UserLen,
+            ip=ip,
+        )
 
     @app.route("/ban-logs/<page>")
+    @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_ban_logs(page):
-        if HasPrivilege(session["AccountId"], 7):
-            return render_template(
-                "ban_logs.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Ban Logs",
-                config=config,
-                ban_logs=fetch_banlogs(int(page) - 1),
-                page=int(page),
-                pages=ban_pages(),
-            )
-        else:
-            return no_permission_response(request.path)
+        return load_panel_template(
+            "ban_logs.html",
+            title="Ban Logs",
+            ban_logs=fetch_banlogs(int(page) - 1),
+            page=int(page),
+            pages=ban_pages(),
+        )
 
     @app.route("/badges")
+    @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
     def panel_view_badges():
-        if HasPrivilege(session["AccountId"], 4):
-            return render_template(
-                "badges.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Badges",
-                config=config,
-                badges=GetBadges(),
-            )
-        else:
-            return no_permission_response(request.path)
+        return load_panel_template(
+            "badges.html",
+            title="Badges",
+            badges=GetBadges(),
+        )
 
     @app.route("/badge/edit/<BadgeID>", methods=["GET", "POST"])
     def panel_edit_badge(BadgeID: int):
@@ -528,10 +427,12 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/toggledark")
     def panel_toggle_theme():
-        if session["Theme"] == "dark":
-            session["Theme"] = "white"
+        session = web.sessions.get()
+        if session.theme is PanelTheme.DARK:
+            session.theme = PanelTheme.LIGHT
         else:
-            session["Theme"] = "dark"
+            session.theme = PanelTheme.DARK
+        web.sessions.set(session)
         return redirect(url_for("panel_dashboard"))
 
     @app.route(
@@ -1043,19 +944,7 @@ def configure_error_handlers(app: Flask) -> None:
     # we make sure session exists
     @app.before_request
     def pre_request():
-        if "LoggedIn" not in list(
-            dict(session).keys(),
-        ):  # we checking if the session doesnt already exist
-            for x in list(ServSession.keys()):
-                session[x] = ServSession[x]
-
-
-def no_permission_response(path: str):
-    """If not logged it, returns redirect to login. Else 403s. This is for convienience when page is reloaded after restart."""
-    if session["LoggedIn"]:
-        return render_template("errors/403.html")
-
-    return redirect(f"/login?redirect={path}")
+        web.sessions.ensure()
 
 
 def init_app() -> Flask:
@@ -1066,7 +955,7 @@ def init_app() -> Flask:
     )
     configure_routes(app)
     configure_error_handlers(app)
-    web.sessions.encrypt_session(app)
+    web.sessions.encrypt(app)
     return app
 
 
