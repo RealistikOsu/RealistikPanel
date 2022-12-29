@@ -1,0 +1,20 @@
+/* 
+  RealistikOsu glosary of fonts.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=KoHo:wght@300&family=Niramit&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&family=Raleway:wght@300;400&display=swap");
+
+* {
+  font-family: "Montserrat", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.header {
+  font-family: "KoHo", sans-serif;
+}

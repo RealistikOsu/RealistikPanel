@@ -1,30 +1,97 @@
 <!DOCTYPE html>
-<!--Login form made by TheRealCed-->
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link rel="stylesheet" href="/static/css/loginstyle.css" />
-  <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
-  <title>RealistikPanel! - Login</title>
-</head>
-<body>
-  {% if alert %}
-    <div class="alert">
-      <span class="closebtn" onclick="this.parentElement.style.display='none';"
-        >&times;</span
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js"
+      integrity="sha512-2cbsQGdowNDPcKuoBd2bCcsJky87Mv0LEtD/nunJUgk6MOYTgVMGihS/xCEghNf04DPhNiJ4DZw5BxDd1uyOdw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link href="/static/css/pace.minimal.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% if alert %}
+      <script
+        src="https://kit.fontawesome.com/7bc009eb77.js"
+        crossorigin="anonymous"
+      ></script>
+    {% endif %}
+    <link rel="stylesheet" href="/static/css/fonts.css" />
+    <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
+    <title>RealistikPanel! - Login</title>
+  </head>
+  <body>
+    {% if alert %}
+      <div
+        class="fixed w-auto md:w-1/3 top-1 right-1 bg-red-500 text-white p-4 rounded-md shadow-lg z-50"
       >
-      {{ alert }}
+        <div class="flex justify-between items-center">
+          <div class="flex items center">
+            <i
+              class="fas fa-exclamation-circle text-[2rem] 2xl:text-5xl mr-2"
+            ></i>
+            <span
+              class="font-semibold text-md 2xl:text-2xl mr-2 mt-[0.15rem] 2xl:mt-[0.30rem] text-left flex-auto"
+              >Error!</span
+            >
+          </div>
+          <button
+            class="mb-[1rem] font-semibold leading-none hover:text-gray-300"
+            onclick="this.parentElement.parentElement.remove()"
+          >
+            <i class="fas fa-times 2xl:text-[2rem]"></i>
+          </button>
+        </div>
+        <div class="text-md 2xl:text-2xl font-normal mt-2 ">
+          {{ alert }}
+        </div>
+      </div>
+    {% endif %}
+    <div
+      class="h-screen flex justify-center items-center bg-cover bg-no-repeat bg-center"
+      style="background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');"
+    >
+      <div
+        class="container mx-auto flex flex-row justify-center items-center w-auto md:w-[40rem] 2xl:w-[50rem] rounded-md shadow-lg bg-[#2E3338]"
+      >
+        <div class="flex flex-col justify-center items-center m-8 xl:mr-0">
+          <h1 class="text-3xl font-bold mb-2 text-white">RealistikPanel!</h1>
+          <h2 class="text-xl font-light mb-10 text-white">Log in comrade!</h2>
+          <form action="/login" method="post">
+            <label for="username" class="font-light text-white">
+              Username
+            </label>
+            <input
+              class="text-white rounded-md p-2 m-2 w-full bg-[#202225]"
+              type="text"
+              placeholder="eg. RealistikBot"
+              name="username"
+            />
+
+            <label for="password" class="font-light text-white">Password</label>
+            <input
+              class="text-white rounded-md p-2 m-2 w-full bg-[#202225]"
+              type="password"
+              placeholder="eg. ********"
+              name="password"
+            />
+            <button
+              class="w-full text-white rounded-md p-2 m-2 bg-[#a454ff] hover:bg-[#bd8cf4] transition duration-300 ease-in-out shadow-[0_2px_6px_#bd8cf4]"
+              type="submit"
+            >
+              Login
+            </button>
+          </form>
+        </div>
+        <div class="xl:mr-64 mr-56 hidden lg:flex"></div>
+        <div
+          class="filter brightness-75 hidden lg:flex fixed lg:ml-[33rem] 2xl:ml-[42.5rem]"
+        >
+          <img src="/static/img/woman.png" class="h-[24.5rem]" />
+        </div>
+      </div>
     </div>
-  {% endif %}
-  <form class="box" action="/login" method="post">
-    <h1>RealistikPanel!</h1>
-    <div class="text1">Log in comrade!</div>
-    <input type="text" name="username" placeholder="Username" />
-    <input type="password" name="password" placeholder="Password" />
-    <input type="submit" name="" value="Login" />
-  </form>
-  <footer>
-    <a href="{{ conf.app_repo_url }}">Source</a>
-  </footer>
-</body>
+  </body>
+</html>
