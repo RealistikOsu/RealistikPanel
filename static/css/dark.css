@@ -7,11 +7,11 @@ css, dont expect this to be good.
 */
 
 .article .article-details {
-    background-color: #212121;
+    background-color: #2e3338;
 }
 
 .card {
-    background-color: #212121;
+    background-color: #2e3338;
 }
 
 .card .card-header {
@@ -19,12 +19,15 @@ css, dont expect this to be good.
 }
 
 body {
-    background-color: #1e1e1f;
+    background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100%;
     color: #dadada;
 }
 
 .main-sidebar {
-    background-color: #212121;
+    background-color: #2e33383b;
 }
 
 .main-sidebar .sidebar-brand a {
@@ -54,7 +57,7 @@ label {
 }
 
 .section {
-    background-color: #1e1e1f;
+    // background-color: #1e1e1f2f;
 }
 
 .main-wrapper-1 .section .section-header {
@@ -79,11 +82,11 @@ label {
 }
 
 body.sidebar-mini .main-sidebar:after {
-    background-color: #212121;
+    background-color: #2e3338;
 }
 
 .dropdown-menu {
-    background-color: #212121;;
+    background-color: #2e3338;;
 }
 
 .dropdown-menu .dropdown-title {
@@ -94,12 +97,8 @@ body.sidebar-mini .main-sidebar:after {
     color: #dadada;
 }
 
-.article-cta {
-    background-color: #212121;
-}
-
 .page-link {
-    background-color: #212121;
+    background-color: #2e3338;
 }
 
 /*Ok here are some things for selectize.js*/
