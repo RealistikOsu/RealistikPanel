@@ -524,7 +524,7 @@ def Webhook(BeatmapId, ActionName, session):
     )  # this is giving me discord.py vibes
     embed.set_author(
         name=f"{mapa[0]} was just {TitleText}",
-        url=config.srv_url + "b/{BeatmapId}",
+        url=f"{config.srv_url}b/{BeatmapId}",
         icon_url=f"{config.api_avatar_url}{session['AccountId']}",
     )
     embed.set_footer(text="via RealistikPanel!")
