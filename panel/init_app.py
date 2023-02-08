@@ -255,8 +255,8 @@ def configure_routes(app: Flask) -> None:
                         config=config,
                         error="An internal error has occured while saving system settings! An error has been logged to the console.",
                     )
-            else:
-                return no_permission_response(request.path)
+        else:
+            return no_permission_response(request.path)
 
     @app.route("/user/edit/<id>", methods=["GET", "POST"])
     def panel_edit_user(id):
