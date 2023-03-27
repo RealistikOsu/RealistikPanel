@@ -3,6 +3,6 @@ discord-webhook==1.0.0
 flask==2.2.2
 mysql-connector-python==8.0.31
 pycountry==22.3.5
-redis==4.4.0
+redis==4.5.3
 structlog==22.3.0
 timeago==1.0.16
