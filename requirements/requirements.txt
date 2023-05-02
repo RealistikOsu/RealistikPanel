@@ -1,6 +1,6 @@
 bcrypt==4.0.1
 discord-webhook==1.0.0
-flask==2.2.2
+flask==2.3.2
 mysql-connector-python==8.0.31
 pycountry==22.3.5
 redis==4.4.0
