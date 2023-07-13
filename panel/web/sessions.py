@@ -11,7 +11,6 @@ from flask import Flask
 from flask import session
 
 from panel.constants.privileges import Privileges
-from panel.constants.settings import PanelTheme
 from panel.functions import has_privilege_value
 from panel.web.responses import no_permission_response
 
@@ -22,7 +21,6 @@ class Session:
     user_id: int
     username: str
     privileges: Privileges
-    theme: PanelTheme
 
 
 DEFAULT_SESSION = Session(
@@ -30,7 +28,6 @@ DEFAULT_SESSION = Session(
     user_id=0,
     username="",
     privileges=Privileges(0),
-    theme=PanelTheme.DARK,
 )
 
 
@@ -40,7 +37,6 @@ def _session_from_dict(s: dict[str, Any]) -> Session:
         user_id=s["user_id"],
         username=s["username"],
         privileges=Privileges(s["privileges"]),
-        theme=PanelTheme(s["theme"]),
     )
 
 

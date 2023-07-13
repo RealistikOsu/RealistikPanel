@@ -14,13 +14,11 @@ if TYPE_CHECKING:
     from web.sessions import Session
 
 # Template inject imports.
-from panel.constants import settings
 from panel.constants.privileges import Privileges
 from panel.common import utils
 
 # Automatically assigned their default name.
 TEMPLATE_GLOBALS = [
-    settings.PanelTheme,
     utils.halve_list,
     Privileges,
 ]

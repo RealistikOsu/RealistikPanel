@@ -27,18 +27,7 @@
   <link rel="stylesheet" href="/static/css/realistik.css" />
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
-  {% if session.theme == PanelTheme.DARK %}
-    <link rel="stylesheet" href="/static/css/dark.css" />
-  {% else %}
-    <style>
-      .navbar .navbar-brand {
-        color: #212121;
-      }
-      .navbar .nav-link.nav-link-user {
-        color: #212121;
-      }
-    </style>
-  {% endif %}
+  <link rel="stylesheet" href="/static/css/dark.css" />
   <!--JS Modules-->
   <script
     src="https://code.jquery.com/jquery-3.6.3.slim.min.js"
@@ -172,16 +161,6 @@
           <li class="menu-header">RealistikPanel</li>
           <a href="/admins" class="nav-link AccessRAP"
             ><i class="fas fa-user-cog"></i><span> Admins</span></a
-          >
-          <a href="/toggledark" class="nav-link"
-            ><i class="fas fa-lightbulb"></i
-            ><span>
-              {% if session.theme == PanelTheme.LIGHT %}
-                Dark Theme
-              {% else %}
-                White Theme
-              {% endif %}
-            </span></a
           >
           <a href="{{ config.app_repo_url }}" class="nav-link" target="_blank"
             ><i class="fab fa-github-alt"></i><span> Source Code</span></a

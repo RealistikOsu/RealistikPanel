@@ -16,7 +16,6 @@ from flask import url_for
 from panel import logger
 from panel import web
 from panel.config import config
-from panel.constants.settings import PanelTheme
 from panel.functions import *
 from panel.web.responses import load_panel_template
 from panel.web.sessions import requires_privilege
@@ -424,16 +423,6 @@ def configure_routes(app: Flask) -> None:
                 "bm6.ppy.sh": config.srv_switcher_ips,
             },
         )
-
-    @app.route("/toggledark")
-    def panel_toggle_theme():
-        session = web.sessions.get()
-        if session.theme is PanelTheme.DARK:
-            session.theme = PanelTheme.LIGHT
-        else:
-            session.theme = PanelTheme.DARK
-        web.sessions.set(session)
-        return redirect(url_for("panel_dashboard"))
 
     @app.route(
         "/changepass/<AccountID>",
