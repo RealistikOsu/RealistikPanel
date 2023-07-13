@@ -26,7 +26,7 @@ body {
     background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-size: 100%;
+    background-size: cover;
     color: #dadada;
 }
 
