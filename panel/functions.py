@@ -1546,7 +1546,7 @@ def PlayerCountCollection(loop=True):
 def get_playcount_graph_data():
     """Returns data for dash graphs."""
     Data = {}
-    Data["PlayerCount"] = json.dumps(PlayerCount)  # string for easier use in js
+    Data["PlayerCount"] = PlayerCount
 
     # getting time intervals
     PrevNum = 0
@@ -1556,7 +1556,7 @@ def get_playcount_graph_data():
         PrevNum += 5
 
     IntervalList.reverse()
-    Data["IntervalList"] = json.dumps(IntervalList)
+    Data["IntervalList"] = IntervalList
     return Data
 
 

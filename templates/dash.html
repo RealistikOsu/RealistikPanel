@@ -112,11 +112,12 @@
   </table>
   <script>
     //Dash data
-    var labels = '{{ Graph["IntervalList"]|safe }}';
-    var data = '{{ Graph["PlayerCount"]|safe }}';
+    var labels = {{ Graph["IntervalList"]|safe }};
+    var data = {{ Graph["PlayerCount"]|safe }};
     var ctx = document.getElementById("PlayerChart").getContext("2d");
     var myChart = new Chart(ctx, {
       type: "line",
+      bezierCurve: false,
       data: {
         labels: labels,
         datasets: [
@@ -148,9 +149,13 @@
               ticks: {
                 beginAtZero: true,
                 stepSize: 200,
-                callback: function (value, index, values) {
-                  return value;
-                },
+                callback: function (label, index, labels) {
+									// when the floored value is the same as the value we have a whole number
+									if (Math.floor(label) === label) {
+										return label;
+									}
+
+								},
               },
             },
           ],
