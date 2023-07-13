@@ -72,14 +72,14 @@ def requires_privilege(privilege: Privileges) -> Callable:
     """Decorator around a web handler which performs a privilege check."""
 
     def wrapper(func: Callable) -> Callable:
-        def new_func(*args):
+        def new_func(**args):
             session = get()
             if (not session.logged_in) or (
                 not has_privilege_value(session.user_id, privilege)
             ):
                 return no_permission_response(session)
-
-            return func(*args)
+            
+            return func(**args)
 
         new_func.__name__ = func.__name__  # Flask hack.
         return new_func
