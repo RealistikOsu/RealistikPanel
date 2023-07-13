@@ -7,15 +7,19 @@ css, dont expect this to be good.
 */
 
 .article .article-details {
-    background-color: #2e3338;
+    background-color: rgb(38, 42, 43) !important;
 }
 
 .card {
-    background-color: #2e3338;
+    background-color: rgb(38, 42, 43) !important;
 }
 
 .card .card-header {
-    border-bottom-color: #676767;
+    background-color: rgb(38, 42, 43) !important;
+}
+
+.table {
+    background-color: rgb(38, 42, 43) !important;
 }
 
 body {
@@ -27,7 +31,7 @@ body {
 }
 
 .main-sidebar {
-    background-color: #2e33383b;
+    background-color: rgba(38, 42, 43, 0.7);
 }
 
 .main-sidebar .sidebar-brand a {
@@ -56,12 +60,12 @@ label {
     color: #6777ef;
 }
 
-.section {
+/* .section {
     // background-color: #1e1e1f2f;
-}
+} */
 
 .main-wrapper-1 .section .section-header {
-    border-top: 1px solid #676767;
+    border-top: 1px solid rgb(38, 42, 43);
 }
 
 .navbar .form-inline .form-control {
