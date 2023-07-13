@@ -403,27 +403,6 @@ def configure_routes(app: Flask) -> None:
         else:
             return no_permission_response(request.path)
 
-    @app.route("/current.json")
-    def panel_switcher_endpoints():
-        """IPs for the Ripple switcher."""
-        return jsonify(
-            {
-                "osu.ppy.sh": config.srv_switcher_ips,
-                "c.ppy.sh": config.srv_switcher_ips,
-                "c1.ppy.sh": config.srv_switcher_ips,
-                "c2.ppy.sh": config.srv_switcher_ips,
-                "c3.ppy.sh": config.srv_switcher_ips,
-                "c4.ppy.sh": config.srv_switcher_ips,
-                "c5.ppy.sh": config.srv_switcher_ips,
-                "c6.ppy.sh": config.srv_switcher_ips,
-                "ce.ppy.sh": config.srv_switcher_ips,
-                "a.ppy.sh": config.srv_switcher_ips,
-                "s.ppy.sh": config.srv_switcher_ips,
-                "i.ppy.sh": config.srv_switcher_ips,
-                "bm6.ppy.sh": config.srv_switcher_ips,
-            },
-        )
-
     @app.route(
         "/changepass/<AccountID>",
         methods=["GET", "POST"],
