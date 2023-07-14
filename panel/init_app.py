@@ -1,5 +1,6 @@
 # This file is responsible for running the web server and (mostly nothing else)
 from __future__ import annotations
+from copy import copy
 
 import os
 import sys
@@ -85,6 +86,12 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/logout")
     def panel_session_logout():
+        session = web.sessions.get()
+
+        if session.logged_in:
+            session = copy(web.sessions.DEFAULT_SESSION)
+            web.sessions.set(session)
+
         return redirect(url_for("panel_home_redirect"))
 
     @app.route("/bancho/settings", methods=["GET", "POST"])
