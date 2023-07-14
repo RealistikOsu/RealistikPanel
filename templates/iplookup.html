@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">IP Lookup</h2>
+  <h2 class="section-title">Recent IP Lookup</h2>
   <p class="section-lead">
     Spot possible multiaccounters by searching users who have the same IP.
   </p>
@@ -9,32 +9,34 @@
       <h4>Search Results for IP: <b>{{ ip }}</b></h4>
     </div>
     <div class="card-body">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th scope="col">User ID</th>
-            <th scope="col">Username</th>
-            <th scope="col">IP</th>
-            <th scope="col">PP</th>
-            <th scope="col">Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in ipusers %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
             <tr>
-              <td>{{ user["Id"] }}</td>
-              <td>{{ user["Username"] }}</td>
-              <td>{{ user["Ip"] }}</td>
-              <td>{{ user["pp"] }}</td>
-              <td>
-                <a href="/user/edit/{{ user['Id'] }}" class="btn btn-danger"
-                  >Edit</a
-                >
-              </td>
+              <th scope="col">User ID</th>
+              <th scope="col">Username</th>
+              <th scope="col">IP</th>
+              <th scope="col">Occurrences</th>
+              <th scope="col">Edit</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for user in ipusers %}
+              <tr>
+                <td>{{ user["Id"] }}</td>
+                <td>{{ user["Username"] }}</td>
+                <td>{{ user["Ip"] }}</td>
+                <td>{{ user["Occurencies"] }}</td>
+                <td>
+                  <a href="/user/edit/{{ user['Id'] }}" class="btn btn-danger"
+                    >Edit</a
+                  >
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       <p></p>
       <h2>
         {% if IPLen == 0 %}

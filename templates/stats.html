@@ -75,41 +75,45 @@
           </div>
         </div>
       </form>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Player</th>
-            <th scope="col">Song</th>
-            <th scope="col">Score</th>
-            <th scope="col">PP</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for play in StatData["RecentPlays"] %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
             <tr>
-              <td>{{ play["Time"] }}</td>
-              <td>
-                <a
-                  href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
-                  target="_blank"
-                  >{{ play["Player"] }}</a
-                >
-              </td>
-              <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
-              <td>{{ play["Score"] }}</td>
-              <td>{{ play["pp"] }}</td>
+              <th scope="col">Time</th>
+              <th scope="col">Player</th>
+              <th scope="col">Song</th>
+              <th scope="col">Mode</th>
+              <th scope="col">Score</th>
+              <th scope="col">PP</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for play in StatData["RecentPlays"] %}
+              <tr>
+                <td>{{ play["Time"] }}</td>
+                <td>
+                  <a
+                    href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
+                    target="_blank"
+                    >{{ play["Player"] }}</a
+                  >
+                </td>
+                <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
+                <td>{{ play["Mode"] }}</td>
+                <td>{{ play["Score"] }}</td>
+                <td>{{ play["pp"] }}pp</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card-footer">RealistikPanel</div>
   </div>
   <script>
     //js is spooky
-    var labels = '{{ StatData["RegisterGraph"]["DateList"]|safe }}';
-    var data = '{{ StatData["RegisterGraph"]["RegisterList"]|safe }}';
+    var labels = {{ StatData["RegisterGraph"]["DateList"]|safe }};
+    var data = {{ StatData["RegisterGraph"]["RegisterList"]|safe }};
     var ctx = document.getElementById("RegisterChart").getContext("2d");
     var myChart = new Chart(ctx, {
       type: "line",

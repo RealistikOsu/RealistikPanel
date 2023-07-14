@@ -5,39 +5,41 @@
   <div class="card">
     <div class="card-header">Badges</div>
     <div class="card-body">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Icon</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for badge in badges %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
             <tr>
-              <td>{{ badge["Id"] }}</td>
-              <td>{{ badge["Name"] }}</td>
-              <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
-              <td>
-                <div class="buttons">
-                  <a
-                    href="/actions/deletebadge/{{ badge['Id'] }}"
-                    class="btn btn-danger"
-                    >Delete</a
-                  >
-                  <a
-                    href="/badge/edit/{{ badge['Id'] }}"
-                    class="btn btn-primary"
-                    >Edit</a
-                  >
-                </div>
-              </td>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Icon</th>
+              <th scope="col">Actions</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for badge in badges %}
+              <tr>
+                <td>{{ badge["Id"] }}</td>
+                <td>{{ badge["Name"] }}</td>
+                <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
+                <td>
+                  <div class="buttons">
+                    <a
+                      href="/actions/deletebadge/{{ badge['Id'] }}"
+                      class="btn btn-danger"
+                      >Delete</a
+                    >
+                    <a
+                      href="/badge/edit/{{ badge['Id'] }}"
+                      class="btn btn-primary"
+                      >Edit</a
+                    >
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card-footer">
       <div class="buttons">

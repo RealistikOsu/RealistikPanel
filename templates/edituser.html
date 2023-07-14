@@ -163,31 +163,37 @@
         <div class="form-group">
           <label>Badges</label>
           <select name="Badge1" class="form-control" id="Badge1">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}</select
           ><br />
           <select name="Badge2" class="form-control" id="Badge2">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}</select
           ><br />
           <select name="Badge3" class="form-control" id="Badge3">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}</select
           ><br />
           <select name="Badge4" class="form-control" id="Badge4">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}</select
           ><br />
           <select name="Badge5" class="form-control" id="Badge5">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}</select
           ><br />
           <select name="Badge6" class="form-control" id="Badge6">
+            <option value="0" selected>(None)</option>
             {% for badge in badges %}
               <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
             {% endfor %}
@@ -260,7 +266,7 @@
     <div class="card-body">
       {{ UserData['Username'] }}
       has a total of <b>{{ hwid_count }}</b> HWID logs.
-      <div class="buttons">
+      <div class="buttons mt-3">
         <a href="/user/hwid/{{ UserData['Id'] }}/1" class="btn btn-success"
           >View HWIDs</a
         >
@@ -306,7 +312,10 @@
       <p></p>
       <div class="buttons">
         <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success"
-          >IP Lookup</a
+          >Recent IP Lookup</a
+        >
+        <a href="/user/fulliplookup/{{ UserData['Id'] }}" class="btn btn-success"
+          >Full IP Lookup</a
         >
         <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning"
           >Change Password</a
@@ -451,7 +460,7 @@
       PrivSelect.value = NewOption.value;
     }
 
-    var AdminPerms = "{{ session['Privilege'] }}";
+    var AdminPerms = "{{ session.privileges.value }}";
     //disabling buttons the person has no perm to use
     if (!(AdminPerms & 128)) {
       document.getElementById("wipe").remove();

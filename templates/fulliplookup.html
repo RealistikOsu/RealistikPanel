@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2 class="section-title">Full IP Lookup</h2>
+  <p class="section-lead">
+    Spot possible multiaccounters by searching users who have the same IPs.
+  </p>
+  <div class="card">
+    <div class="card-header">
+      <h4>Search Results for the same IPs</h4>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">IP</th>
+              <th scope="col">User</th>
+              <th scope="col">Privileges</th>
+              <th scope="col">Privileges Status</th>
+              <th scope="col">Occurrences</th>
+              <th scope="col">Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in ipusers %}
+              {% if user["user_id"] == user_id %}
+                <tr>
+              {% else %}
+                <tr class="bg-danger text-white">
+              {% endif %}
+                <td>{{ user["ip"] }}</td>
+                <td>{{ user["username"] }} ({{ user["user_id"]}})</td>
+                <td><a
+                  class="badge badge-{{ user['privileges']['Colour'] }}"
+                  style="color: white;"
+                  >{{ user["privileges"]["Name"] }}</a
+                ></td>
+                <td><a
+                  class="badge badge-{{ user['priv_status']['colour'] }}"
+                  style="color: white;"
+                  >{{ user["priv_status"]["text"] }}</a
+                ></td>
+                <td>{{ user["occurencies"] }}</td>
+                <td>
+                  <a href="/user/edit/{{ user['user_id'] }}" class="btn btn-danger"
+                    >Edit</a
+                  >
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">RealistikPanel!</div>
+  </div>
+{% endblock %}

@@ -82,41 +82,46 @@
     </div>
   </div>
   <div class="section-title">Recent Plays</div>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th scope="col">Time</th>
-        <th scope="col">Player</th>
-        <th scope="col">Song</th>
-        <th scope="col">Score</th>
-        <th scope="col">PP</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for play in plays %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <td>{{ play["Time"] }}</td>
-          <td>
-            <a
-              href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
-              target="_blank"
-              >{{ play["Player"] }}</a
-            >
-          </td>
-          <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
-          <td>{{ play["Score"] }}</td>
-          <td>{{ play["pp"] }}</td>
+          <th scope="col">Time</th>
+          <th scope="col">Player</th>
+          <th scope="col">Song</th>
+          <th scope="col">Mode</th>
+          <th scope="col">Score</th>
+          <th scope="col">PP</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for play in plays %}
+          <tr>
+            <td>{{ play["Time"] }}</td>
+            <td>
+              <a
+                href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
+                target="_blank"
+                >{{ play["Player"] }}</a
+              >
+            </td>
+            <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
+            <td>{{ play["Mode"] }}</td>
+            <td>{{ play["Score"] }}</td>
+            <td>{{ play["pp"] }}pp</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   <script>
     //Dash data
-    var labels = '{{ Graph["IntervalList"]|safe }}';
-    var data = '{{ Graph["PlayerCount"]|safe }}';
+    var labels = {{ Graph["IntervalList"]|safe }};
+    var data = {{ Graph["PlayerCount"]|safe }};
     var ctx = document.getElementById("PlayerChart").getContext("2d");
     var myChart = new Chart(ctx, {
       type: "line",
+      bezierCurve: false,
       data: {
         labels: labels,
         datasets: [
@@ -148,9 +153,13 @@
               ticks: {
                 beginAtZero: true,
                 stepSize: 200,
-                callback: function (value, index, values) {
-                  return value;
-                },
+                callback: function (label, index, labels) {
+									// when the floored value is the same as the value we have a whole number
+									if (Math.floor(label) === label) {
+										return label;
+									}
+
+								},
               },
             },
           ],
@@ -165,14 +174,6 @@
         },
       },
     });
-
-    /*
-statuses for things like
-lets
-bancho
-api
-maybe soon hanayo
-*/
     //json getting from url
 
     var API_URL = "https://" + window.location.host + "/js/status/api";
@@ -185,17 +186,17 @@ maybe soon hanayo
         if (out["server_status"] == 1) {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-success"><div><h3>Online</h3></div><div>LETS</div></div>';
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>Score Service</div></div>';
         } else {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>LETS</div></div>';
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Score Service</div></div>';
         }
       })
       .catch((err) => {
         document.getElementById("statuses").innerHTML =
           document.getElementById("statuses").innerHTML +
-          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Score Service</div></div>';
       });
     fetch(BanchoURL)
       .then((res) => res.json())
@@ -203,21 +204,21 @@ maybe soon hanayo
         if (out["result"] == 1) {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho</div></div>';
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>Bancho Service</div></div>';
         } else if (out["result"] == -1) {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-warning"><div><h3>Restarting</h3></div><div>Bancho</div></div>';
+            '<div class="btn btn-warning"><div><h3>Restarting</h3></div><div>Bancho Service</div></div>';
         } else {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho Service</div></div>';
         }
       })
       .catch((err) => {
         document.getElementById("statuses").innerHTML =
           document.getElementById("statuses").innerHTML +
-          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho</div></div>';
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>Bancho Service</div></div>';
       });
     fetch(API_URL)
       .then((res) => res.json())
@@ -225,17 +226,17 @@ maybe soon hanayo
         if (out["code"] == 200) {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-success"><div><h3>Online</h3></div><div>API</div></div>';
+            '<div class="btn btn-success"><div><h3>Online</h3></div><div>API Service</div></div>';
         } else {
           document.getElementById("statuses").innerHTML =
             document.getElementById("statuses").innerHTML +
-            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>';
+            '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API Service</div></div>';
         }
       })
       .catch((err) => {
         document.getElementById("statuses").innerHTML =
           document.getElementById("statuses").innerHTML +
-          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API</div></div>';
+          '<div class="btn btn-danger"><div><h3>Offline</h3></div><div>API Service</div></div>';
       });
   </script>
 {% endblock %}
