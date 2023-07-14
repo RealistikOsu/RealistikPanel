@@ -45,11 +45,11 @@ def configure_routes(app: Flask) -> None:
     IP_REDIRS = {}
 
     # TODO: rework
-    @app.route("/login", methods=["GET", "POST"])
+    @app.route("/login", methods=["GET", "POST"]) # type: ignore
     def panel_login():
         session = web.sessions.get()
 
-        if not session.logged_in and not HasPrivilege(session.user_id):
+        if not session.logged_in and not has_privilege_value(session.user_id, Privileges.ADMIN_ACCESS_RAP):
             if request.method == "GET":
                 redir = request.args.get("redirect")
                 if redir:
@@ -331,7 +331,7 @@ def configure_routes(app: Flask) -> None:
             badges=GetBadges(),
         )
 
-    @app.route("/badge/edit/<int:BadgeID>", methods=["GET", "POST"])
+    @app.route("/badge/edit/<int:BadgeID>", methods=["GET", "POST"]) # type: ignore
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_edit_badge(BadgeID: int):
         session = web.sessions.get()
@@ -388,7 +388,7 @@ def configure_routes(app: Flask) -> None:
             privileges=GetPrivileges(),
         )
 
-    @app.route("/privilege/edit/<int:Privilege>", methods=["GET", "POST"])
+    @app.route("/privilege/edit/<int:Privilege>", methods=["GET", "POST"]) # type: ignore
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_edit_privilege(Privilege: int):
         session = web.sessions.get()
@@ -421,9 +421,10 @@ def configure_routes(app: Flask) -> None:
                     privileges=Priv,
                     success=f"Privilege {Priv['Name']} has been successfully edited!",
                 )
-            except Exception as e:
-                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + traceback.format_exc())
+            except Exception:
                 Priv = GetPriv(Privilege)
+                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + traceback.format_exc())
+
                 return render_template(
                     "editprivilege.html",
                     data=load_dashboard_data(),
@@ -434,7 +435,7 @@ def configure_routes(app: Flask) -> None:
                     error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
 
-    @app.route("/changepass/<int:AccountID>", methods=["GET", "POST"])  # may change the route to something within /user
+    @app.route("/changepass/<int:AccountID>", methods=["GET", "POST"])  # type: ignore
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_edit_user_password(AccountID: int):
         session = web.sessions.get()
@@ -454,7 +455,7 @@ def configure_routes(app: Flask) -> None:
             User = GetUser(AccountID)
             return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/donoraward/<int:AccountID>", methods=["GET", "POST"])
+    @app.route("/donoraward/<int:AccountID>", methods=["GET", "POST"]) # type: ignore
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_award_user_donor(AccountID: int):
         session = web.sessions.get()
@@ -498,7 +499,7 @@ def configure_routes(app: Flask) -> None:
             session=session,
             title="Ranking Requests",
             config=config,
-            RankRequests=GetRankRequests(Page),
+            RankRequests=halve_list(GetRankRequests(Page)),
             page=Page,
             pages=request_pages(),
         )
@@ -842,7 +843,7 @@ def configure_routes(app: Flask) -> None:
         session = web.sessions.get()
 
         DeleteBadge(badge_id)
-        RAPLog(session.user_id, f"deleted the badge with the ID of {id}")
+        RAPLog(session.user_id, f"deleted the badge with the ID of {badge_id}")
         return redirect(url_for("panel_view_badges"))
 
     @app.route("/actions/createbadge")
