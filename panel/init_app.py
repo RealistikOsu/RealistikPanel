@@ -234,8 +234,11 @@ def configure_routes(app: Flask) -> None:
         success = None
         if request.method == "POST":
             try:
-                ApplyUserEdit(request.form, session.user_id)
-                success = "User successfully edited!"
+                resp = ApplyUserEdit(request.form, session.user_id)
+                if isinstance(resp, str):
+                    error = resp
+                else:
+                    success = "User successfully edited!"
             except Exception:
                 error = "An internal error has occured while editing the user! An error has been logged to the console."
                 logger.error("An internal error has occured while editing the user, error: " + traceback.format_exc())

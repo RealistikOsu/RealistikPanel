@@ -956,7 +956,7 @@ def GetPrivileges() -> list[dict[str, Any]]:
     return Privs
 
 
-def ApplyUserEdit(form: dict[str, str], from_id: int) -> None:
+def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     """Apples the user settings."""
     # getting variables from form
     UserId = int(form.get("userid", 0))
@@ -985,7 +985,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> None:
             return
         OriginalPriv = OriginalPriv[0][0]
         if int(Privilege) > OriginalPriv:
-            return
+            return "You cannot ascend yourself."
 
     # Badges
 
