@@ -633,7 +633,6 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
             "Privilege": PrivilegeDict[str(user[2])],
             "Country": user[4],
         }
-        print(Dict)
         if user[3] == 1:
             Dict["Allowed"] = True
         else:

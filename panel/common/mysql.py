@@ -77,7 +77,7 @@ class MySQLPool:
         
         row = cursor.lastrowid
 
-        logger.debug(row, query, args)
+        logger.debug(f"{row!r}, {query!r}, {args!r}")
 
         self.close(conn, cursor)
         return row
@@ -95,7 +95,7 @@ class MySQLPool:
         cursor.execute(query, args)
         row = cursor.fetchone()
 
-        logger.debug(row, query, args)
+        logger.debug(f"{row!r}, {query!r}, {args!r}")
 
         self.close(conn, cursor)
         return row
@@ -113,7 +113,7 @@ class MySQLPool:
         cursor.execute(query, args)
         rows = cursor.fetchall()
 
-        logger.debug(rows, query, args)
+        logger.debug(f"{rows!r}, {query!r}, {args!r}")
 
         self.close(conn, cursor)
         return rows
@@ -132,7 +132,7 @@ class MySQLPool:
 
         val = cursor.fetchone()
 
-        logger.debug(val, query, args)
+        logger.debug(f"{val!r}, {query!r}, {args!r}")
 
         self.close(conn, cursor)
         if val is None:
