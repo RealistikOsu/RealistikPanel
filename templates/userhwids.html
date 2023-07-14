@@ -29,34 +29,7 @@
         Hardware Log <b>{{ log["result"]["id"] }}</b>
       </div>
       <div class="card-body">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">User ID</th>
-              <th scope="col">Mac Hash</th>
-              <th scope="col">Unique ID</th>
-              <th scope="col">Disk Hash</th>
-              <th scope="col">Occurences</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ log["result"]["id"] }}</td>
-              <td>{{ log["result"]["user_id"] }}</td>
-              <td>{{ log["result"]["mac"] }}</td>
-              <td>{{ log["result"]["unique_id"] }}</td>
-              <td>{{ log["result"]["disk_id"] }}</td>
-              <td>{{ log["result"]["occurences"] }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <hr />
-        <h4>Exact Matches</h4>
-        These are usually a tell-tale sign of multiaccounting.
-        {% if not log["exact_matches"] %}
-          <span style="color: #32a852;">All Good!</span>
-        {% else %}
+        <div class="table-responsive">
           <table class="table table-striped">
             <thead>
               <tr>
@@ -69,18 +42,49 @@
               </tr>
             </thead>
             <tbody>
-              {% for exact_log in log["exact_matches"] %}
-                <tr>
-                  <td>{{ exact_log["id"] }}</td>
-                  <td>{{ exact_log["user_id"] }}</td>
-                  <td>{{ exact_log["mac"] }}</td>
-                  <td>{{ exact_log["unique_id"] }}</td>
-                  <td>{{ exact_log["disk_id"] }}</td>
-                  <td>{{ exact_log["occurences"] }}</td>
-                </tr>
-              {% endfor %}
+              <tr>
+                <td>{{ log["result"]["id"] }}</td>
+                <td>{{ log["result"]["user_id"] }}</td>
+                <td>{{ log["result"]["mac"] }}</td>
+                <td>{{ log["result"]["unique_id"] }}</td>
+                <td>{{ log["result"]["disk_id"] }}</td>
+                <td>{{ log["result"]["occurences"] }}</td>
+              </tr>
             </tbody>
           </table>
+        </div>
+        <hr />
+        <h4>Exact Matches</h4>
+        These are usually a tell-tale sign of multiaccounting.
+        {% if not log["exact_matches"] %}
+          <span style="color: #32a852;">All Good!</span>
+        {% else %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">User ID</th>
+                  <th scope="col">Mac Hash</th>
+                  <th scope="col">Unique ID</th>
+                  <th scope="col">Disk Hash</th>
+                  <th scope="col">Occurences</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for exact_log in log["exact_matches"] %}
+                  <tr>
+                    <td>{{ exact_log["id"] }}</td>
+                    <td>{{ exact_log["user_id"] }}</td>
+                    <td>{{ exact_log["mac"] }}</td>
+                    <td>{{ exact_log["unique_id"] }}</td>
+                    <td>{{ exact_log["disk_id"] }}</td>
+                    <td>{{ exact_log["occurences"] }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% endif %}
         <hr />
         <h4>Partial Matches</h4>
@@ -89,30 +93,32 @@
         {% if not log["partial_matches"] %}
           <span style="color: #32a852;">All Good!</span>
         {% else %}
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">ID</th>
-                <th scope="col">User ID</th>
-                <th scope="col">Mac Hash</th>
-                <th scope="col">Unique ID</th>
-                <th scope="col">Disk Hash</th>
-                <th scope="col">Occurences</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for partial_log in log["partial_matches"] %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
                 <tr>
-                  <td>{{ partial_log["id"] }}</td>
-                  <td>{{ partial_log["user_id"] }}</td>
-                  <td>{{ partial_log["mac"] }}</td>
-                  <td>{{ partial_log["unique_id"] }}</td>
-                  <td>{{ partial_log["disk_id"] }}</td>
-                  <td>{{ partial_log["occurences"] }}</td>
+                  <th scope="col">ID</th>
+                  <th scope="col">User ID</th>
+                  <th scope="col">Mac Hash</th>
+                  <th scope="col">Unique ID</th>
+                  <th scope="col">Disk Hash</th>
+                  <th scope="col">Occurences</th>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for partial_log in log["partial_matches"] %}
+                  <tr>
+                    <td>{{ partial_log["id"] }}</td>
+                    <td>{{ partial_log["user_id"] }}</td>
+                    <td>{{ partial_log["mac"] }}</td>
+                    <td>{{ partial_log["unique_id"] }}</td>
+                    <td>{{ partial_log["disk_id"] }}</td>
+                    <td>{{ partial_log["occurences"] }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% endif %}
       </div>
     </div>

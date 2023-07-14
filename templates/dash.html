@@ -82,34 +82,36 @@
     </div>
   </div>
   <div class="section-title">Recent Plays</div>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th scope="col">Time</th>
-        <th scope="col">Player</th>
-        <th scope="col">Song</th>
-        <th scope="col">Score</th>
-        <th scope="col">PP</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for play in plays %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <td>{{ play["Time"] }}</td>
-          <td>
-            <a
-              href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
-              target="_blank"
-              >{{ play["Player"] }}</a
-            >
-          </td>
-          <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
-          <td>{{ play["Score"] }}</td>
-          <td>{{ play["pp"] }}</td>
+          <th scope="col">Time</th>
+          <th scope="col">Player</th>
+          <th scope="col">Song</th>
+          <th scope="col">Score</th>
+          <th scope="col">PP</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for play in plays %}
+          <tr>
+            <td>{{ play["Time"] }}</td>
+            <td>
+              <a
+                href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
+                target="_blank"
+                >{{ play["Player"] }}</a
+              >
+            </td>
+            <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
+            <td>{{ play["Score"] }}</td>
+            <td>{{ play["pp"] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   <script>
     //Dash data
     var labels = {{ Graph["IntervalList"]|safe }};

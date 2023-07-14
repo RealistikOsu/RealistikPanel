@@ -36,59 +36,61 @@
     <div class="card-footer">RealistikPanel</div>
   </div>
   {{ pagination.pagination('/users', page, pages) }}
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Name</th>
-        <th scope="col">Privilege</th>
-        <th scope="col">Allowed</th>
-        <th scope="col">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in UserData %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <td>{{ user["Id"] }}</td>
-          <td>
-            {% if not user['Country'] == "XX" %}
-              <img
-                class="nflag"
-                src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
-              />
-            {% else %}
-              <img
-                class="nflag"
-                src="https://ussr.pl/static/images/new-flags/xx.png"
-              />
-            {% endif %}
-            <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
-              >{{ user["Name"] }}</a
-            >
-          </td>
-          <td>
-            <a
-              class="badge badge-{{ user['Privilege']['Colour'] }}"
-              style="color: white;"
-              >{{ user["Privilege"]["Name"] }}</a
-            >
-          </td>
-          {% if user["Allowed"] %}
-            <td>
-              <a class="badge badge-success" style="color: white;">Yes</a>
-            </td>
-          {% else %}
-            <td><a class="badge badge-danger" style="color: white;">No</a></td>
-          {% endif %}
-          <td>
-            <a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}"
-              >Edit</a
-            >
-          </td>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Privilege</th>
+          <th scope="col">Allowed</th>
+          <th scope="col">Actions</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for user in UserData %}
+          <tr>
+            <td>{{ user["Id"] }}</td>
+            <td>
+              {% if not user['Country'] == "XX" %}
+                <img
+                  class="nflag"
+                  src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
+                />
+              {% else %}
+                <img
+                  class="nflag"
+                  src="https://ussr.pl/static/images/new-flags/xx.png"
+                />
+              {% endif %}
+              <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
+                >{{ user["Name"] }}</a
+              >
+            </td>
+            <td>
+              <a
+                class="badge badge-{{ user['Privilege']['Colour'] }}"
+                style="color: white;"
+                >{{ user["Privilege"]["Name"] }}</a
+              >
+            </td>
+            {% if user["Allowed"] %}
+              <td>
+                <a class="badge badge-success" style="color: white;">Yes</a>
+              </td>
+            {% else %}
+              <td><a class="badge badge-danger" style="color: white;">No</a></td>
+            {% endif %}
+            <td>
+              <a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}"
+                >Edit</a
+              >
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   {{ pagination.pagination('/users', page, pages) }}
   {{ pagination.paginationJs('/users', page, pages) }}

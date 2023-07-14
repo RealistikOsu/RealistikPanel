@@ -5,39 +5,41 @@
   <div class="card">
     <div class="card-header">Privileges</div>
     <div class="card-body">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Privileges</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for priv in privileges %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
             <tr>
-              <td>{{ priv["Id"] }}</td>
-              <td>{{ priv["Name"] }}</td>
-              <td>{{ priv["Priv"] }}</td>
-              <td>
-                <div class="buttons">
-                  <a
-                    href="/actions/deletepriv/{{ priv['Id'] }}"
-                    class="btn btn-danger"
-                    >Delete</a
-                  >
-                  <a
-                    href="/privilege/edit/{{ priv['Id'] }}"
-                    class="btn btn-primary"
-                    >Edit</a
-                  >
-                </div>
-              </td>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Privileges</th>
+              <th scope="col">Actions</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for priv in privileges %}
+              <tr>
+                <td>{{ priv["Id"] }}</td>
+                <td>{{ priv["Name"] }}</td>
+                <td>{{ priv["Priv"] }}</td>
+                <td>
+                  <div class="buttons">
+                    <a
+                      href="/actions/deletepriv/{{ priv['Id'] }}"
+                      class="btn btn-danger"
+                      >Delete</a
+                    >
+                    <a
+                      href="/privilege/edit/{{ priv['Id'] }}"
+                      class="btn btn-primary"
+                      >Edit</a
+                    >
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card-footer">
       <div class="buttons">

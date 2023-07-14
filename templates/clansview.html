@@ -8,38 +8,40 @@
 
   <div class="card">
     <div class="card-header">Badges</div>
-    <div class="card-body">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Description</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for Clan in Clans %}
+    <di class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
             <tr>
-              <td>{{ Clan["ID"] }}</td>
-              <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
-              <td>{{ Clan["Description"] }}</td>
-              <td>
-                <div class="buttons">
-                  <a class="btn btn-warning" href="/clan/{{ Clan['ID'] }}"
-                    >Edit</a
-                  >
-                  <a
-                    class="btn btn-danger"
-                    href="/clan/confirmdelete/{{ Clan['ID'] }}"
-                    >Disband</a
-                  >
-                </div>
-              </td>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Description</th>
+              <th scope="col">Actions</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for Clan in Clans %}
+              <tr>
+                <td>{{ Clan["ID"] }}</td>
+                <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
+                <td>{{ Clan["Description"] }}</td>
+                <td>
+                  <div class="buttons">
+                    <a class="btn btn-warning" href="/clan/{{ Clan['ID'] }}"
+                      >Edit</a
+                    >
+                    <a
+                      class="btn btn-danger"
+                      href="/clan/confirmdelete/{{ Clan['ID'] }}"
+                      >Disband</a
+                    >
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     <div class="card-footer">RealistikPanel</div>
   </div>
