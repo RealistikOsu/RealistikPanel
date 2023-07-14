@@ -569,9 +569,14 @@ def CalcPP(BmapID: int) -> float:
     return round(reqjson["pp"][0], 2)
 
 
-def CalcPPDT(BmapID: int) -> float:
+def CalcPPRX(BmapID: int) -> float:
     """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
-    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=64").json()
+    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=128").json()
+    return round(reqjson["pp"][0], 2)
+
+def CalcPPAP(BmapID: int) -> float:
+    """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
+    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=8192").json()
     return round(reqjson["pp"][0], 2)
 
 

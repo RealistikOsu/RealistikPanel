@@ -610,7 +610,8 @@ def configure_routes(app: Flask) -> None:
             return jsonify(
                 {
                     "pp": round(CalcPP(bmap_id), 2),
-                    "dtpp": round(CalcPPDT(bmap_id), 2),
+                    "rxpp": round(CalcPPRX(bmap_id), 2),
+                    "appp": round(CalcPPAP(bmap_id), 2),
                     "code": 200,
                 },
             )
