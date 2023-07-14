@@ -297,69 +297,69 @@
   RPManageClans = 2 << 27;
 
   //doing the crossbrowser and ie
-  // if (!(UserPriv & AccessRAP)) {
-  //   var x = document.getElementsByClassName("AccessRAP");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ManageUsers)) {
-  //   var x = document.getElementsByClassName("ManageUsers");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ManageBeatmaps)) {
-  //   var x = document.getElementsByClassName("ManageBeatmaps");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ManageServers)) {
-  //   var x = document.getElementsByClassName("ManageServers");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ManageSettings)) {
-  //   var x = document.getElementsByClassName("ManageSettings");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ManagePrivileges)) {
-  //   var x = document.getElementsByClassName("ManagePrivileges");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & RPErrorLogs)) {
-  //   var x = document.getElementsByClassName("RPErrorLogs");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & ViewRAPLogs)) {
-  //   var x = document.getElementsByClassName("ViewRAPLogs");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
-  // if (!(UserPriv & RPManageClans)) {
-  //   var x = document.getElementsByClassName("ManageClans");
-  //   var i;
-  //   for (i = 0; i < x.length; i++) {
-  //     x[i].remove();
-  //   }
-  // }
+  if (!(UserPriv & AccessRAP)) {
+    var x = document.getElementsByClassName("AccessRAP");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ManageUsers)) {
+    var x = document.getElementsByClassName("ManageUsers");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ManageBeatmaps)) {
+    var x = document.getElementsByClassName("ManageBeatmaps");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ManageServers)) {
+    var x = document.getElementsByClassName("ManageServers");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ManageSettings)) {
+    var x = document.getElementsByClassName("ManageSettings");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ManagePrivileges)) {
+    var x = document.getElementsByClassName("ManagePrivileges");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & RPErrorLogs)) {
+    var x = document.getElementsByClassName("RPErrorLogs");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & ViewRAPLogs)) {
+    var x = document.getElementsByClassName("ViewRAPLogs");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
+  if (!(UserPriv & RPManageClans)) {
+    var x = document.getElementsByClassName("ManageClans");
+    var i;
+    for (i = 0; i < x.length; i++) {
+      x[i].remove();
+    }
+  }
   
   events = ["load", "resize"];
 	for (var i = 0; i < events.length; i++) {
