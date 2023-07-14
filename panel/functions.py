@@ -420,7 +420,7 @@ def Webhook(BeatmapId: int, ActionId: int, session: "Session") -> None:
 
     embed.set_author(
         name=f"{map_data[0]} was just {TitleText}",
-        url=config.srv_url + "b/{BeatmapId}",
+        url=f"{config.srv_url}b/{BeatmapId}",
         icon_url=f"{config.api_avatar_url}{session.user_id}",
     )
 
