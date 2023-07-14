@@ -36,11 +36,16 @@
               data-background="{{ Beatmap['Cover'] }}"
               style='background-image: url("{{ Beatmap['Cover'] }}");'
             ></div>
-            <div class="article-title">
-              <h2>{{ Beatmap["SongName"] }}</h2>
+            <div class="article-badge">
+              <div class="article-badge-item bg-dark">
+                Modes: {{ Beatmap["Modes"] }}
+              </div>
             </div>
           </div>
           <div class="article-details">
+            <div class="article-title">
+              <h5>{{ Beatmap["SongName"] }}</h5>
+            </div>
             This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
             this server!
           </div>
@@ -63,11 +68,16 @@
               data-background="{{ Beatmap['Cover'] }}"
               style="background-image: url(`{{ Beatmap['Cover'] }}`);"
             ></div>
-            <div class="article-title">
-              <h2>{{ Beatmap["SongName"] }}</h2>
+            <div class="article-badge">
+              <div class="article-badge-item bg-dark">
+                Modes: {{ Beatmap["Modes"] }}
+              </div>
             </div>
           </div>
           <div class="article-details">
+            <div class="article-title">
+              <h5>{{ Beatmap["SongName"] }}</h5>
+            </div>
             This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
             this server!
           </div>

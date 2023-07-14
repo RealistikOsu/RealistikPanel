@@ -1953,6 +1953,13 @@ def GiveSupporterForm(form: dict[str, str]) -> None:
     """Handles the give supporter form/POST request."""
     GiveSupporter(int(form["accid"]), int(form["time"]))
 
+def convert_mode_to_str(mode: int) -> str:
+    return {
+        0: "osu!std",
+        1: "osu!taiko",
+        2: "osu!catch",
+        3: "osu!mania",
+    }.get(mode, "osu!std")
 
 def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     """Gets all the rank requests. This may require some optimisation."""
@@ -2001,12 +2008,17 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
             Cover = "https://i.ytimg.com/vi/erb4n8PW2qw/maxresdefault.jpg"
         else:
             SongName = request_data[0]
-
-            if request[3] == "s":
-                SongName = SongName.split("[")[0]  # kind of a way to get rid of diff name
+            SongName = SongName.split("[")[0].rstrip()  # kind of a way to get rid of diff name
 
             BeatmapSetID = request_data[1]
             Cover = f"https://assets.ppy.sh/beatmaps/{BeatmapSetID}/covers/cover.jpg"
+
+        modes = db_pool.fetch_all(
+            "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
+            (BeatmapSetID,),
+        )
+        unique_modes = Unique([mode[0] for mode in modes])
+        string_modes = ", ".join([convert_mode_to_str(mode) for mode in unique_modes])
 
         # nice dict
         TheRequests.append(
@@ -2020,6 +2032,7 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
                 "SongName": SongName,
                 "Cover": Cover,
                 "BeatmapSetID": BeatmapSetID,
+                "Modes": string_modes,
             },
         )
 
@@ -2284,12 +2297,19 @@ def GetSuggestedRank() -> list[dict[str, Any]]:
     )
     BeatmapList = []
     for TopBeatmap in beatmaps_data:
+        modes = db_pool.fetch_all(
+            "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
+            (TopBeatmap[2],),
+        )
+        unique_modes = Unique([mode[0] for mode in modes])
+        string_modes = ", ".join([convert_mode_to_str(mode) for mode in unique_modes])
         BeatmapList.append(
             {
                 "BeatmapId": TopBeatmap[0],
-                "SongName": TopBeatmap[1],
+                "SongName": TopBeatmap[1].split("[")[0].rstrip(),
                 "Cover": f"https://assets.ppy.sh/beatmaps/{TopBeatmap[2]}/covers/cover.jpg",
                 "Playcount": TopBeatmap[3],
+                "Modes": string_modes,
             },
         )
 

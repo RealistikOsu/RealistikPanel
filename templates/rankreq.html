@@ -16,11 +16,16 @@
               data-background="{{ Request['Cover'] }}"
               style='background-image: url("{{ Request['Cover'] }}");'
             ></div>
-            <div class="article-title">
-              <h2>{{ Request["SongName"] }}</h2>
+            <div class="article-badge">
+              <div class="article-badge-item bg-dark">
+                Modes: {{ Request["Modes"] }}
+              </div>
             </div>
           </div>
           <div class="article-details">
+            <div class="article-title">
+              <h5>{{ Request["SongName"] }}</h5>
+            </div>
             This song has been requested by
             <b
               ><a href="{{ config.srv_url }}u/{{ Request['RequestBy'] }}"
@@ -55,11 +60,16 @@
               data-background="{{ Request['Cover'] }}"
               style='background-image: url("{{ Request['Cover'] }}");'
             ></div>
-            <div class="article-title">
-              <h2>{{ Request["SongName"] }}</h2>
+            <div class="article-badge">
+              <div class="article-badge-item bg-dark">
+                Modes: {{ Request["Modes"] }}
+              </div>
             </div>
           </div>
           <div class="article-details">
+            <div class="article-title">
+              <h5>{{ Request["SongName"] }}</h5>
+            </div>
             This song has been requested by
             <b
               ><a href="{{ config.srv_url }}u/{{ Request['RequestBy'] }}"
