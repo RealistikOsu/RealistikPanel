@@ -17,8 +17,8 @@ def decode_int_or(value: Optional[bytes], default: int = 0) -> int:
     return int(value.decode("utf-8"))
 
 
-def halve_list(input: list[T]) -> tuple[list[T], list[T]]:
+def halve_list(_input: list[T]) -> tuple[list[T], list[T]]:
     return (
-        input[::2],
-        input[1::2],
+        _input[::2],
+        _input[1::2],
     )

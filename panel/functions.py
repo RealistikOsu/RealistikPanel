@@ -9,8 +9,10 @@ import random
 import string
 import time
 import traceback
-from typing import NamedTuple
+from typing import Any
+from typing import TYPE_CHECKING
 from typing import TypedDict
+from typing import NamedTuple
 from typing import Union
 
 import bcrypt
@@ -21,6 +23,9 @@ import requests
 import timeago
 from discord_webhook import DiscordEmbed
 from discord_webhook import DiscordWebhook
+
+if TYPE_CHECKING:
+    from panel.web.sessions import Session
 
 from panel import logger
 from panel.common.cryprography import compare_password
@@ -83,7 +88,7 @@ if BadUserCount > 0:
 PlayerCount = []  # list of players
 
 
-def load_dashboard_data() -> dict:
+def load_dashboard_data() -> dict[str, Any]:
     """Grabs all the values for the dashboard."""
     mycursor.execute(
         "SELECT value_string FROM system_settings WHERE name = 'website_global_alert'",
@@ -179,7 +184,7 @@ LIMIT %s
 """
 
 
-def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0):
+def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[str, Any]]:
     """Returns recent plays."""
     divisor = 1
     if config.srv_supports_relax:
@@ -273,7 +278,7 @@ def handle_bancho_settings_edit(
     user_id: int,
 ) -> None:
     # setting blanks to bools
-    bancho_maintenence = bancho_maintenence == "On"
+    bancho_maintenence_bool = bancho_maintenence == "On"
 
     # SQL Queries
     if menu_icon:
@@ -298,25 +303,25 @@ def handle_bancho_settings_edit(
 
     mycursor.execute(
         "UPDATE bancho_settings SET value_int = %s WHERE name = 'bancho_maintenance'",
-        (int(bancho_maintenence),),
+        (int(bancho_maintenence_bool),),
     )
 
     mydb.commit()
     RAPLog(user_id, "modified the bancho settings")
 
 
-def GetBmapInfo(id):
+def GetBmapInfo(bmap_id: int):
     """Gets beatmap info."""
-    mycursor.execute("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (id,))
+    mycursor.execute("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (bmap_id,))
     Data = mycursor.fetchall()
-    if len(Data) == 0:
+    if not Data:
         # it might be a beatmap set then
         mycursor.execute(
             "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = %s",
-            (id,),
+            (bmap_id,),
         )
         BMS_Data = mycursor.fetchall()
-        if len(BMS_Data) == 0:  # if still havent found anything
+        if not BMS_Data:  # if still havent found anything
 
             return [
                 {
@@ -367,7 +372,7 @@ def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
     return user_privileges & privilege == privilege
 
 
-def HasPrivilege(UserID: int, ReqPriv=2):
+def HasPrivilege(UserID: int, ReqPriv=2) -> bool:
     """Check if the person trying to access the page has perms to do it."""
     # tbh i shouldve done it where you pass the priv enum instead
 
@@ -426,11 +431,12 @@ def HasPrivilege(UserID: int, ReqPriv=2):
     # gets users privilege
     mycursor.execute("SELECT privileges FROM users WHERE id = %s", (UserID,))
     Privilege = mycursor.fetchall()
-    if len(Privilege) == 0:
+    if not Privilege:
         Privilege = 0
     else:
         Privilege = Privilege[0][0]
 
+    result = 0
     if ReqPriv == 1:
         result = Privilege & UserNormal
     elif ReqPriv == 2:
@@ -470,44 +476,44 @@ def HasPrivilege(UserID: int, ReqPriv=2):
         return False
 
 
-def RankBeatmap(BeatmapNumber, BeatmapId, ActionName, session):
+def RankBeatmap(BeatmapId: int, ActionName: str, session: "Session"):
     """Ranks a beatmap"""
     # converts actions to numbers
     if ActionName == "Loved":
-        ActionName = 5
+        ActionId = 5
     elif ActionName == "Ranked":
-        ActionName = 2
+        ActionId = 2
     elif ActionName == "Unranked":
-        ActionName = 0
+        ActionId = 0
     else:
         logger.debug("Malformed action name input.")
         return
     mycursor.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
         (
-            ActionName,
+            ActionId,
             BeatmapId,
         ),
     )
     # mycursor.execute("UPDATE scores s JOIN (SELECT userid, MAX(score) maxscore FROM scores JOIN beatmaps ON scores.beatmap_md5 = beatmaps.beatmap_md5 WHERE beatmaps.beatmap_md5 = (SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1) GROUP BY userid) s2 ON s.score = s2.maxscore AND s.userid = s2.userid SET completed = 3", (BeatmapId,))
     mydb.commit()
-    Webhook(BeatmapId, ActionName, session)
+    Webhook(BeatmapId, ActionId, session)
 
     # USSR SUPPORT.
     mycursor.execute(
         "SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
         (BeatmapId,),
     )
-    md5: str = mycursor.fetchone()[0]
+    md5: str = mycursor.fetchone()[0] # type: ignore
     refresh_bmap(md5)
 
 
-def FokaMessage(params) -> None:
+def FokaMessage(params: dict[str, Any]) -> None:
     """Sends a fokabot message."""
     requests.get(config.api_bancho_url + "api/v1/fokabotMessage", params=params)
 
 
-def Webhook(BeatmapId, ActionName, session):
+def Webhook(BeatmapId: int, ActionId: int, session: "Session"):
     """Beatmap rank webhook."""
     URL = config.webhook_ranked
     if URL == "":
@@ -519,40 +525,42 @@ def Webhook(BeatmapId, ActionName, session):
     )
     mapa = mycursor.fetchall()
     mapa = mapa[0]
-    if ActionName == 0:
-        TitleText = "unranked..."
-    if ActionName == 2:
+
+    TitleText = "unranked..."
+    if ActionId == 2:
         TitleText = "ranked!"
-    if ActionName == 5:
+    if ActionId == 5:
         TitleText = "loved!"
+
     webhook = DiscordWebhook(url=URL)  # creates webhook
     embed = DiscordEmbed(
-        description=f"Ranked by {session['AccountName']}",
+        description=f"Ranked by {session.username}",
         color=242424,
     )  # this is giving me discord.py vibes
     embed.set_author(
         name=f"{mapa[0]} was just {TitleText}",
         url=config.srv_url + "b/{BeatmapId}",
-        icon_url=f"{config.api_avatar_url}{session['AccountId']}",
+        icon_url=f"{config.api_avatar_url}{session.user_id}",
     )
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{mapa[1]}/covers/cover.jpg")
     webhook.add_embed(embed)
     logger.info("Posting webhook....")
     webhook.execute()
-    if ActionName == 0:
-        Logtext = "unranked"
-    if ActionName == 2:
+
+    Logtext = "unranked"
+    if ActionId == 2:
         Logtext = "ranked"
-    if ActionName == 5:
+    if ActionId == 5:
         Logtext = "loved"
-    RAPLog(session["AccountId"], f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
-    ingamemsg = f"[https://{config.srv_url}u/{session['AccountId']} {session['AccountName']}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
+
+    RAPLog(session.user_id, f"{Logtext} the beatmap {mapa[0]} ({BeatmapId})")
+    ingamemsg = f"[https://{config.srv_url}u/{session.user_id} {session.username}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {mapa[0]}]"
     params = {"k": config.api_foka_key, "to": "#announce", "msg": ingamemsg}
     FokaMessage(params)
 
 
-def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
+def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") -> None:
     """Logs to the RAP log."""
     Timestamp = round(time.time())
     # now we putting that in oh yea
@@ -580,7 +588,7 @@ def RAPLog(UserID=999, Text="forgot to assign a text value :/"):
         webhook.execute()
 
 
-def SystemSettingsValues():
+def SystemSettingsValues() -> dict[str, Any]:
     """Fetches the system settings data."""
     mycursor.execute(
         "SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'",
@@ -595,7 +603,7 @@ def SystemSettingsValues():
     }
 
 
-def ApplySystemSettings(DataArray, user_id: int):
+def ApplySystemSettings(DataArray: list[str], user_id: int):
     """Applies system settings."""
     WebMan = DataArray[0]
     GameMan = DataArray[1]
@@ -669,13 +677,13 @@ def IsOnline(AccountId: int) -> bool:
         return False
 
 
-def CalcPP(BmapID):
+def CalcPP(BmapID: int) -> float:
     """Sends request to letsapi to calc PP for beatmap id."""
     reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
 
-def CalcPPDT(BmapID):
+def CalcPPDT(BmapID: int) -> float:
     """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
     reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=64").json()
     return round(reqjson["pp"][0], 2)
@@ -690,7 +698,7 @@ def Unique(Alist):
     return Uniques
 
 
-def FetchUsers(page=0):
+def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     """Fetches users for the users page."""
     # This is going to need a lot of patching up i can feel it
     Offset = 50 * page  # for the page system to work
@@ -768,11 +776,11 @@ def FetchUsers(page=0):
     return Users
 
 
-def GetUser(id):
+def GetUser(user_id: int) -> dict[str, Any]:
     """Gets data for user. (universal)"""
     mycursor.execute(
         "SELECT id, username, country FROM users WHERE id = %s LIMIT 1",
-        (id,),
+        (user_id,),
     )
     User = mycursor.fetchone()
     if User == None:
@@ -786,12 +794,12 @@ def GetUser(id):
     return {
         "Id": User[0],
         "Username": User[1],
-        "IsOnline": IsOnline(id),
+        "IsOnline": IsOnline(user_id),
         "Country": User[2],
     }
 
 
-def UserData(UserID):
+def UserData(UserID: int) -> dict[str, Any]:
     """Gets data for user (specialised for user edit page)."""
     # fix badbad data
     mycursor.execute(
@@ -876,7 +884,7 @@ def UserData(UserID):
     return Data
 
 
-def RAPFetch(page=1):
+def RAPFetch(page: int = 1) -> list[dict[str, Any]]:
     """Fetches RAP Logs."""
     page = int(page) - 1  # makes sure is int and is in ok format
     Offset = 50 * page
@@ -936,7 +944,7 @@ def GetCFullName(ISO3166):
     return CountryName
 
 
-def GetPrivileges():
+def GetPrivileges() -> list[dict[str, Any]]:
     """Gets list of privileges."""
     mycursor.execute("SELECT * FROM privileges_groups")
     priv = mycursor.fetchall()
@@ -948,11 +956,11 @@ def GetPrivileges():
     return Privs
 
 
-def ApplyUserEdit(form, from_id: int):
+def ApplyUserEdit(form: dict[str, str], from_id: int) -> None:
     """Apples the user settings."""
     # getting variables from form
-    UserId = int(form.get("userid", False))
-    Username = form.get("username", False)
+    UserId = int(form.get("userid", 0))
+    Username = form.get("username", "")
     Aka = form.get("aka", False)
     Email = form.get("email", False)
     Country = form.get("country", False)
@@ -1110,17 +1118,17 @@ def ModToText(mod: int):
         return Mods
 
 
-def DeleteProfileComments(AccId):
+def DeleteProfileComments(AccId: int) -> None:
     mycursor.execute("DELETE FROM user_comments WHERE prof = %s", (AccId,))
     mydb.commit()
 
 
-def DeleteUserComments(AccId):
+def DeleteUserComments(AccId: int) -> None:
     mycursor.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
     mydb.commit()
 
 
-def WipeAccount(AccId):
+def WipeAccount(AccId: int) -> None:
     """Wipes the account with the given id."""
     r.publish(
         "peppy:disconnect",
@@ -1142,7 +1150,7 @@ def WipeAccount(AccId):
         WipeAutopilot(AccId)
 
 
-def WipeVanilla(AccId):
+def WipeVanilla(AccId: int) -> None:
     """Wiped vanilla scores for user."""
     mycursor.execute(
         """UPDATE
@@ -1195,7 +1203,7 @@ def WipeVanilla(AccId):
     mydb.commit()
 
 
-def WipeRelax(AccId):
+def WipeRelax(AccId: int) -> None:
     """Wipes the relax user data."""
     mycursor.execute(
         """UPDATE
@@ -1248,7 +1256,7 @@ def WipeRelax(AccId):
     mydb.commit()
 
 
-def WipeAutopilot(AccId):
+def WipeAutopilot(AccId: int) -> None:
     """Wipes the autopilot user data."""
     mycursor.execute(
         """UPDATE
@@ -1301,18 +1309,18 @@ def WipeAutopilot(AccId):
     mydb.commit()
 
 
-def ResUnTrict(id: int, note: str = None, reason: str = None):
+def ResUnTrict(user_id: int, note: str = "", reason: str = ""):
     """Restricts or unrestricts account yeah."""
     if reason:
         mycursor.execute(
             "UPDATE users SET ban_reason = %s WHERE id = %s",
             (
                 reason,
-                id,
+                user_id,
             ),
         )
 
-    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (user_id,))
     Privilege = mycursor.fetchall()
     if len(Privilege) == 0:
         return
@@ -1323,50 +1331,50 @@ def ResUnTrict(id: int, note: str = None, reason: str = None):
             "UPDATE users SET privileges = %s, ban_datetime = 0 WHERE id = %s LIMIT 1",
             (
                 new_privs,
-                id,
+                user_id,
             ),
         )  # unrestricts
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
-        params = {"k": config.api_foka_key, "to": GetUser(id)["Username"], "msg": wip}
+        params = {"k": config.api_foka_key, "to": GetUser(user_id)["Username"], "msg": wip}
         FokaMessage(params)
         TimeBan = round(time.time())
         mycursor.execute(
             "UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s",
             (
                 TimeBan,
-                id,
+                user_id,
             ),
         )  # restrict em bois
-        RemoveFromLeaderboard(id)
+        RemoveFromLeaderboard(user_id)
         TheReturn = True
 
         # We append the note if it exists to the thingy init bruv
         if note:
             mycursor.execute(
                 "UPDATE users SET notes = CONCAT(notes, %s) WHERE id = %s LIMIT 1",
-                ("\n" + note, id),
+                ("\n" + note, user_id),
             )
 
         # First places KILL.
         mycursor.execute(
             "SELECT beatmap_md5 FROM first_places WHERE user_id = %s",
-            (id,),
+            (user_id,),
         )
         recalc_maps = mycursor.fetchall()
 
         # Delete all of their old.
-        mycursor.execute("DELETE FROM first_places WHERE user_id = %s", (id,))
+        mycursor.execute("DELETE FROM first_places WHERE user_id = %s", (user_id,))
         for (bmap_md5,) in recalc_maps:
             calc_first_place(bmap_md5)
-    UpdateBanStatus(id)
+    UpdateBanStatus(user_id)
     mydb.commit()
     return TheReturn
 
 
-def FreezeHandler(id: int):
-    mycursor.execute("SELECT frozen FROM users WHERE id = %s", (id,))
+def FreezeHandler(user_id: int):
+    mycursor.execute("SELECT frozen FROM users WHERE id = %s", (user_id,))
     Status = mycursor.fetchall()
     if len(Status) == 0:
         return
@@ -1374,7 +1382,7 @@ def FreezeHandler(id: int):
     if Frozen:
         mycursor.execute(
             "UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s",
-            (id,),
+            (user_id,),
         )
         TheReturn = False
     else:
@@ -1384,29 +1392,29 @@ def FreezeHandler(id: int):
             "UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s",
             (
                 freezedateunix,
-                id,
+                user_id,
             ),
         )
         TheReturn = True
         wip = f"Your account has been frozen. Please join the {config.srv_name} Discord and submit a liveplay to a staff member in order to be unfrozen"
-        params = {"k": config.api_foka_key, "to": GetUser(id)["Username"], "msg": wip}
+        params = {"k": config.api_foka_key, "to": GetUser(user_id)["Username"], "msg": wip}
         FokaMessage(params)
     mydb.commit()
     return TheReturn
 
 
-def BanUser(id: int, reason: str = None):
+def BanUser(user_id: int, reason: str = ""):
     """User go bye bye!"""
     if reason:
         mycursor.execute(
             "UPDATE users SET ban_reason = %s WHERE id = %s",
             (
                 reason,
-                id,
+                user_id,
             ),
         )
 
-    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (id,))
+    mycursor.execute("SELECT privileges FROM users WHERE id = %s", (user_id,))
     Privilege = mycursor.fetchall()
     Timestamp = round(time.time())
     if len(Privilege) == 0:
@@ -1415,7 +1423,7 @@ def BanUser(id: int, reason: str = None):
     if Privilege == 0:  # if already banned
         mycursor.execute(
             "UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s",
-            (id,),
+            (user_id,),
         )
         TheReturn = False
     else:
@@ -1423,81 +1431,81 @@ def BanUser(id: int, reason: str = None):
             "UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s",
             (
                 Timestamp,
-                id,
+                user_id,
             ),
         )
-        RemoveFromLeaderboard(id)
+        RemoveFromLeaderboard(user_id)
         r.publish(
             "peppy:disconnect",
             json.dumps(
                 {  # lets the user know what is up
-                    "userID": id,
+                    "userID": user_id,
                     "reason": f"You have been banned from {config.srv_name}. You will not be missed.",
                 },
             ),
         )
         TheReturn = True
-    UpdateBanStatus(id)
+    UpdateBanStatus(user_id)
     mydb.commit()
     return TheReturn
 
 
-def ClearHWID(id: int):
+def ClearHWID(user_id: int) -> None:
     """Clears the HWID matches for provided acc."""
-    mycursor.execute("DELETE FROM hw_user WHERE userid = %s", (id,))
+    mycursor.execute("DELETE FROM hw_user WHERE userid = %s", (user_id,))
     mydb.commit()
 
 
-def DeleteAccount(id: int):
+def DeleteAccount(user_id: int) -> None:
     """Deletes the account provided. Press F to pay respects."""
     r.publish(
         "peppy:disconnect",
         json.dumps(
             {  # lets the user know what is up
-                "userID": id,
+                "userID": user_id,
                 "reason": f"You have been deleted from {config.srv_name}. Bye!",
             },
         ),
     )
     # NUKE. BIG NUKE.
-    mycursor.execute("DELETE FROM scores WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM users WHERE id = %s", (id,))
-    mycursor.execute("DELETE FROM 2fa WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM 2fa_totp WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (id,))
-    mycursor.execute("DELETE FROM comments WHERE user_id = %s", (id,))
-    mycursor.execute("DELETE FROM discord_roles WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM ip_user WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (id,))
-    mycursor.execute("DELETE FROM rank_requests WHERE userid = %s", (id,))
+    mycursor.execute("DELETE FROM scores WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    mycursor.execute("DELETE FROM 2fa WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM 2fa_totp WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,))
+    mycursor.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
+    mycursor.execute("DELETE FROM discord_roles WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM ip_user WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,))
+    mycursor.execute("DELETE FROM rank_requests WHERE userid = %s", (user_id,))
     mycursor.execute(
         "DELETE FROM reports WHERE to_uid = %s OR from_uid = %s",
         (
-            id,
-            id,
+            user_id,
+            user_id,
         ),
     )
-    mycursor.execute("DELETE FROM tokens WHERE user = %s", (id,))
-    mycursor.execute("DELETE FROM remember WHERE userid = %s", (id,))
-    mycursor.execute("DELETE FROM users_achievements WHERE user_id = %s", (id,))
-    mycursor.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (id,))
+    mycursor.execute("DELETE FROM tokens WHERE user = %s", (user_id,))
+    mycursor.execute("DELETE FROM remember WHERE userid = %s", (user_id,))
+    mycursor.execute("DELETE FROM users_achievements WHERE user_id = %s", (user_id,))
+    mycursor.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (user_id,))
     mycursor.execute(
         "DELETE FROM users_relationships WHERE user1 = %s OR user2 = %s",
         (
-            id,
-            id,
+            user_id,
+            user_id,
         ),
     )
-    mycursor.execute("DELETE FROM user_badges WHERE user = %s", (id,))
-    mycursor.execute("DELETE FROM user_clans WHERE user = %s", (id,))
-    mycursor.execute("DELETE FROM users_stats WHERE id = %s", (id,))
+    mycursor.execute("DELETE FROM user_badges WHERE user = %s", (user_id,))
+    mycursor.execute("DELETE FROM user_clans WHERE user = %s", (user_id,))
+    mycursor.execute("DELETE FROM users_stats WHERE id = %s", (user_id,))
     if config.srv_supports_relax:
-        mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (id,))
-        mycursor.execute("DELETE FROM rx_stats WHERE id = %s", (id,))
+        mycursor.execute("DELETE FROM scores_relax WHERE userid = %s", (user_id,))
+        mycursor.execute("DELETE FROM rx_stats WHERE id = %s", (user_id,))
     if config.srv_supports_autopilot:
-        mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (id,))
-        mycursor.execute("DELETE FROM ap_stats WHERE id = %s", (id,))
+        mycursor.execute("DELETE FROM scores_ap WHERE userid = %s", (user_id,))
+        mycursor.execute("DELETE FROM ap_stats WHERE id = %s", (user_id,))
     mydb.commit()
 
 
@@ -1509,7 +1517,7 @@ def BanchoKick(id: int, reason):
     )
 
 
-def FindWithIp(Ip):
+def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
     mycursor.execute("SELECT userid, ip FROM ip_user WHERE ip = %s", (Ip,))
@@ -1543,7 +1551,7 @@ def PlayerCountCollection(loop=True):
         PlayerCount.append(CurrentCount)
 
 
-def get_playcount_graph_data():
+def get_playcount_graph_data() -> dict[str, list[Union[int, str]]]:
     """Returns data for dash graphs."""
     Data = {}
     Data["PlayerCount"] = PlayerCount
@@ -1560,7 +1568,7 @@ def get_playcount_graph_data():
     return Data
 
 
-def GiveSupporter(AccountID: int, Duration=30):
+def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
     """Gives the target user supporter.
     Args:
         AccountID (int): The account id of the target user.
@@ -1607,7 +1615,7 @@ def GiveSupporter(AccountID: int, Duration=30):
         mydb.commit()
 
 
-def RemoveSupporter(AccountID: int, session):
+def RemoveSupporter(AccountID: int, session: "Session") -> None:
     """Removes supporter from the target user."""
     mycursor.execute("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     CurrentPriv = mycursor.fetchone()[0]
@@ -1635,12 +1643,12 @@ def RemoveSupporter(AccountID: int, session):
     mydb.commit()
     User = GetUser(AccountID)
     RAPLog(
-        session["AccountId"],
+        session.user_id,
         f"deleted the supporter role for {User['Username']} ({AccountID})",
     )
 
 
-def GetBadges():
+def GetBadges() -> list[dict[str, Any]]:
     """Gets all the badges."""
     mycursor.execute("SELECT * FROM badges")
     Data = mycursor.fetchall()
@@ -1650,21 +1658,21 @@ def GetBadges():
     return Badges
 
 
-def DeleteBadge(BadgeId: int):
+def DeleteBadge(BadgeId: int) -> None:
     """ "Delets the badge with the gived id."""
     mycursor.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
     mycursor.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
     mydb.commit()
 
 
-def GetBadge(BadgeID: int):
+def GetBadge(BadgeID: int) -> dict[str, Any]:
     """Gets data of given badge."""
     mycursor.execute("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
     BadgeData = mycursor.fetchone()
     return {"Id": BadgeData[0], "Name": BadgeData[1], "Icon": BadgeData[2]}
 
 
-def SaveBadge(form):
+def SaveBadge(form: dict[str, str]) -> None:
     """Saves the edits done to the badge."""
     BadgeID = form["badgeid"]
     BadgeName = form["name"]
@@ -1705,7 +1713,7 @@ def ParseReplay(replay):
     }
 
 
-def CreateBadge():
+def CreateBadge() -> int:
     """Creates empty badge."""
     mycursor.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
     mydb.commit()
@@ -1714,20 +1722,20 @@ def CreateBadge():
     return mycursor.fetchone()[0]
 
 
-def GetPriv(PrivID: int):
+def GetPriv(PrivID: int) -> dict[str, Any]:
     """Gets the priv data from ID."""
     mycursor.execute("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
     Priv = mycursor.fetchone()
     return {"Id": Priv[0], "Name": Priv[1], "Privileges": Priv[2], "Colour": Priv[3]}
 
 
-def DelPriv(PrivID: int):
+def DelPriv(PrivID: int) -> None:
     """Deletes a privilege group."""
     mycursor.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
     mydb.commit()
 
 
-def UpdatePriv(Form):
+def UpdatePriv(Form: dict[str, str]) -> None:
     """Updates the privilege from form."""
     # Get previous privilege number
     mycursor.execute(
@@ -1747,12 +1755,20 @@ def UpdatePriv(Form):
     mydb.commit()
 
 
-def GetMostPlayed():
+def GetMostPlayed() -> dict[str, Any]:
     """Gets the beatmap with the highest playcount."""
     mycursor.execute(
         "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1",
     )
     Beatmap = mycursor.fetchone()
+    if Beatmap is None:
+        return {
+            "BeatmapId": 0,
+            "SongName": "No beatmaps found",
+            "Cover": "",
+            "Playcount": 0,
+        }
+
     return {
         "BeatmapId": Beatmap[0],
         "SongName": Beatmap[1],
@@ -1774,7 +1790,7 @@ def ListToDots(List: list):
     return Result[:-1]
 
 
-def GetUserBadges(AccountID: int):
+def GetUserBadges(AccountID: int) -> list[int]:
     """Gets badges of a user and returns as list."""
     mycursor.execute("SELECT badge FROM user_badges WHERE user = %s", (AccountID,))
     Badges = []
@@ -1782,13 +1798,10 @@ def GetUserBadges(AccountID: int):
     for badge in SQLBadges:
         Badges.append(badge[0])
 
-    # so we dont run into errors where people have no/less than 6 badges
-    while len(Badges) < 6:
-        Badges.append(0)
     return Badges
 
 
-def SetUserBadges(AccountID: int, Badges: list):
+def SetUserBadges(AccountID: int, Badges: list[int]):
     """Sets badge list to account."""
     """ Realised flaws with this approach
     CurrentBadges = GetUserBadges(AccountID) # so it knows which badges to keep
@@ -1857,7 +1870,7 @@ def TimeToTimeAgo(Timestamp: int):
     return f"{base_time} ({DTObj.strftime('%d/%m/%Y %H:%M')})"
 
 
-def RemoveFromLeaderboard(UserID: int):
+def RemoveFromLeaderboard(UserID: int) -> None:
     """Removes the user from leaderboards."""
     Modes = ["std", "ctb", "mania", "taiko"]
     for mode in Modes:
@@ -1883,12 +1896,12 @@ def RemoveFromLeaderboard(UserID: int):
                 r.zrem(f"ripple:leaderboard_ap:{mode}:{Country}", UserID)
 
 
-def UpdateBanStatus(UserID: int):
+def UpdateBanStatus(UserID: int) -> None:
     """Updates the ban statuses in bancho."""
-    r.publish("peppy:ban", UserID)
+    r.publish("peppy:ban", str(UserID))
 
 
-def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
+def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: "Session"):
     """Sets status for all beatmaps in beatmapset."""
     mycursor.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
@@ -1900,9 +1913,8 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     mydb.commit()
 
     # getting status text
-    if Staus == 0:
-        TitleText = "unranked"
-    elif Staus == 2:
+    TitleText = "unranked"
+    if Staus == 2:
         TitleText = "ranked"
     elif Staus == 5:
         TitleText = "loved"
@@ -1918,13 +1930,13 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
     # webhook, didnt use webhook function as it was too adapted for single map webhook
     webhook = DiscordWebhook(url=config.webhook_ranked)
     embed = DiscordEmbed(
-        description=f"Ranked by {session['AccountName']}",
+        description=f"Ranked by {session.username}",
         color=242424,
     )
     embed.set_author(
         name=f"{BmapName} was just {TitleText}.",
         url=f"https://ussr.pl/b/{MapData[1]}",
-        icon_url=f"https://a.ussr.pl/{session['AccountId']}",
+        icon_url=f"https://a.ussr.pl/{session.user_id}",
     )  # will rank to random diff but yea
     embed.set_footer(text="via RealistikPanel!")
     embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg")
@@ -1937,7 +1949,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session):
         refresh_bmap(md5)
 
 
-def FindUserByUsername(User: str, Page):
+def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     """Finds user by their username OR email."""
     # calculating page offsets
     Offset = 50 * (Page - 1)
@@ -2027,7 +2039,7 @@ def CreateBcrypt(Password: str):
     return BHashed.decode()
 
 
-def ChangePassword(AccountID: int, NewPassword: str):
+def ChangePassword(AccountID: int, NewPassword: str) -> None:
     """Changes the password of a user with given AccID"""
     BCrypted = CreateBcrypt(NewPassword)
     mycursor.execute(
@@ -2041,22 +2053,22 @@ def ChangePassword(AccountID: int, NewPassword: str):
     r.publish("peppy:change_pass", json.dumps({"user_id": AccountID}))
 
 
-def ChangePWForm(form, session):  # this function may be unnecessary but ehh
+def ChangePWForm(form: dict[str, str], session: "Session") -> None:  # this function may be unnecessary but ehh
     """Handles the change password POST request."""
     ChangePassword(int(form["accid"]), form["newpass"])
-    User = GetUser(form["accid"])
+    User = GetUser(int(form["accid"]))
     RAPLog(
-        session["AccountId"],
+        session.user_id,
         f"has changed the password of {User['Username']} ({form['accid']})",
     )
 
 
-def GiveSupporterForm(form):
+def GiveSupporterForm(form: dict[str, str]) -> None:
     """Handles the give supporter form/POST request."""
     GiveSupporter(form["accid"], int(form["time"]))
 
 
-def GetRankRequests(Page: int):
+def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     """Gets all the rank requests. This may require some optimisation."""
     Page -= 1
     Offset = 50 * Page  # for the page system to work
@@ -2153,13 +2165,13 @@ def GetRankRequests(Page: int):
     return TheRequests
 
 
-def DeleteBmapReq(Req):
+def DeleteBmapReq(Req: int) -> None:
     """Deletes the beatmap request."""
     mycursor.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
     mydb.commit()
 
 
-def UserPageCount():
+def UserPageCount() -> int:
     """Gets the amount of pages for users."""
     # i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM users")
@@ -2168,7 +2180,7 @@ def UserPageCount():
     return math.ceil(TheNumber / PAGE_SIZE)
 
 
-def RapLogCount():
+def RapLogCount() -> int:
     """Gets the amount of pages for rap logs."""
     # i made it separate, fite me
     mycursor.execute("SELECT count(*) FROM rap_logs")
@@ -2177,7 +2189,7 @@ def RapLogCount():
     return math.ceil(TheNumber / PAGE_SIZE)
 
 
-def GetClans(Page: int = 1):
+def GetClans(Page: int = 1) -> list[dict[str, Any]]:
     """Gets a list of all clans (v1)."""
     # offsets and limits
     Page = int(Page) - 1
@@ -2203,26 +2215,12 @@ def GetClans(Page: int = 1):
     return Clans
 
 
-def GetClanPages():
+def GetClanPages() -> int:
     """Gets amount of pages for clans."""
     mycursor.execute("SELECT count(*) FROM clans")
     TheNumber = mycursor.fetchone()[0]
-    # working with page number (this is a mess...)
-    TheNumber /= 50
-    # if not single digit, round up
-    if len(str(TheNumber)) != 0:
-        NewNumber = round(TheNumber)
-        # if number was rounded down
-        if NewNumber == round(int(str(TheNumber).split(".")[0])):
-            NewNumber += 1
-        TheNumber = NewNumber
-    # makign page dict
-    Pages = []
-    while TheNumber != 0:
-        Pages.append(TheNumber)
-        TheNumber -= 1
-    Pages.reverse()
-    return Pages
+    
+    return math.ceil(TheNumber / PAGE_SIZE)
 
 
 def GetAccuracy(count300, count100, count50, countMiss):
@@ -2235,7 +2233,7 @@ def GetAccuracy(count300, count100, count50, countMiss):
         return 0
 
 
-def GetClanMembers(ClanID: int):
+def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     """Returns a list of clan members."""
     # ok so we assume the list isnt going to be too long
     mycursor.execute("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
@@ -2270,7 +2268,7 @@ def GetClanMembers(ClanID: int):
     return ReturnList
 
 
-def GetClan(ClanID: int):
+def GetClan(ClanID: int) -> dict[str, Any]:
     """Gets information for a specified clan."""
     mycursor.execute(
         "SELECT id, name, description, icon, tag, mlimit FROM clans WHERE id = %s LIMIT 1",
@@ -2293,7 +2291,7 @@ def GetClan(ClanID: int):
     }
 
 
-def GetClanOwner(ClanID: int):
+def GetClanOwner(ClanID: int) -> dict[str, Any]:
     """Gets user info for the owner of a clan."""
     # wouldve been done quicker but i decided to play jawbreaker and only got up to 81%
     mycursor.execute(
@@ -2311,7 +2309,7 @@ def GetClanOwner(ClanID: int):
     return {"AccountID": AccountID, "Username": User[0]}
 
 
-def ApplyClanEdit(Form, session):
+def ApplyClanEdit(Form: dict[str, str], session: "Session") -> None:
     """Uses the post request to set new clan settings."""
     ClanID = Form["id"]
     ClanName = Form["name"]
@@ -2328,10 +2326,10 @@ def ApplyClanEdit(Form, session):
     mycursor.execute("SELECT user FROM user_clans WHERE clan=%s", (ClanID,))
     for (user_id,) in mycursor.fetchall():
         cache_clan(user_id)
-    RAPLog(session["AccountId"], f"edited the clan {ClanName} ({ClanID})")
+    RAPLog(session.user_id, f"edited the clan {ClanName} ({ClanID})")
 
 
-def NukeClan(ClanID: int, session):
+def NukeClan(ClanID: int, session: "Session") -> None:
     """Deletes a clan from the face of the earth."""
     Clan = GetClan(ClanID)
     if not Clan:
@@ -2347,10 +2345,10 @@ def NukeClan(ClanID: int, session):
     for (user_id,) in c_m_db:
         cache_clan(user_id)
     mydb.commit()
-    RAPLog(session["AccountId"], f"deleted the clan {Clan['Name']} ({ClanID})")
+    RAPLog(session.user_id, f"deleted the clan {Clan['Name']} ({ClanID})")
 
 
-def KickFromClan(AccountID):
+def KickFromClan(AccountID: int) -> None:
     """Kicks user from all clans (supposed to be only one)."""
     mycursor.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
     mydb.commit()
@@ -2400,12 +2398,12 @@ def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24):
     return Count[0]
 
 
-def RippleSafeUsername(Username):
+def RippleSafeUsername(Username: str) -> str:
     """Generates a ripple-style safe username."""
     return Username.lower().replace(" ", "_").rstrip()
 
 
-def GetSuggestedRank():
+def GetSuggestedRank() -> list[dict[str, Any]]:
     """Gets suggested maps to rank (based on play count)."""
     mycursor.execute(
         "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 8",
@@ -2434,7 +2432,7 @@ def CountRestricted():
     return Count[0]
 
 
-def GetStatistics(MinPP=0):
+def GetStatistics(MinPP: int = 0) -> dict[str, Any]:
     """Gets statistics for the stats page and is incredibly slow...."""
     # this is going to be a wild one
     # TODO: REWRITE or look into caching this
@@ -2458,7 +2456,7 @@ def GetStatistics(MinPP=0):
     }
 
 
-def CreatePrivilege():
+def CreatePrivilege() -> int:
     """Creates a new default privilege."""
     mycursor.execute(
         "INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 0, '')",

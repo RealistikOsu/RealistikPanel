@@ -46,8 +46,8 @@ def configure_routes(app: Flask) -> None:
     # TODO: rework
     @app.route("/login", methods=["GET", "POST"])
     def panel_login():
-        session = web.sessions.get()  # TODO: maybe inject session decorator?
-        print(session)
+        session = web.sessions.get()
+
         if not session.logged_in and not HasPrivilege(session.user_id):
             if request.method == "GET":
                 redir = request.args.get("redirect")
@@ -67,19 +67,19 @@ def configure_routes(app: Flask) -> None:
                         alert=data,
                         conf=config,
                     )
-                else:
-                    session.logged_in = True
-                    session.privileges = data.privileges
-                    session.user_id = data.user_id
-                    session.username = data.username
-                    web.sessions.set(session)
+                
+                session.logged_in = True
+                session.privileges = data.privileges # type: ignore
+                session.user_id = data.user_id # type: ignore
+                session.username = data.username # type: ignore
+                web.sessions.set(session)
 
-                    redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
-                    if redir:
-                        del IP_REDIRS[request.headers.get("X-Real-IP")]
-                        return redirect(redir)
+                redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
+                if redir:
+                    del IP_REDIRS[request.headers.get("X-Real-IP")]
+                    return redirect(redir)
 
-                    return redirect(url_for("panel_home_redirect"))
+                return redirect(url_for("panel_home_redirect"))
         else:
             return redirect(url_for("panel_dashboard"))
 
@@ -90,18 +90,22 @@ def configure_routes(app: Flask) -> None:
     @app.route("/bancho/settings", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_SERVERS)
     def panel_bancho_settings():
-        error = success = None
+        session = web.sessions.get()
+
+        error = None
+        success = None
         if request.method == "POST":
             try:
                 handle_bancho_settings_edit(
                     request.form["banchoman"],
                     request.form["mainmemuicon"],
                     request.form["loginnotif"],
-                    int(session["AccountId"]),
+                    session.user_id,
                 )
                 success = "Bancho settings were successfully edited!"
             except Exception as e:
                 error = f"Failed to save Bancho settings with error {e}!"
+                logger.error("Failed to save Bancho settings with error: " + traceback.format_exc())
 
         return load_panel_template(
             "banchosettings.html",
@@ -115,27 +119,28 @@ def configure_routes(app: Flask) -> None:
     @app.route("/rank/<beatmap_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_rank_beatmap(beatmap_id: str):
-        error = success = None
+        session = web.sessions.get()
 
+        error = None
+        success = None
         if request.method == "POST":
             try:
                 beatmap_index = request.form["beatmapnumber"]
                 RankBeatmap(
-                    beatmap_index,
-                    request.form[f"bmapid-{beatmap_index}"],
+                    int(request.form[f"bmapid-{beatmap_index}"]),
                     request.form[f"rankstatus-{beatmap_index}"],
                     session,
                 )
                 success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
             except Exception as e:
-                logger.error(traceback.format_exc())
                 error = f"Failed to rank beatmap {beatmap_id} with error {e}!"
+                logger.error(f"Failed to rank beatmap {beatmap_id} with error: " + traceback.format_exc())
 
         return load_panel_template(
             "beatrank.html",
             title="Rank Beatmap!",
             Id=beatmap_id,
-            beatdata=halve_list(GetBmapInfo(beatmap_id)),
+            beatdata=halve_list(GetBmapInfo(int(beatmap_id))),
             success=success,
             error=error,
         )
@@ -192,10 +197,12 @@ def configure_routes(app: Flask) -> None:
     @app.route("/system/settings", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
     def panel_system_settings():
-        error = success = None
+        session = web.sessions.get()
+
+        error = None
+        success = None
         if request.method == "POST":
             try:
-                session = web.sessions.get()
                 ApplySystemSettings(
                     [
                         request.form["webman"],
@@ -208,8 +215,8 @@ def configure_routes(app: Flask) -> None:
                 )
                 success = "Successfully edited the system settings!"
             except Exception as e:
-                logger.error(traceback.format_exc())
                 error = "An internal error has occured while saving system settings! An error has been logged to the console."
+                logger.error("An internal error has occured while saving system settings, error: " + traceback.format_exc())
 
         return load_panel_template(
             "syssettings.html",
@@ -222,16 +229,18 @@ def configure_routes(app: Flask) -> None:
     @app.route("/user/edit/<user_id_str>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_edit_user(user_id_str: str):
-        error = success = None
-        user_id = int(user_id_str)
         session = web.sessions.get()
+
+        error = None
+        success = None
+        user_id = int(user_id_str)
         if request.method == "POST":
             try:
                 ApplyUserEdit(request.form, session.user_id)
                 success = "User successfully edited!"
             except Exception:
-                logger.error(traceback.format_exc())
                 error = "An internal error has occured while editing the user! An error has been logged to the console."
+                logger.error("An internal error has occured while editing the user, error: " + traceback.format_exc())
 
         return load_panel_template(
             "edituser.html",
@@ -249,7 +258,7 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/logs/<page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
-    def panel_view_logs(page):
+    def panel_view_logs(page: int):
         return load_panel_template(
             "raplogs.html",
             title="Admin Logs",
@@ -258,21 +267,21 @@ def configure_routes(app: Flask) -> None:
             Pages=RapLogCount(),
         )
 
-    @app.route("/action/confirm/delete/<id>")
+    @app.route("/action/confirm/delete/<user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_delete_user_confirm(id):
-        target = GetUser(id)
+    def panel_delete_user_confirm(user_id: int):
+        target = GetUser(user_id)
         return load_panel_template(
             "confirm.html",
             title="Confirmation Required",
             action=f"delete the user {target['Username']}",
-            yeslink=f"/actions/delete/{id}",
-            backlink=f"/user/edit/{id}",
+            yeslink=f"/actions/delete/{user_id}",
+            backlink=f"/user/edit/{user_id}",
         )
 
     @app.route("/user/iplookup/<ip>")
     @requires_privilege(Privileges.PANEL_VIEW_IPS)
-    def panel_view_user_ip(ip):
+    def panel_view_user_ip(ip: str):
         IPUserLookup = FindWithIp(ip)
         UserLen = len(IPUserLookup)
         return load_panel_template(
@@ -285,7 +294,7 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/ban-logs/<page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
-    def panel_view_ban_logs(page):
+    def panel_view_ban_logs(page: int):
         return load_panel_template(
             "ban_logs.html",
             title="Ban Logs",
@@ -304,9 +313,27 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/badge/edit/<BadgeID>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_edit_badge(BadgeID: int):
-        if HasPrivilege(session["AccountId"], 4):
-            if request.method == "GET":
+        session = web.sessions.get()
+
+        if request.method == "GET":
+            return render_template(
+                "editbadge.html",
+                data=load_dashboard_data(),
+                session=session,
+                title="Edit Badge",
+                config=config,
+                badge=GetBadge(BadgeID),
+            )
+        
+        if request.method == "POST":
+            try:
+                SaveBadge(request.form)
+                RAPLog(
+                    session.user_id,
+                    f"edited the badge with the ID of {BadgeID}",
+                )
                 return render_template(
                     "editbadge.html",
                     data=load_dashboard_data(),
@@ -314,198 +341,171 @@ def configure_routes(app: Flask) -> None:
                     title="Edit Badge",
                     config=config,
                     badge=GetBadge(BadgeID),
+                    success=f"Badge {BadgeID} has been successfully edited!",
                 )
-            if request.method == "POST":
-                try:
-                    SaveBadge(request.form)
-                    RAPLog(
-                        session["AccountId"],
-                        f"edited the badge with the ID of {BadgeID}",
-                    )
-                    return render_template(
-                        "editbadge.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Edit Badge",
-                        config=config,
-                        badge=GetBadge(BadgeID),
-                        success=f"Badge {BadgeID} has been successfully edited!",
-                    )
-                except Exception as e:
-                    logger.error(traceback.format_exc())
-                    return render_template(
-                        "editbadge.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Edit Badge",
-                        config=config,
-                        badge=GetBadge(BadgeID),
-                        error="An internal error has occured while editing the badge! An error has been logged to the console.",
-                    )
-        else:
-            return no_permission_response(request.path)
+            except Exception as e:
+                logger.error(f"An internal error has occured while editing the badge {BadgeID}, error: " + traceback.format_exc())
+                return render_template(
+                    "editbadge.html",
+                    data=load_dashboard_data(),
+                    session=session,
+                    title="Edit Badge",
+                    config=config,
+                    badge=GetBadge(BadgeID),
+                    error="An internal error has occured while editing the badge! An error has been logged to the console.",
+                )
 
     @app.route("/privileges")
+    @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
     def panel_view_privileges():
-        if HasPrivilege(session["AccountId"], 13):
+        session = web.sessions.get()
+
+        return render_template(
+            "privileges.html",
+            data=load_dashboard_data(),
+            session=session,
+            title="Privileges",
+            config=config,
+            privileges=GetPrivileges(),
+        )
+
+    @app.route("/privilege/edit/<Privilege>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
+    def panel_edit_privilege(Privilege: int):
+        session = web.sessions.get()
+
+        if request.method == "GET":
             return render_template(
-                "privileges.html",
+                "editprivilege.html",
                 data=load_dashboard_data(),
                 session=session,
                 title="Privileges",
                 config=config,
-                privileges=GetPrivileges(),
+                privileges=GetPriv(Privilege),
             )
-        else:
-            return no_permission_response(request.path)
+        
+        if request.method == "POST":
+            try:
+                UpdatePriv(request.form)
+                Priv = GetPriv(Privilege)
+                RAPLog(
+                    session.user_id,
+                    f"has edited the privilege group {Priv['Name']} ({Priv['Id']})",
+                )
 
-    @app.route("/privilege/edit/<Privilege>", methods=["GET", "POST"])
-    def panel_edit_privilege(Privilege: int):
-        if HasPrivilege(session["AccountId"], 13):
-            if request.method == "GET":
                 return render_template(
                     "editprivilege.html",
                     data=load_dashboard_data(),
                     session=session,
                     title="Privileges",
                     config=config,
-                    privileges=GetPriv(Privilege),
+                    privileges=Priv,
+                    success=f"Privilege {Priv['Name']} has been successfully edited!",
                 )
-            if request.method == "POST":
-                try:
-                    UpdatePriv(request.form)
-                    Priv = GetPriv(Privilege)
-                    RAPLog(
-                        session["AccountId"],
-                        f"has edited the privilege group {Priv['Name']} ({Priv['Id']})",
-                    )
-                    return render_template(
-                        "editprivilege.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Privileges",
-                        config=config,
-                        privileges=Priv,
-                        success=f"Privilege {Priv['Name']} has been successfully edited!",
-                    )
-                except Exception as e:
-                    logger.error(traceback.format_exc())
-                    Priv = GetPriv(Privilege)
-                    return render_template(
-                        "editprivilege.html",
-                        data=load_dashboard_data(),
-                        session=session,
-                        title="Privileges",
-                        config=config,
-                        privileges=Priv,
-                        error="An internal error has occured while editing the privileges! An error has been logged to the console.",
-                    )
-        else:
-            return no_permission_response(request.path)
-
-    @app.route(
-        "/changepass/<AccountID>",
-        methods=["GET", "POST"],
-    )  # may change the route to something within /user
-    def panel_edit_user_password(AccountID):
-        if HasPrivilege(session["AccountId"], 6):  # may create separate perm for this
-            if request.method == "GET":
-                User = GetUser(int(AccountID))
+            except Exception as e:
+                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + traceback.format_exc())
+                Priv = GetPriv(Privilege)
                 return render_template(
-                    "changepass.html",
+                    "editprivilege.html",
                     data=load_dashboard_data(),
                     session=session,
-                    title=f"Change the Password for {User['Username']}",
+                    title="Privileges",
                     config=config,
-                    User=User,
+                    privileges=Priv,
+                    error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
-            if request.method == "POST":
-                ChangePWForm(request.form, session)
-                User = GetUser(int(AccountID))
-                return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+
+    @app.route("/changepass/<AccountID>", methods=["GET", "POST"])  # may change the route to something within /user
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_edit_user_password(AccountID: int):
+        session = web.sessions.get()
+
+        if request.method == "GET":
+            User = GetUser(int(AccountID))
+            return render_template(
+                "changepass.html",
+                data=load_dashboard_data(),
+                session=session,
+                title=f"Change the Password for {User['Username']}",
+                config=config,
+                User=User,
+            )
+        if request.method == "POST":
+            ChangePWForm(request.form, session)
+            User = GetUser(int(AccountID))
+            return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/donoraward/<AccountID>", methods=["GET", "POST"])
-    def panel_award_user_donor(AccountID):
-        if HasPrivilege(session["AccountId"], 6):
-            if request.method == "GET":
-                User = GetUser(int(AccountID))
-                return render_template(
-                    "donoraward.html",
-                    data=load_dashboard_data(),
-                    session=session,
-                    title=f"Award Donor to {User['Username']}",
-                    config=config,
-                    User=User,
-                )
-            if request.method == "POST":
-                GiveSupporterForm(request.form)
-                User = GetUser(int(AccountID))
-                RAPLog(
-                    session["AccountId"],
-                    f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.",
-                )
-                return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_award_user_donor(AccountID: int):
+        session = web.sessions.get()
+
+        if request.method == "GET":
+            User = GetUser(int(AccountID))
+            return render_template(
+                "donoraward.html",
+                data=load_dashboard_data(),
+                session=session,
+                title=f"Award Donor to {User['Username']}",
+                config=config,
+                User=User,
+            )
+        
+        if request.method == "POST":
+            GiveSupporterForm(request.form)
+            User = GetUser(int(AccountID))
+            RAPLog(
+                session.user_id,
+                f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.",
+            )
+            return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/donorremove/<AccountID>")
-    def panel_remove_user_donor(AccountID):
-        if HasPrivilege(session["AccountId"], 6):
-            RemoveSupporter(AccountID, session)
-            return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_remove_user_donor(AccountID: int):
+        session = web.sessions.get()
+
+        RemoveSupporter(AccountID, session)
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/rankreq/<Page>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_view_rank_requests(Page):
-        if HasPrivilege(session["AccountId"], 3):
-            return render_template(
-                "rankreq.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Ranking Requests",
-                config=config,
-                RankRequests=GetRankRequests(int(Page)),
-                page=int(Page),
-                pages=request_pages(),
-            )
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        return render_template(
+            "rankreq.html",
+            data=load_dashboard_data(),
+            session=session,
+            title="Ranking Requests",
+            config=config,
+            RankRequests=GetRankRequests(int(Page)),
+            page=int(Page),
+            pages=request_pages(),
+        )
 
     @app.route("/clans/<Page>")
-    def panel_view_clans(Page):
-        if HasPrivilege(session["AccountId"], 15):
-            return render_template(
-                "clansview.html",
-                data=load_dashboard_data(),
-                session=session,
-                title="Clans",
-                config=config,
-                page=int(Page),
-                Clans=GetClans(Page),
-                Pages=GetClanPages(),
-            )
-        else:
-            return no_permission_response(request.path)
+    @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
+    def panel_view_clans(Page: int):
+        session = web.sessions.get()
+
+        return render_template(
+            "clansview.html",
+            data=load_dashboard_data(),
+            session=session,
+            title="Clans",
+            config=config,
+            page=int(Page),
+            Clans=GetClans(Page),
+            Pages=GetClanPages(),
+        )
 
     @app.route("/clan/<ClanID>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_edit_clan(ClanID):
-        if HasPrivilege(session["AccountId"], 15):
-            if request.method == "GET":
-                return render_template(
-                    "editclan.html",
-                    data=load_dashboard_data(),
-                    session=session,
-                    title="Clans",
-                    config=config,
-                    Clan=GetClan(ClanID),
-                    Members=halve_list(GetClanMembers(ClanID)),
-                    ClanOwner=GetClanOwner(ClanID),
-                    clan_invites=get_clan_invites(ClanID),
-                )
-            ApplyClanEdit(request.form, session)
+        session = web.sessions.get()
+
+        if request.method == "GET":
             return render_template(
                 "editclan.html",
                 data=load_dashboard_data(),
@@ -515,26 +515,35 @@ def configure_routes(app: Flask) -> None:
                 Clan=GetClan(ClanID),
                 Members=halve_list(GetClanMembers(ClanID)),
                 ClanOwner=GetClanOwner(ClanID),
-                success="Clan edited successfully!",
                 clan_invites=get_clan_invites(ClanID),
             )
-        else:
-            return no_permission_response(request.path)
+        
+        ApplyClanEdit(request.form, session)
+        return render_template(
+            "editclan.html",
+            data=load_dashboard_data(),
+            session=session,
+            title="Clans",
+            config=config,
+            Clan=GetClan(ClanID),
+            Members=halve_list(GetClanMembers(ClanID)),
+            ClanOwner=GetClanOwner(ClanID),
+            success="Clan edited successfully!",
+            clan_invites=get_clan_invites(ClanID),
+        )
 
     # TODO: probably should be an action
     @app.route("/clan/delete/<ClanID>")
+    @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_delete_clan(ClanID):
-        if HasPrivilege(session["AccountId"], 15):
-            NukeClan(ClanID, session)
-            return redirect("/clans/1")
-        return no_permission_response(request.path)
+        session = web.sessions.get()
 
-    @app.route("/clan/confirmdelete/<clan_id_str>")
-    def panel_delete_clan_confirm(clan_id_str: str):
-        if not has_privilege_value(session["AccountId"], Privileges.PANEL_MANAGE_CLANS):
-            return no_permission_response(request.path)
+        NukeClan(ClanID, session)
+        return redirect("/clans/1")
 
-        clan_id = int(clan_id_str)
+    @app.route("/clan/confirmdelete/<clan_id>")
+    @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
+    def panel_delete_clan_confirm(clan_id: int):
         clan = GetClan(clan_id)
 
         return load_panel_template(
@@ -546,9 +555,8 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/stats", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     def panel_view_server_stats():
-        if not has_privilege_value(session["AccountId"], Privileges.ADMIN_ACCESS_RAP):
-            return no_permission_response(request.path)
 
         minimum_pp = int(request.form.get("minpp", 0))
         return load_panel_template(
@@ -559,12 +567,8 @@ def configure_routes(app: Flask) -> None:
         )
 
     @app.route("/user/hwid/<user_id>/<page>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def view_user_hwid_route(user_id: int, page: int = 1):
-        if not has_privilege_value(session["AccountId"], Privileges.ADMIN_MANAGE_USERS):
-            return no_permission_response(request.path)
-
-        user_id = int(user_id)
-        page = int(page)
 
         page_info = get_hwid_page(user_id, page - 1)
         username = page_info["user"]["Username"]
@@ -580,17 +584,18 @@ def configure_routes(app: Flask) -> None:
         )
 
     # API for js
-    @app.route("/js/pp/<id>")
-    def panel_pp_api(id):
+    @app.route("/js/pp/<bmap_id>")
+    def panel_pp_api(bmap_id):
         try:
             return jsonify(
                 {
-                    "pp": str(round(CalcPP(id), 2)),
-                    "dtpp": str(round(CalcPPDT(id), 2)),
+                    "pp": str(round(CalcPP(bmap_id), 2)),
+                    "dtpp": str(round(CalcPPDT(bmap_id), 2)),
                     "code": 200,
                 },
             )
-        except:
+        except Exception:
+            logger.error(f"Error while getting PP calculations, error: " + traceback.format_exc())
             return jsonify({"code": 500})
 
     # api mirrors
@@ -604,7 +609,7 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )
         except Exception:
-            logger.error(f"JavaScript API mirror responded with an error.")
+            logger.error(f"Error while getting API Service status, error: " + traceback.format_exc())
             return jsonify({"code": 503})
 
     @app.route("/js/status/lets")
@@ -617,7 +622,7 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )  # this url to provide a predictable result
         except Exception:
-            logger.error(f"JavaScript LetsAPI mirror responded with an error.")
+            logger.error(f"Error while getting Score Service status, error: " + traceback.format_exc())
             return jsonify({"server_status": 0})
 
     @app.route("/js/status/bancho")
@@ -630,273 +635,269 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )  # this url to provide a predictable result
         except Exception:
-            logger.error(f"JavaScript BanchoAPI mirror responded with an error.")
+            logger.error(f"Error while getting Bancho Service status, error: " + traceback.format_exc())
             return jsonify({"result": 0})
 
     # actions
     @app.route("/actions/comment/profile/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_delete_profile_comments_action(AccountID: int):
         """Wipe all comments made on this user's profile"""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            DeleteProfileComments(AccountID)
+        session = web.sessions.get()
 
-            RAPLog(
-                session["AccountId"],
-                f"has removed all comments made on {Account['Username']}'s profile ({AccountID})",
-            )
-            return redirect(f"/user/edit/{AccountID}")
-        else:
+        Account = GetUser(AccountID)
+        DeleteProfileComments(AccountID)
 
-            return no_permission_response(request.path)
+        RAPLog(
+            session.user_id,
+            f"has removed all comments made on {Account['Username']}'s profile ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/actions/comment/user/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_delete_user_commants_action(AccountID: int):
         """Wipe all comments made by this user"""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            DeleteUserComments(AccountID)
+        session = web.sessions.get()
+        
+        Account = GetUser(AccountID)
+        DeleteUserComments(AccountID)
 
-            RAPLog(
-                session["AccountId"],
-                f"has removed all comments made by {Account['Username']} ({AccountID})",
-            )
-            return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+        RAPLog(
+            session.user_id,
+            f"has removed all comments made by {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/actions/wipe/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_action(AccountID: int):
         """The wipe action."""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            WipeAccount(AccountID)
-            RAPLog(
-                session["AccountId"],
-                f"has wiped the account {Account['Username']} ({AccountID})",
-            )
-            return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        Account = GetUser(AccountID)
+        WipeAccount(AccountID)
+        RAPLog(
+            session.user_id,
+            f"has wiped the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/actions/wipeap/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_ap_action(AccountID: int):
         """The wipe action."""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            WipeAutopilot(AccountID)
-            RAPLog(
-                session["AccountId"],
-                f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
-            )
-            return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        Account = GetUser(AccountID)
+        WipeAutopilot(AccountID)
+        RAPLog(
+            session.user_id,
+            f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/actions/wiperx/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_rx_action(AccountID: int):
         """The wipe action."""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            WipeRelax(AccountID)
-            RAPLog(
-                session["AccountId"],
-                f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
-            )
-            return redirect(f"/user/edit/{AccountID}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        Account = GetUser(AccountID)
+        WipeRelax(AccountID)
+        RAPLog(
+            session.user_id,
+            f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/actions/wipeva/<AccountID>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_va_action(AccountID: int):
         """The wipe action."""
-        if HasPrivilege(session["AccountId"], 11):
-            Account = GetUser(AccountID)
-            WipeVanilla(AccountID)
+        session = web.sessions.get()
+
+        Account = GetUser(AccountID)
+        WipeVanilla(AccountID)
+        RAPLog(
+            session.user_id,
+            f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
+        )
+        return redirect(f"/user/edit/{AccountID}")
+
+    @app.route("/actions/restrict/<user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_restict_user_action(user_id: int):
+        session = web.sessions.get()
+
+        Account = GetUser(user_id)
+        if ResUnTrict(user_id, request.args.get("note", ""), request.args.get("reason", "")):
             RAPLog(
-                session["AccountId"],
-                f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
+                session.user_id,
+                f"has restricted the account {Account['Username']} ({user_id})",
             )
-            return redirect(f"/user/edit/{AccountID}")
         else:
-            return no_permission_response(request.path)
-
-    @app.route("/actions/restrict/<id>")
-    def panel_restict_user_action(id: int):
-        """The wipe action."""
-        if HasPrivilege(session["AccountId"], 6):
-            Account = GetUser(id)
-            if ResUnTrict(id, request.args.get("note"), request.args.get("reason")):
-                RAPLog(
-                    session["AccountId"],
-                    f"has restricted the account {Account['Username']} ({id})",
-                )
-            else:
-                RAPLog(
-                    session["AccountId"],
-                    f"has unrestricted the account {Account['Username']} ({id})",
-                )
-            return redirect(f"/user/edit/{id}")
-        else:
-            return no_permission_response(request.path)
-
-    @app.route("/actions/freeze/<id>")
-    def panel_freeze_user_action(id: int):
-        if HasPrivilege(session["AccountId"], 6):
-            Account = GetUser(id)
-            FreezeHandler(id)
             RAPLog(
-                session["AccountId"],
-                f"has frozen the account {Account['Username']} ({id})",
+                session.user_id,
+                f"has unrestricted the account {Account['Username']} ({user_id})",
             )
-            return redirect(f"/user/edit/{id}")
-        else:
-            return no_permission_response(request.path)
+        return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/ban/<id>")
-    def panel_ban_user_action(id: int):
+    @app.route("/actions/freeze/<user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_freeze_user_action(user_id: int):
+        session = web.sessions.get()
+
+        Account = GetUser(user_id)
+        FreezeHandler(user_id)
+        RAPLog(
+            session.user_id,
+            f"has frozen the account {Account['Username']} ({user_id})",
+        )
+        return redirect(f"/user/edit/{user_id}")
+
+    @app.route("/actions/ban/<user_id>")
+    @requires_privilege(Privileges.ADMIN_BAN_USERS)
+    def panel_ban_user_action(user_id: int):
         """Do the FBI to the person."""
-        if HasPrivilege(session["AccountId"], 5):
-            Account = GetUser(id)
-            if BanUser(id, request.args.get("reason")):
-                RAPLog(
-                    session["AccountId"],
-                    f"has banned the account {Account['Username']} ({id})",
-                )
-            else:
-                RAPLog(
-                    session["AccountId"],
-                    f"has unbanned the account {Account['Username']} ({id})",
-                )
-            return redirect(f"/user/edit/{id}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
 
-    @app.route("/actions/hwid/<id>")
-    def panel_wipe_user_hwid_action(id: int):
+        Account = GetUser(user_id)
+        if BanUser(user_id, request.args.get("reason", "")):
+            RAPLog(
+                session.user_id,
+                f"has banned the account {Account['Username']} ({user_id})",
+            )
+        else:
+            RAPLog(
+                session.user_id,
+                f"has unbanned the account {Account['Username']} ({user_id})",
+            )
+        return redirect(f"/user/edit/{user_id}")
+
+    @app.route("/actions/hwid/<user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_wipe_user_hwid_action(user_id: int):
         """Clear HWID matches."""
-        if HasPrivilege(session["AccountId"], 6):
-            Account = GetUser(id)
-            ClearHWID(id)
-            RAPLog(
-                session["AccountId"],
-                f"has cleared the HWID matches for the account {Account['Username']} ({id})",
-            )
-            return redirect(f"/user/edit/{id}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
 
-    @app.route("/actions/delete/<id>")
-    def panel_delete_user_action(id: int):
+        Account = GetUser(user_id)
+        ClearHWID(user_id)
+        RAPLog(
+            session.user_id,
+            f"has cleared the HWID matches for the account {Account['Username']} ({user_id})",
+        )
+        return redirect(f"/user/edit/{user_id}")
+
+    @app.route("/actions/delete/<user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_delete_user_action(user_id: int):
         """Account goes bye bye forever."""
-        if HasPrivilege(session["AccountId"], 6):
-            AccountToBeDeleted = GetUser(id)
-            DeleteAccount(id)
-            RAPLog(
-                session["AccountId"],
-                f"has deleted the account {AccountToBeDeleted['Username']} ({id})",
-            )
-            return redirect("/users/1")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
 
-    @app.route("/actions/kick/<id>")
-    def panel_kick_user_action(id: int):
+        AccountToBeDeleted = GetUser(user_id)
+        DeleteAccount(user_id)
+        RAPLog(
+            session.user_id,
+            f"has deleted the account {AccountToBeDeleted['Username']} ({user_id})",
+        )
+        return redirect("/users/1")
+
+    @app.route("/actions/kick/<user_id>")
+    @requires_privilege(Privileges.ADMIN_KICK_USERS)
+    def panel_kick_user_action(user_id: int):
         """Kick from bancho"""
-        if HasPrivilege(session["AccountId"], 12):
-            Account = GetUser(id)
-            BanchoKick(id, "You have been kicked by an admin!")
-            RAPLog(
-                session["AccountId"],
-                f"has kicked the account {Account['Username']} ({id})",
-            )
-            return redirect(f"/user/edit/{id}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
 
-    @app.route("/actions/deletebadge/<id>")
-    def panel_delete_badge_action(id: int):
-        if HasPrivilege(session["AccountId"], 4):
-            DeleteBadge(id)
-            RAPLog(session["AccountId"], f"deleted the badge with the ID of {id}")
-            return redirect(url_for("panel_view_badges"))
-        else:
-            return no_permission_response(request.path)
+        Account = GetUser(user_id)
+        BanchoKick(user_id, "You have been kicked by an admin!")
+        RAPLog(
+            session.user_id,
+            f"has kicked the account {Account['Username']} ({user_id})",
+        )
+        return redirect(f"/user/edit/{user_id}")
+
+    @app.route("/actions/deletebadge/<badge_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
+    def panel_delete_badge_action(badge_id: int):
+        session = web.sessions.get()
+
+        DeleteBadge(badge_id)
+        RAPLog(session.user_id, f"deleted the badge with the ID of {id}")
+        return redirect(url_for("panel_view_badges"))
 
     @app.route("/actions/createbadge")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_create_badge_action():
-        if HasPrivilege(session["AccountId"], 4):
-            Badge = CreateBadge()
-            RAPLog(session["AccountId"], f"Created a badge with the ID of {Badge}")
-            return redirect(f"/badge/edit/{Badge}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        Badge = CreateBadge()
+        RAPLog(session.user_id, f"Created a badge with the ID of {Badge}")
+        return redirect(f"/badge/edit/{Badge}")
 
     @app.route("/actions/createprivilege")
+    @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_create_privilege_action():
-        if HasPrivilege(session["AccountId"], 13):
-            PrivID = CreatePrivilege()
-            RAPLog(
-                session["AccountId"],
-                f"Created a new privilege group with the ID of {PrivID}",
-            )
-            return redirect(f"/privilege/edit/{PrivID}")
-        return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        PrivID = CreatePrivilege()
+        RAPLog(
+            session.user_id,
+            f"Created a new privilege group with the ID of {PrivID}",
+        )
+        return redirect(f"/privilege/edit/{PrivID}")
 
     @app.route("/actions/deletepriv/<PrivID>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_delete_privilege_action(PrivID: int):
-        if HasPrivilege(session["AccountId"], 13):
-            PrivData = GetPriv(PrivID)
-            DelPriv(PrivID)
-            RAPLog(
-                session["AccountId"],
-                f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})",
-            )
-            return redirect(url_for("panel_view_privileges"))
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        PrivData = GetPriv(PrivID)
+        DelPriv(PrivID)
+        RAPLog(
+            session.user_id,
+            f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})",
+        )
+        return redirect(url_for("panel_view_privileges"))
 
     @app.route("/action/rankset/<BeatmapSet>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_rank_set_action(BeatmapSet: int):
-        if HasPrivilege(session["AccountId"], 3):
-            SetBMAPSetStatus(BeatmapSet, 2, session)
-            RAPLog(session["AccountId"], f"ranked the beatmap set {BeatmapSet}")
-            return redirect(f"/rank/{BeatmapSet}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        SetBMAPSetStatus(BeatmapSet, 2, session)
+        RAPLog(session.user_id, f"ranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/loveset/<BeatmapSet>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_love_set_action(BeatmapSet: int):
-        if HasPrivilege(session["AccountId"], 3):
-            SetBMAPSetStatus(BeatmapSet, 5, session)
-            RAPLog(session["AccountId"], f"loved the beatmap set {BeatmapSet}")
-            return redirect(f"/rank/{BeatmapSet}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        SetBMAPSetStatus(BeatmapSet, 5, session)
+        RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/unrankset/<BeatmapSet>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_unrank_set_action(BeatmapSet: int):
-        if HasPrivilege(session["AccountId"], 3):
-            SetBMAPSetStatus(BeatmapSet, 0, session)
-            RAPLog(session["AccountId"], f"unranked the beatmap set {BeatmapSet}")
-            return redirect(f"/rank/{BeatmapSet}")
-        else:
-            return no_permission_response(request.path)
+        session = web.sessions.get()
+
+        SetBMAPSetStatus(BeatmapSet, 0, session)
+        RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
+        return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/deleterankreq/<ReqID>")
-    def panel_complete_rank_request_action(ReqID):
-        if HasPrivilege(session["AccountId"], 3):
-            DeleteBmapReq(ReqID)
-            return redirect("/rankreq/1")
-        else:
-            return no_permission_response(request.path)
+    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    def panel_complete_rank_request_action(ReqID: int):
+        DeleteBmapReq(ReqID)
+        return redirect("/rankreq/1")
 
     @app.route("/action/kickclan/<AccountID>")
+    @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_kick_user_from_clan_action(AccountID):
-        if HasPrivilege(session["AccountId"], 15):
-            KickFromClan(AccountID)
-            return redirect("/clans/1")
-        return no_permission_response(request.path)
+        KickFromClan(AccountID)
+        return redirect("/clans/1")
 
 
 def configure_error_handlers(app: Flask) -> None:
