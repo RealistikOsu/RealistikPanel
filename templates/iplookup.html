@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">IP Lookup</h2>
+  <h2 class="section-title">Recent IP Lookup</h2>
   <p class="section-lead">
     Spot possible multiaccounters by searching users who have the same IP.
   </p>
@@ -16,7 +16,7 @@
               <th scope="col">User ID</th>
               <th scope="col">Username</th>
               <th scope="col">IP</th>
-              <th scope="col">PP</th>
+              <th scope="col">Occurrences</th>
               <th scope="col">Edit</th>
             </tr>
           </thead>
@@ -26,7 +26,7 @@
                 <td>{{ user["Id"] }}</td>
                 <td>{{ user["Username"] }}</td>
                 <td>{{ user["Ip"] }}</td>
-                <td>{{ user["pp"] }}</td>
+                <td>{{ user["Occurencies"] }}</td>
                 <td>
                   <a href="/user/edit/{{ user['Id'] }}" class="btn btn-danger"
                     >Edit</a

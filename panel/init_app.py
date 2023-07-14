@@ -294,10 +294,21 @@ def configure_routes(app: Flask) -> None:
         UserLen = len(IPUserLookup)
         return load_panel_template(
             "iplookup.html",
-            title="IP Lookup",
+            title="Recent IP Lookup",
             ipusers=IPUserLookup,
             IPLen=UserLen,
             ip=ip,
+        )
+
+    @app.route("/user/fulliplookup/<int:user_id>")
+    @requires_privilege(Privileges.PANEL_VIEW_IPS)
+    def panel_view_full_user_ip(user_id: int):
+        IPUserLookup = find_all_ips(user_id)
+        return load_panel_template(
+            "fulliplookup.html",
+            title="Full IP Lookup",
+            ipusers=IPUserLookup,
+            user_id=user_id,
         )
 
     @app.route("/ban-logs/<int:page>")

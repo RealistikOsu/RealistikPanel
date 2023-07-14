@@ -819,7 +819,7 @@ def UserData(UserID: int) -> dict[str, Any]:
     )
     Data2 = mycursor.fetchone()
     # Fetches the IP
-    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s LIMIT 1", (UserID,))
+    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1", (UserID,))
     Ip = mycursor.fetchone()
     if Ip == None:
         Ip = "0.0.0.0"
@@ -1520,21 +1520,99 @@ def BanchoKick(id: int, reason):
 def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
-    mycursor.execute("SELECT userid, ip FROM ip_user WHERE ip = %s", (Ip,))
+    mycursor.execute("SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s", (Ip,))
     UserTruple = mycursor.fetchall()
     # turning the data into array with ids
     UserArray = []
     for x in UserTruple:
-        ListToAdd = [x[0], x[1]]  # so ip is present for later use
+        ListToAdd = [x[0], x[1], x[2]]  # so ip is present for later use
         UserArray.append(ListToAdd)
     UserDataArray = []  # this will have the dicts
     for User in UserArray:
         if len(User) != 0:
             UserData = GetUser(User[0])
             UserData["Ip"] = User[1]
+            UserData["Occurencies"] = User[2]
             UserDataArray.append(UserData)
         # lets take a second here to appreciate my naming scheme
     return UserDataArray
+
+def find_priv(priv: int) -> dict[str, Any]:
+    mycursor.execute(
+        "SELECT name, color FROM privileges_groups WHERE privileges = %s LIMIT 1",
+        (priv,),
+    )
+    info = mycursor.fetchone()
+
+    if not info:
+        return {
+            "Name": f"Unknown ({priv})",
+            "Privileges": priv,
+            "Colour": "danger",
+        }
+
+    resp = {
+        "Name": info[0],
+        "Privileges": priv,
+        "Colour": info[1],
+    }
+
+    if resp["Colour"] == "default" or resp["Colour"] == "":
+        resp["Colour"] = "warning"
+
+    return resp
+
+def find_all_ips(user_id: int) -> list[dict[str, Any]]:
+    """Gets array of users."""
+    # fetching user id of person with given ip
+    mycursor.execute("SELECT ip FROM ip_user WHERE userid = %s AND ip != ''", (user_id,))
+    resp = mycursor.fetchall()
+
+    if not resp:
+        return []
+
+    ips = []
+    for ip in resp:
+        ips.append(ip[0])
+
+    condition = ", ".join(["%s"] * len(ips))
+
+    mycursor.execute(
+        f"SELECT ip_user.userid, ip_user.ip, ip_user.occurencies, users.username, users.privileges FROM ip_user JOIN users ON ip_user.userid = users.id WHERE ip IN ({condition}) ORDER BY ip DESC",
+        ips,
+    )
+    db_data = mycursor.fetchall()
+
+    if not db_data:
+        return []
+
+    data = []
+    for user in db_data:
+
+        priv_status = "Banned"
+        priv_colour = "danger"
+        if (user[4] & 3) >= 3:
+            priv_status = "OK"
+            priv_colour = "success"
+        elif (user[4] & 2) == 2:
+            priv_status = "Restricted"
+            priv_colour = "warning"
+
+        data.append(
+            {
+                "user_id": user[0],
+                "ip": user[1],
+                "occurencies": user[2],
+                "username": user[3],
+                "privileges": find_priv(user[4]),
+                "priv_status": {"text": priv_status, "colour": priv_colour},
+            }
+        )
+    
+    return data
+
+    
+
 
 
 def PlayerCountCollection(loop=True):
