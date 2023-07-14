@@ -160,7 +160,7 @@ def LoginHandler(
 BASE_RECENT_QUERY = """
 SELECT
     u.username, s.userid, s.time, s.score, s.pp,
-    s.play_mode, s.mods, s.accuracy, b.song_name
+    s.play_mode, s.mods, s.accuracy, b.song_name, s.play_mode
 FROM {} s
 INNER JOIN users u ON u.id = s.userid
 INNER JOIN beatmaps b ON b.beatmap_md5 = s.beatmap_md5
@@ -233,6 +233,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[st
         Dicti["Timestamp"] = x[2]
         Dicti["Time"] = timestamp_as_date(int(x[2]))
         Dicti["Accuracy"] = round(x[7], 2)
+        Dicti["Mode"] = convert_mode_to_str(x[9])
         ReadableArray.append(Dicti)
 
     return ReadableArray

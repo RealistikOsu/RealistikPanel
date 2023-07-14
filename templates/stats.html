@@ -82,6 +82,7 @@
               <th scope="col">Time</th>
               <th scope="col">Player</th>
               <th scope="col">Song</th>
+              <th scope="col">Mode</th>
               <th scope="col">Score</th>
               <th scope="col">PP</th>
             </tr>
@@ -98,8 +99,9 @@
                   >
                 </td>
                 <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
+                <td>{{ play["Mode"] }}</td>
                 <td>{{ play["Score"] }}</td>
-                <td>{{ play["pp"] }}</td>
+                <td>{{ play["pp"] }}pp</td>
               </tr>
             {% endfor %}
           </tbody>
