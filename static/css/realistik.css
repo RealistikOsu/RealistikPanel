@@ -63,4 +63,20 @@
     .sidebar-brand {
         display: none !important;
     }
+
+    .mobile-view {
+        display: inline-block !important;
+    }
+
+    .desktop-view {
+        display: none !important;
+    }
+}
+
+.mobile-view {
+    display: none;
+}
+
+.desktop-view {
+    display: inline-block;
 }

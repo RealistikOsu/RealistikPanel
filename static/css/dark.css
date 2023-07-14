@@ -123,3 +123,8 @@ body.sidebar-mini .main-sidebar:after {
     color: white;
     background-color: #353535;
 }
+
+.article-cta {
+    background-color: rgb(38, 42, 43) !important;
+    padding-bottom: 10px !important;
+}
