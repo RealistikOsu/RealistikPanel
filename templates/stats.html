@@ -110,8 +110,8 @@
   </div>
   <script>
     //js is spooky
-    var labels = '{{ StatData["RegisterGraph"]["DateList"]|safe }}';
-    var data = '{{ StatData["RegisterGraph"]["RegisterList"]|safe }}';
+    var labels = {{ StatData["RegisterGraph"]["DateList"]|safe }};
+    var data = {{ StatData["RegisterGraph"]["RegisterList"]|safe }};
     var ctx = document.getElementById("RegisterChart").getContext("2d");
     var myChart = new Chart(ctx, {
       type: "line",

@@ -2359,7 +2359,7 @@ def KickFromClan(AccountID: int) -> None:
     cache_clan(AccountID)
 
 
-def GetUsersRegisteredBetween(Offset: int = 0, Ahead: int = 24):
+def GetUsersRegisteredBetween(Offset: int = 0, Ahead: int = 24) -> int:
     """Gets how many players registered during a given time period (variables are in hours)."""
     # convert the hours to secconds
     Offset *= 3600
@@ -2380,7 +2380,7 @@ def GetUsersRegisteredBetween(Offset: int = 0, Ahead: int = 24):
     return Count[0]
 
 
-def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24):
+def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24) -> int:
     """Gets how many players were active during a given time period (variables are in hours)."""
     # yeah this is a reuse of the last function.
     # convert the hours to secconds
@@ -2427,7 +2427,7 @@ def GetSuggestedRank() -> list[dict[str, Any]]:
     return BeatmapList
 
 
-def CountRestricted():
+def CountRestricted() -> int:
     """Calculates the amount of restricted or banned users."""
     mycursor.execute("SELECT COUNT(*) FROM users WHERE privileges = 2")
     Count = mycursor.fetchone()
