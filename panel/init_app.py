@@ -116,9 +116,9 @@ def configure_routes(app: Flask) -> None:
             success=success,
         )
 
-    @app.route("/rank/<beatmap_id>", methods=["GET", "POST"])
+    @app.route("/rank/<int:beatmap_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_rank_beatmap(beatmap_id: str):
+    def panel_rank_beatmap(beatmap_id: int):
         session = web.sessions.get()
 
         error = None
@@ -140,7 +140,7 @@ def configure_routes(app: Flask) -> None:
             "beatrank.html",
             title="Rank Beatmap!",
             Id=beatmap_id,
-            beatdata=halve_list(GetBmapInfo(int(beatmap_id))),
+            beatdata=halve_list(GetBmapInfo(beatmap_id)),
             success=success,
             error=error,
         )
@@ -157,10 +157,9 @@ def configure_routes(app: Flask) -> None:
             SuggestedBmaps=halve_list(GetSuggestedRank()),
         )
 
-    @app.route("/users/<page_str>", methods=["GET", "POST"])
+    @app.route("/users/<int:page>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_search_users(page_str: str = "1"):
-        page = int(page_str)
+    def panel_search_users(page: int = 1):
 
         if request.method == "POST":
             user_data = FindUserByUsername(
@@ -226,14 +225,13 @@ def configure_routes(app: Flask) -> None:
             error=error,
         )
 
-    @app.route("/user/edit/<user_id_str>", methods=["GET", "POST"])
+    @app.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_edit_user(user_id_str: str):
+    def panel_edit_user(user_id: int):
         session = web.sessions.get()
 
         error = None
         success = None
-        user_id = int(user_id_str)
         if request.method == "POST":
             try:
                 ApplyUserEdit(request.form, session.user_id)
@@ -256,18 +254,18 @@ def configure_routes(app: Flask) -> None:
             success=success,
         )
 
-    @app.route("/logs/<page>")
+    @app.route("/logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_logs(page: int):
         return load_panel_template(
             "raplogs.html",
             title="Admin Logs",
             Logs=RAPFetch(page),
-            page=int(page),
+            page=page,
             Pages=RapLogCount(),
         )
 
-    @app.route("/action/confirm/delete/<user_id>")
+    @app.route("/action/confirm/delete/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_delete_user_confirm(user_id: int):
         target = GetUser(user_id)
@@ -292,14 +290,14 @@ def configure_routes(app: Flask) -> None:
             ip=ip,
         )
 
-    @app.route("/ban-logs/<page>")
+    @app.route("/ban-logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_ban_logs(page: int):
         return load_panel_template(
             "ban_logs.html",
             title="Ban Logs",
-            ban_logs=fetch_banlogs(int(page) - 1),
-            page=int(page),
+            ban_logs=fetch_banlogs(page - 1),
+            page=page,
             pages=ban_pages(),
         )
 
@@ -312,7 +310,7 @@ def configure_routes(app: Flask) -> None:
             badges=GetBadges(),
         )
 
-    @app.route("/badge/edit/<BadgeID>", methods=["GET", "POST"])
+    @app.route("/badge/edit/<int:BadgeID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_edit_badge(BadgeID: int):
         session = web.sessions.get()
@@ -369,7 +367,7 @@ def configure_routes(app: Flask) -> None:
             privileges=GetPrivileges(),
         )
 
-    @app.route("/privilege/edit/<Privilege>", methods=["GET", "POST"])
+    @app.route("/privilege/edit/<int:Privilege>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_edit_privilege(Privilege: int):
         session = web.sessions.get()
@@ -415,13 +413,13 @@ def configure_routes(app: Flask) -> None:
                     error="An internal error has occured while editing the privileges! An error has been logged to the console.",
                 )
 
-    @app.route("/changepass/<AccountID>", methods=["GET", "POST"])  # may change the route to something within /user
+    @app.route("/changepass/<int:AccountID>", methods=["GET", "POST"])  # may change the route to something within /user
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_edit_user_password(AccountID: int):
         session = web.sessions.get()
 
         if request.method == "GET":
-            User = GetUser(int(AccountID))
+            User = GetUser(AccountID)
             return render_template(
                 "changepass.html",
                 data=load_dashboard_data(),
@@ -432,16 +430,16 @@ def configure_routes(app: Flask) -> None:
             )
         if request.method == "POST":
             ChangePWForm(request.form, session)
-            User = GetUser(int(AccountID))
+            User = GetUser(AccountID)
             return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/donoraward/<AccountID>", methods=["GET", "POST"])
+    @app.route("/donoraward/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_award_user_donor(AccountID: int):
         session = web.sessions.get()
 
         if request.method == "GET":
-            User = GetUser(int(AccountID))
+            User = GetUser(AccountID)
             return render_template(
                 "donoraward.html",
                 data=load_dashboard_data(),
@@ -453,14 +451,14 @@ def configure_routes(app: Flask) -> None:
         
         if request.method == "POST":
             GiveSupporterForm(request.form)
-            User = GetUser(int(AccountID))
+            User = GetUser(AccountID)
             RAPLog(
                 session.user_id,
                 f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.",
             )
             return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/donorremove/<AccountID>")
+    @app.route("/donorremove/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_remove_user_donor(AccountID: int):
         session = web.sessions.get()
@@ -468,9 +466,9 @@ def configure_routes(app: Flask) -> None:
         RemoveSupporter(AccountID, session)
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/rankreq/<Page>")
+    @app.route("/rankreq/<int:Page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_view_rank_requests(Page):
+    def panel_view_rank_requests(Page: int):
         session = web.sessions.get()
 
         return render_template(
@@ -479,12 +477,12 @@ def configure_routes(app: Flask) -> None:
             session=session,
             title="Ranking Requests",
             config=config,
-            RankRequests=GetRankRequests(int(Page)),
-            page=int(Page),
+            RankRequests=GetRankRequests(Page),
+            page=Page,
             pages=request_pages(),
         )
 
-    @app.route("/clans/<Page>")
+    @app.route("/clans/<int:Page>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_view_clans(Page: int):
         session = web.sessions.get()
@@ -495,14 +493,14 @@ def configure_routes(app: Flask) -> None:
             session=session,
             title="Clans",
             config=config,
-            page=int(Page),
+            page=Page,
             Clans=GetClans(Page),
             Pages=GetClanPages(),
         )
 
-    @app.route("/clan/<ClanID>", methods=["GET", "POST"])
+    @app.route("/clan/<int:ClanID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_edit_clan(ClanID):
+    def panel_edit_clan(ClanID: int):
         session = web.sessions.get()
 
         if request.method == "GET":
@@ -533,15 +531,15 @@ def configure_routes(app: Flask) -> None:
         )
 
     # TODO: probably should be an action
-    @app.route("/clan/delete/<ClanID>")
+    @app.route("/clan/delete/<int:ClanID>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_delete_clan(ClanID):
+    def panel_delete_clan(ClanID: int):
         session = web.sessions.get()
 
         NukeClan(ClanID, session)
         return redirect("/clans/1")
 
-    @app.route("/clan/confirmdelete/<clan_id>")
+    @app.route("/clan/confirmdelete/<int:clan_id>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_delete_clan_confirm(clan_id: int):
         clan = GetClan(clan_id)
@@ -558,7 +556,7 @@ def configure_routes(app: Flask) -> None:
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     def panel_view_server_stats():
 
-        minimum_pp = int(request.form.get("minpp", 0))
+        minimum_pp = int(request.form.get("minpp", "0"))
         return load_panel_template(
             "stats.html",
             title="Server Statistics",
@@ -566,7 +564,7 @@ def configure_routes(app: Flask) -> None:
             MinPP=minimum_pp,
         )
 
-    @app.route("/user/hwid/<user_id>/<page>")
+    @app.route("/user/hwid/<int:user_id>/<int:page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def view_user_hwid_route(user_id: int, page: int = 1):
 
@@ -584,13 +582,13 @@ def configure_routes(app: Flask) -> None:
         )
 
     # API for js
-    @app.route("/js/pp/<bmap_id>")
-    def panel_pp_api(bmap_id):
+    @app.route("/js/pp/<int:bmap_id>")
+    def panel_pp_api(bmap_id: int):
         try:
             return jsonify(
                 {
-                    "pp": str(round(CalcPP(bmap_id), 2)),
-                    "dtpp": str(round(CalcPPDT(bmap_id), 2)),
+                    "pp": round(CalcPP(bmap_id), 2),
+                    "dtpp": round(CalcPPDT(bmap_id), 2),
                     "code": 200,
                 },
             )
@@ -639,7 +637,7 @@ def configure_routes(app: Flask) -> None:
             return jsonify({"result": 0})
 
     # actions
-    @app.route("/actions/comment/profile/<AccountID>")
+    @app.route("/actions/comment/profile/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_delete_profile_comments_action(AccountID: int):
         """Wipe all comments made on this user's profile"""
@@ -654,7 +652,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/comment/user/<AccountID>")
+    @app.route("/actions/comment/user/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_delete_user_commants_action(AccountID: int):
         """Wipe all comments made by this user"""
@@ -669,7 +667,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipe/<AccountID>")
+    @app.route("/actions/wipe/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_action(AccountID: int):
         """The wipe action."""
@@ -683,7 +681,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipeap/<AccountID>")
+    @app.route("/actions/wipeap/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_ap_action(AccountID: int):
         """The wipe action."""
@@ -697,7 +695,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wiperx/<AccountID>")
+    @app.route("/actions/wiperx/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_rx_action(AccountID: int):
         """The wipe action."""
@@ -711,7 +709,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipeva/<AccountID>")
+    @app.route("/actions/wipeva/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     def panel_wipe_user_va_action(AccountID: int):
         """The wipe action."""
@@ -725,7 +723,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/restrict/<user_id>")
+    @app.route("/actions/restrict/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_restict_user_action(user_id: int):
         session = web.sessions.get()
@@ -743,7 +741,7 @@ def configure_routes(app: Flask) -> None:
             )
         return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/freeze/<user_id>")
+    @app.route("/actions/freeze/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_freeze_user_action(user_id: int):
         session = web.sessions.get()
@@ -756,7 +754,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/ban/<user_id>")
+    @app.route("/actions/ban/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_BAN_USERS)
     def panel_ban_user_action(user_id: int):
         """Do the FBI to the person."""
@@ -775,7 +773,7 @@ def configure_routes(app: Flask) -> None:
             )
         return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/hwid/<user_id>")
+    @app.route("/actions/hwid/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_wipe_user_hwid_action(user_id: int):
         """Clear HWID matches."""
@@ -789,7 +787,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/delete/<user_id>")
+    @app.route("/actions/delete/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_delete_user_action(user_id: int):
         """Account goes bye bye forever."""
@@ -803,7 +801,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect("/users/1")
 
-    @app.route("/actions/kick/<user_id>")
+    @app.route("/actions/kick/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_KICK_USERS)
     def panel_kick_user_action(user_id: int):
         """Kick from bancho"""
@@ -817,7 +815,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/user/edit/{user_id}")
 
-    @app.route("/actions/deletebadge/<badge_id>")
+    @app.route("/actions/deletebadge/<int:badge_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_delete_badge_action(badge_id: int):
         session = web.sessions.get()
@@ -847,7 +845,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(f"/privilege/edit/{PrivID}")
 
-    @app.route("/actions/deletepriv/<PrivID>")
+    @app.route("/actions/deletepriv/<int:PrivID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_delete_privilege_action(PrivID: int):
         session = web.sessions.get()
@@ -860,7 +858,7 @@ def configure_routes(app: Flask) -> None:
         )
         return redirect(url_for("panel_view_privileges"))
 
-    @app.route("/action/rankset/<BeatmapSet>")
+    @app.route("/action/rankset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_rank_set_action(BeatmapSet: int):
         session = web.sessions.get()
@@ -878,7 +876,7 @@ def configure_routes(app: Flask) -> None:
         RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
 
-    @app.route("/action/unrankset/<BeatmapSet>")
+    @app.route("/action/unrankset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_unrank_set_action(BeatmapSet: int):
         session = web.sessions.get()
@@ -887,15 +885,15 @@ def configure_routes(app: Flask) -> None:
         RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
 
-    @app.route("/action/deleterankreq/<ReqID>")
+    @app.route("/action/deleterankreq/<int:ReqID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_complete_rank_request_action(ReqID: int):
         DeleteBmapReq(ReqID)
         return redirect("/rankreq/1")
 
-    @app.route("/action/kickclan/<AccountID>")
+    @app.route("/action/kickclan/<int:AccountID>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_kick_user_from_clan_action(AccountID):
+    def panel_kick_user_from_clan_action(AccountID: int):
         KickFromClan(AccountID)
         return redirect("/clans/1")
 
