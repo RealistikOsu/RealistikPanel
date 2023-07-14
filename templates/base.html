@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/static/css/fonts.css">
   <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
   <link rel="stylesheet" href="/static/css/dark.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
   <!--JS Modules-->
   <script
     src="https://code.jquery.com/jquery-3.6.3.slim.min.js"
@@ -184,41 +185,86 @@
             </div>
           </div>
         {% endif %}
-        {% if success %}
-          <div class="alert alert-success alert-dismissible show fade">
-            <div class="alert-body">
-              <button class="close" data-dismiss="alert">
-                <span>×</span>
-              </button>
-              {{ success|safe }}
-            </div>
-          </div>
-        {% endif %}
-        {% if error %}
-          <div class="alert alert-danger alert-dismissible show fade">
-            <div class="alert-body">
-              <button class="close" data-dismiss="alert">
-                <span>×</span>
-              </button>
-              {{ error|safe }}
-            </div>
-          </div>
-        {% endif %}
-        {% if info %}
-          <div class="alert alert-primary alert-dismissible show fade">
-            <div class="alert-body">
-              <button class="close" data-dismiss="alert">
-                <span>×</span>
-              </button>
-              {{ info|safe }}
-            </div>
-          </div>
-        {% endif %}
         {% block content %}{% endblock %}
       </section>
     </div>
   </div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+{% if info %}
+  <script type="text/javascript">
+    toastr.options = {
+      "closeButton": true,
+      "newestOnTop": false,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "10000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    }
+    $(document).ready(() => {
+      toastr.info("{{ info | safe }}", "Information!")
+    })
+</script>
+{% endif %}
+
+{% if success %}
+  <script type="text/javascript">
+    toastr.options = {
+      "closeButton": true,
+      "newestOnTop": false,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "10000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    }
+    $(document).ready(() => {
+      toastr.success("{{ success | safe }}", "Success!")
+    })
+</script>
+{% endif %}
+
+{% if error %}
+  <script type="text/javascript">
+    toastr.options = {
+      "closeButton": true,
+      "newestOnTop": false,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "10000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    }
+    $(document).ready(() => {
+      toastr.error("{{ error | safe }}", "Error!")
+    })
+  </script>
+{% endif %}
+
 <script>
   var UserPriv = "{{ session.privileges.value }}";
   NoPriv = 0;
@@ -254,69 +300,69 @@
   RPManageClans = 2 << 27;
 
   //doing the crossbrowser and ie
-  if (!(UserPriv & AccessRAP)) {
-    var x = document.getElementsByClassName("AccessRAP");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageUsers)) {
-    var x = document.getElementsByClassName("ManageUsers");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageBeatmaps)) {
-    var x = document.getElementsByClassName("ManageBeatmaps");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageServers)) {
-    var x = document.getElementsByClassName("ManageServers");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageSettings)) {
-    var x = document.getElementsByClassName("ManageSettings");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManagePrivileges)) {
-    var x = document.getElementsByClassName("ManagePrivileges");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & RPErrorLogs)) {
-    var x = document.getElementsByClassName("RPErrorLogs");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ViewRAPLogs)) {
-    var x = document.getElementsByClassName("ViewRAPLogs");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & RPManageClans)) {
-    var x = document.getElementsByClassName("ManageClans");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
+  // if (!(UserPriv & AccessRAP)) {
+  //   var x = document.getElementsByClassName("AccessRAP");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ManageUsers)) {
+  //   var x = document.getElementsByClassName("ManageUsers");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ManageBeatmaps)) {
+  //   var x = document.getElementsByClassName("ManageBeatmaps");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ManageServers)) {
+  //   var x = document.getElementsByClassName("ManageServers");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ManageSettings)) {
+  //   var x = document.getElementsByClassName("ManageSettings");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ManagePrivileges)) {
+  //   var x = document.getElementsByClassName("ManagePrivileges");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & RPErrorLogs)) {
+  //   var x = document.getElementsByClassName("RPErrorLogs");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & ViewRAPLogs)) {
+  //   var x = document.getElementsByClassName("ViewRAPLogs");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
+  // if (!(UserPriv & RPManageClans)) {
+  //   var x = document.getElementsByClassName("ManageClans");
+  //   var i;
+  //   for (i = 0; i < x.length; i++) {
+  //     x[i].remove();
+  //   }
+  // }
   
   events = ["load", "resize"];
 	for (var i = 0; i < events.length; i++) {

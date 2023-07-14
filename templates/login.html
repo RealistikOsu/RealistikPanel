@@ -12,43 +12,12 @@
     ></script>
     <link href="/static/css/pace.minimal.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
-    {% if alert %}
-      <script
-        src="https://kit.fontawesome.com/7bc009eb77.js"
-        crossorigin="anonymous"
-      ></script>
-    {% endif %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="/static/css/fonts.css" />
     <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
     <title>RealistikPanel! - Login</title>
   </head>
   <body>
-    {% if alert %}
-      <div
-        class="fixed w-auto md:w-1/3 top-1 right-1 bg-red-500 text-white p-4 rounded-md shadow-lg z-50"
-      >
-        <div class="flex justify-between items-center">
-          <div class="flex items center">
-            <i
-              class="fas fa-exclamation-circle text-[2rem] 2xl:text-5xl mr-2"
-            ></i>
-            <span
-              class="font-semibold text-md 2xl:text-2xl mr-2 mt-[0.15rem] 2xl:mt-[0.30rem] text-left flex-auto"
-              >Error!</span
-            >
-          </div>
-          <button
-            class="mb-[1rem] font-semibold leading-none hover:text-gray-300"
-            onclick="this.parentElement.parentElement.remove()"
-          >
-            <i class="fas fa-times 2xl:text-[2rem]"></i>
-          </button>
-        </div>
-        <div class="text-md 2xl:text-2xl font-normal mt-2 ">
-          {{ alert }}
-        </div>
-      </div>
-    {% endif %}
     <div
       class="h-screen flex justify-center items-center bg-cover bg-no-repeat bg-center"
       style="background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');"
@@ -93,5 +62,30 @@
         </div>
       </div>
     </div>
+    {% if alert %}
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+      <script type="text/javascript">
+        toastr.options = {
+          "closeButton": true,
+          "newestOnTop": false,
+          "progressBar": true,
+          "positionClass": "toast-top-right",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "10000",
+          "extendedTimeOut": "1000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        }
+        $(document).ready(() => {
+          toastr.error("{{ alert }}", "Error!")
+        })
+      </script>
+    {% endif %}
   </body>
 </html>

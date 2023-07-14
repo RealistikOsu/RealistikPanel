@@ -1157,7 +1157,7 @@ tr:first-child > td > .fc-day-grid-event {
 }
 
 /* 1.28 Toast */
-#toast-container > div {
+/* #toast-container > div {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
   padding: 20px 20px 20px 50px;
   opacity: 1;
@@ -1169,23 +1169,23 @@ tr:first-child > td > .fc-day-grid-event {
   position: absolute;
   left: 17px;
   top: 25px;
-  font-family: "Ionicons";
+  /* font-family: "Ionicons";
   font-size: 24px;
   line-height: 18px;
   color: #fff;
 }
-#toast-container > .toast-warning:before {
-  content: "";
+/* #toast-container > .toast-warning:before {
+  content: "\f100";
 }
 #toast-container > .toast-error:before {
-  content: "";
+  content: "\f2d7";
 }
 #toast-container > .toast-info:before {
-  content: "";
+  content: "\f44c";
   color: #000;
 }
 #toast-container > .toast-success:before {
-  content: "";
+  content: "\f121";
 }
 
 .toast.toast-error {
@@ -1206,7 +1206,7 @@ tr:first-child > td > .fc-day-grid-event {
 .toast.toast-info .toast-message {
   color: #000;
   margin-top: 5px;
-}
+} */
 
 /* 1.29 User Item */
 .user-item {
