@@ -2763,7 +2763,7 @@ def get_clan_invites(clan_id: int) -> list[ClanInvite]:
             "clan_id": row[1],
             "invite_code": row[2],
         }
-        for row in mycursor
+        for row in mycursor.fetchall()
     ]
 
 

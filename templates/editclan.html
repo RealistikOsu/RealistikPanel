@@ -152,5 +152,16 @@
   {% if not clan_invites %}
     <p>This clan has no active invite links!</p>
   {% else %}
+    <!-- display all the invites -->
+    {% for invite in clan_invites %}
+      <div class="card">
+        <div class="card-header" style="gap: 5px">
+          Invite Code: <b>{{ invite["invite_code"] }}</b>
+        </div>
+        <div class="card-body">
+          This invite was created on {{ config.srv_name }}
+        </div>
+      </div>
+    {% endfor %}
   {% endif %}
 {% endblock %}
