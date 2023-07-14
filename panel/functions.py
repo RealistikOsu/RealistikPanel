@@ -844,13 +844,13 @@ def UserData(UserID: int) -> dict[str, Any]:
     except:
         Freeze = False
 
-    Data["UserpageContent"] = Data1[0]
+    Data["UserpageContent"] = Data1[0].strip()
     Data["UserColour"] = Data1[1]
     Data["Aka"] = Data1[2]
     Data["Email"] = Data2[0]
     Data["RegisterTime"] = Data2[1]
     Data["Privileges"] = Data2[2]
-    Data["Notes"] = Data2[3]
+    Data["Notes"] = Data2[3].strip()
     Data["DonorExpire"] = Data2[4]
     Data["SilenceEnd"] = Data2[5]
     Data["SilenceReason"] = Data2[6]
@@ -859,7 +859,7 @@ def UserData(UserID: int) -> dict[str, Any]:
     Data["CountryFull"] = GetCFullName(Data["Country"])
     Data["PrivName"] = PrivData[0]
     Data["BypassHWID"] = Data2[8]
-    Data["BanReason"] = Data2[9]
+    Data["BanReason"] = Data2[9].strip()
 
     Data["HasSupporter"] = Data["Privileges"] & 4
     Data["DonorExpireStr"] = TimeToTimeAgo(Data["DonorExpire"])
