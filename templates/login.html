@@ -20,34 +20,34 @@
   <body>
     <div
       class="h-screen flex justify-center items-center bg-cover bg-no-repeat bg-center"
-      style="background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');"
+      style="background-image: linear-gradient(rgba(17, 18, 19, .90), rgba(17, 18, 19, .90)), url('/static/img/login-bg.jpeg');"
     >
       <div
-        class="container mx-auto flex flex-row justify-center items-center w-auto md:w-[40rem] 2xl:w-[50rem] rounded-md shadow-lg bg-[#262a2b]"
+        class="container mx-auto flex flex-row justify-center items-center w-auto md:w-[40rem] 2xl:w-[50rem] rounded-md shadow-lg bg-[#161819]"
       >
         <div class="flex flex-col justify-center items-center m-8 xl:mr-0">
           <h1 class="text-3xl mb-2 text-white">RealistikPanel!</h1>
-          <h2 class="text-xl font-light mb-10 text-white">Log in comrade!</h2>
+          <h2 class="text-xl font-light mb-10 text-slate-200">Log in comrade!</h2>
           <form action="/login" method="post">
-            <label for="username" class="font-light text-white">
+            <label for="username" class="font-light text-slate-200">
               Username
             </label>
             <input
-              class="text-white rounded-md p-2 m-2 w-full bg-[#202225]"
+              class="text-slate-200 rounded-md p-2 m-2 w-full bg-[#2F2F2F] border-[#3C3C3C]"
               type="text"
               placeholder="eg. RealistikBot"
               name="username"
             />
 
-            <label for="password" class="font-light text-white">Password</label>
+            <label for="password" class="font-light text-slate-200">Password</label>
             <input
-              class="text-white rounded-md p-2 m-2 w-full bg-[#202225]"
+              class="text-slate-200 rounded-md p-2 m-2 w-full bg-[#2F2F2F] border-[#3C3C3C]"
               type="password"
               placeholder="eg. ********"
               name="password"
             />
             <button
-              class="w-full text-white rounded-md p-2 m-2 bg-[#a454ff] hover:bg-[#bd8cf4] transition duration-300 ease-in-out shadow-[0_2px_4px_#bd8cf4]"
+              class="w-full text-white rounded-md p-2 m-2 bg-[#6777ef] hover:bg-[#394eea] border-[#6777ef] hover:border-[transparent] transition duration-300 ease-in-out shadow-[0_2px_6px_#acb5f6]"
               type="submit"
             >
               Login
@@ -62,30 +62,33 @@
         </div>
       </div>
     </div>
-    {% if alert %}
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-      <script type="text/javascript">
-        toastr.options = {
-          "closeButton": true,
-          "newestOnTop": false,
-          "progressBar": true,
-          "positionClass": "toast-top-right",
-          "preventDuplicates": false,
-          "onclick": null,
-          "showDuration": "300",
-          "hideDuration": "1000",
-          "timeOut": "10000",
-          "extendedTimeOut": "1000",
-          "showEasing": "swing",
-          "hideEasing": "linear",
-          "showMethod": "fadeIn",
-          "hideMethod": "fadeOut"
-        }
-        $(document).ready(() => {
-          toastr.error("{{ alert }}", "Error!")
-        })
-      </script>
-    {% endif %}
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.min.js"
+      integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+      crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script type="text/javascript">
+      toastr.options = {
+        "closeButton": true,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "10000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+      }
+
+      {% if alert %}
+        toastr.error("{{ alert }}", "Error!")
+      {% endif %}
+    </script>
   </body>
 </html>

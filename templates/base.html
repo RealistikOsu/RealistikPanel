@@ -1,384 +1,327 @@
 <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport" />
+    <title>RealistikPanel! - {{ title }}</title>
+    {% block head %}{% endblock %}
+    <!-- General CSS Files -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
+      crossorigin="anonymous" 
+      referrerpolicy="no-referrer" 
+    />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RealistikPanel! - {{ title }}</title>
-  <!--Icon kit things-->
-  <script
-    src="https://kit.fontawesome.com/e9bdb24827.js"
-    crossorigin="anonymous"
-  ></script>
-  {% block head %}{% endblock %}
-  <!-- General CSS Files -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    crossorigin="anonymous"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
-    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
-  <link rel="stylesheet" href="/static/css/realistik.css" />
-  <link rel="stylesheet" href="/static/css/fonts.css">
-  <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
-  <link rel="stylesheet" href="/static/css/dark.css" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
-  <!--JS Modules-->
-  <script
-    src="https://code.jquery.com/jquery-3.6.3.slim.min.js"
-    integrity="sha256-ZwqZIVdD3iXNyGHbSYdsmWP//UBokj2FHAxKuSBKDSo="
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
-    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"
-    integrity="sha512-zMfrMAZYAlNClPKjN+JMuslK/B6sPM09BGvrWlW+cymmPmsUT1xJF3P4kxI3lOh9zypakSgWaTpY6vDJY/3Dig=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  ></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js"
-    integrity="sha512-2cbsQGdowNDPcKuoBd2bCcsJky87Mv0LEtD/nunJUgk6MOYTgVMGihS/xCEghNf04DPhNiJ4DZw5BxDd1uyOdw=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  ></script>
-  <link href="/static/css/pace.minimal.css" rel="stylesheet" />
-</head>
+    <link rel="stylesheet" href="/static/css/stisla.css" />
+    <link rel="stylesheet" href="/static/css/components.css" />
 
-<body>
-  <div class="main-wrapper main-wrapper-1">
-    <nav class="navbar navbar-expand-lg main-navbar">
-      <form class="form-inline mr-auto">
-        <ul class="navbar-nav mr-3" style="align-items: center; gap: 10px;">
-          <li id="sidetoggle">
-            <a id="navbar-mobile-button">
-              <div class="navbar-btn-container">
-                <i class="fas fa-bars"></i>
+    <link rel="stylesheet" href="/static/css/realistik.css" />
+    <link rel="stylesheet" href="/static/css/fonts.css">
+    <link rel="icon" type="image/png" href="/static/img/rosu.ico" />
+    <link rel="stylesheet" href="/static/css/dark.css" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+    <link href="/static/css/pace.minimal.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="main-wrapper main-wrapper-1">
+        <nav class="navbar navbar-expand-lg main-navbar">
+          <form class="form-inline mr-auto">
+            <ul class="navbar-nav mr-3" style="align-items: center; gap: 10px;">
+              <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
+              <li><a class="navbar-brand" href="/">{{ config.srv_name }}</a></li>
+            </ul>
+          </form>
+          <ul class="navbar-nav navbar-right">
+            <li class="dropdown">
+              <a
+                href="#"
+                data-toggle="dropdown"
+                class="nav-link dropdown-toggle nav-link-lg nav-link-user"
+                aria-expanded="false"
+              >
+                <img
+                  alt="pfp"
+                  src="{{ config.api_avatar_url }}{{ session.user_id }}"
+                  class="rounded-circle mr-1"
+                />
+                <div class="d-sm-none d-lg-inline-block">
+                  Hi, {{ session.username }}!
+                </div>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right">
+                <div class="dropdown-title">RealistikPanel!</div>
+                <a
+                  href="{{ config.srv_url }}u/{{ session.user_id }}"
+                  class="dropdown-item has-icon"
+                >
+                  <i class="far fa-user"></i> Profile
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/logout" class="dropdown-item has-icon text-danger">
+                  <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
               </div>
-            </a>
-          </li>
-          <li><a class="navbar-brand" href="/">{{ config.srv_name }}</a></li>
-        </ul>
-      </form>
-      <ul class="navbar-nav navbar-right">
-        <li class="dropdown">
-          <a
-            href="#"
-            data-toggle="dropdown"
-            class="nav-link dropdown-toggle nav-link-lg nav-link-user"
-            aria-expanded="false"
-          >
-            <img
-              alt="pfp"
-              src="{{ config.api_avatar_url }}{{ session.user_id }}"
-              class="rounded-circle mr-1"
-            />
-            <div class="d-sm-none d-lg-inline-block">
-              Hi, {{ session.username }}!
+            </li>
+          </ul>
+        </nav>
+
+        <div class="main-sidebar sidebar-style-2">
+          <aside id="sidebar-wrapper">
+            <div class="sidebar-brand">
+              <a href="/">RealistikPanel!</a>
             </div>
-          </a>
-          <div class="dropdown-menu dropdown-menu-right">
-            <div class="dropdown-title">RealistikPanel!</div>
-            <a
-              href="{{ config.srv_url }}u/{{ session.user_id }}"
-              class="dropdown-item has-icon"
-            >
-              <i class="far fa-user"></i> Profile
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="/logout" class="dropdown-item has-icon text-danger">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-          </div>
-        </li>
-      </ul>
-    </nav>
-    <div
-      class="main-sidebar sidebar-style-2"
-      tabindex="1"
-      style="overflow: hidden; outline: none;"
-    >
-      <aside id="sidebar-wrapper">
-        <div class="sidebar-brand">
-          <a href="/">RealistikPanel!</a>
+            <div class="sidebar-brand sidebar-brand-sm">
+              <a href="/">RP!</a>
+            </div>
+            <ul class="sidebar-menu">
+              <li class="menu-header">Information</li>
+              <li class="AccessRAP {% if route == '/dash' %}active{% endif %}"><a href="/dash" class="nav-link"
+                ><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a
+              ></li>
+
+              <li class="ManageUsers {% if route == '/users' %}active{% endif %}"><a href="/users/1" class="nav-link"
+                ><i class="fas fa-users"></i><span>Users</span></a
+              ></li>
+
+              <li class="ManageUsers {% if route == '/stats' %}active{% endif %}"><a href="/stats" class="nav-link"
+                ><i class="fas fa-chart-area"></i><span>Statistics</span></a
+              ></li>
+
+              <li class="ViewRAPLogs {% if route == '/logs' %}active{% endif %}"><a href="/logs/1" class="nav-link"
+                ><i class="fas fa-calendar"></i><span>Logs</span></a
+              ></li>
+
+              <li class="ViewRAPLogs {% if route == '/ban-logs' %}active{% endif %}"><a href="/ban-logs/1" class="nav-link"
+                ><i class="fas fa-user-slash"></i><span>Ban Logs</span></a
+              ></li>
+
+              <li class="menu-header">Actions</li>
+              <li class="ManageBeatmaps {% if route == '/rank' %}active{% endif %}"><a href="/rank" class="nav-link"
+                ><i class="fas fa-trophy"></i><span>Beatmap Ranking</span></a
+              ></li>
+
+              <li class="ManageBeatmaps {% if route == '/rankreq' %}active{% endif %}"><a href="/rankreq/1" class="nav-link"
+                ><i class="fas fa-award"></i><span>Beatmap Requests</span></a
+              ></li>
+
+              <li class="ManageSettings {% if route == '/bancho/settings' %}active{% endif %}"><a href="/bancho/settings" class="nav-link"
+                ><i class="fas fa-cogs"></i><span> Bancho Settings</span></a
+              ></li>
+
+              <li class="ManageSettings {% if route == '/system/settings' %}active{% endif %}"><a href="/system/settings" class="nav-link"
+                ><i class="fas fa-cog"></i><span> System Settings</span></a
+              ></li>
+
+              <li class="ManageBadges {% if route == '/badges' %}active{% endif %}"><a href="/badges" class="nav-link"
+                ><i class="fas fa-certificate"></i><span> Badges</span></a
+              ></li>
+
+              <li class="ManagePrivileges {% if route == '/privileges' %}active{% endif %}"><a href="/privileges" class="nav-link"
+                ><i class="fas fa-check-circle"></i><span> Privileges</span></a
+              ></li>
+
+              <li class="ManageClans {% if route == '/clans' %}active{% endif %}"><a href="/clans/1" class="nav-link"
+                ><i class="fas fa-user-friends"></i><span> Manage Clans</span></a
+              ></li>
+
+              <li class="menu-header">RealistikPanel</li>
+              <li><a href="{{ config.app_repo_url }}" class="nav-link" target="_blank"
+                ><i class="fab fa-github-alt"></i><span>Source Code</span></a
+              ></li>
+            </ul>
+          </aside>
         </div>
-        <ul class="sidebar-menu" id="sidebar">
-          <li class="menu-header">Information</li>
-          <a href="/dash" class="nav-link AccessRAP"
-            ><i class="fas fa-tachometer-alt"></i><span> Dashboard</span></a
-          >
-          <a href="/users/1" class="nav-link ManageUsers"
-            ><i class="fas fa-users"></i><span> Users</span></a
-          >
-          <a href="/stats" class="nav-link ManageUsers"
-            ><i class="fas fa-chart-area"></i><span> Statistics</span></a
-          >
-          <a href="/logs/1" class="nav-link ViewRAPLogs"
-            ><i class="fas fa-calendar"></i><span> Logs</span></a
-          >
-          <a href="/ban-logs/1" class="nav-link ViewRAPLogs"
-            ><i class="fas fa-user-slash"></i><span> Ban Logs</span></a
-          >
-          <li class="menu-header">Actions</li>
-          <a href="/rank" class="nav-link" id="ManageBeatmaps"
-            ><i class="fas fa-trophy"></i><span> Beatmap Ranking</span></a
-          >
-          <a href="/rankreq/1" class="nav-link" id="ManageBeatmaps"
-            ><i class="fas fa-award"></i><span> Beatmap Requests</span></a
-          >
-          <a href="/bancho/settings" class="nav-link ManageSettings"
-            ><i class="fas fa-cogs"></i><span> Bancho Settings</span></a
-          >
-          <a href="/system/settings" class="nav-link ManageSettings"
-            ><i class="fas fa-cog"></i><span> System Settings</span></a
-          >
-          <a href="/badges" class="nav-link ManageSettings"
-            ><i class="fas fa-certificate"></i><span> Badges</span></a
-          >
-          <a href="/privileges" class="nav-link ManagePrivileges"
-            ><i class="fas fa-check-circle"></i><span> Privileges</span></a
-          >
-          <a href="/clans/1" class="nav-link ManageClans"
-            ><i class="fas fa-user-friends"></i><span> Manage Clans</span></a
-          >
-          <li class="menu-header">RealistikPanel</li>
-          <a href="{{ config.app_repo_url }}" class="nav-link" target="_blank"
-            ><i class="fab fa-github-alt"></i><span> Source Code</span></a
-          >
-        </ul>
-      </aside>
+
+        <div class="main-content">
+          <section class="section">
+            {% if data["Alert"] %}
+              <div class="alert alert-dark alert-has-icon">
+                <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
+                <div class="alert-body">
+                  <div class="alert-title">Alert!</div>
+                  {{ data["Alert"]|safe }}
+                </div>
+              </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+          </section>
+        </div>
+      </div>
     </div>
-    <div class="main-content" style="min-height: 810px;">
-      <section class="section">
-        {% if data["Alert"] %}
-          <div class="alert alert-dark alert-has-icon">
-            <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
-            <div class="alert-body">
-              <div class="alert-title">Alert!</div>
-              {{ data["Alert"]|safe }}
-            </div>
-          </div>
-        {% endif %}
-        {% block content %}{% endblock %}
-      </section>
-    </div>
-  </div>
-</body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
-{% if info %}
-  <script type="text/javascript">
-    toastr.options = {
-      "closeButton": true,
-      "newestOnTop": false,
-      "progressBar": true,
-      "positionClass": "toast-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "10000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    }
-    $(document).ready(() => {
-      toastr.info("{{ info | safe }}", "Information!")
-    })
-</script>
-{% endif %}
-
-{% if success %}
-  <script type="text/javascript">
-    toastr.options = {
-      "closeButton": true,
-      "newestOnTop": false,
-      "progressBar": true,
-      "positionClass": "toast-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "10000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    }
-    $(document).ready(() => {
-      toastr.success("{{ success | safe }}", "Success!")
-    })
-</script>
-{% endif %}
-
-{% if error %}
-  <script type="text/javascript">
-    toastr.options = {
-      "closeButton": true,
-      "newestOnTop": false,
-      "progressBar": true,
-      "positionClass": "toast-top-right",
-      "preventDuplicates": false,
-      "onclick": null,
-      "showDuration": "300",
-      "hideDuration": "1000",
-      "timeOut": "10000",
-      "extendedTimeOut": "1000",
-      "showEasing": "swing",
-      "hideEasing": "linear",
-      "showMethod": "fadeIn",
-      "hideMethod": "fadeOut"
-    }
-    $(document).ready(() => {
-      toastr.error("{{ error | safe }}", "Error!")
-    })
-  </script>
-{% endif %}
-
-<script>
-  var UserPriv = "{{ session.privileges.value }}";
-  NoPriv = 0;
-
-  //privileges
-  UserNormal = 2 << 0;
-  AccessRAP = 2 << 2;
-  ManageUsers = 2 << 3;
-  BanUsers = 2 << 4;
-  SilenceUsers = 2 << 5;
-  WipeUsers = 2 << 6;
-  ManageBeatmaps = 2 << 7;
-  ManageServers = 2 << 8;
-  ManageSettings = 2 << 9;
-  ManageBetaKeys = 2 << 10;
-  ManageReports = 2 << 11;
-  ManageDocs = 2 << 12;
-  ManageBadges = 2 << 13;
-  ViewRAPLogs = 2 << 14;
-  ManagePrivileges = 2 << 15;
-  SendAlerts = 2 << 16;
-  ChatMod = 2 << 17;
-  KickUsers = 2 << 18;
-  PendingVerification = 2 << 19;
-  TournamentStaff = 2 << 20;
-  Caker = 2 << 21;
-  ViewTopScores = 2 << 22;
-  //RealistikPanel Specific Perms
-  RPNominate = 2 << 23;
-  RPNominateAccept = 2 << 24;
-  RPOverwatch = 2 << 25;
-  RPErrorLogs = 2 << 26;
-  RPManageClans = 2 << 27;
-
-  //doing the crossbrowser and ie
-  if (!(UserPriv & AccessRAP)) {
-    var x = document.getElementsByClassName("AccessRAP");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageUsers)) {
-    var x = document.getElementsByClassName("ManageUsers");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageBeatmaps)) {
-    var x = document.getElementsByClassName("ManageBeatmaps");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageServers)) {
-    var x = document.getElementsByClassName("ManageServers");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManageSettings)) {
-    var x = document.getElementsByClassName("ManageSettings");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ManagePrivileges)) {
-    var x = document.getElementsByClassName("ManagePrivileges");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & RPErrorLogs)) {
-    var x = document.getElementsByClassName("RPErrorLogs");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & ViewRAPLogs)) {
-    var x = document.getElementsByClassName("ViewRAPLogs");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  if (!(UserPriv & RPManageClans)) {
-    var x = document.getElementsByClassName("ManageClans");
-    var i;
-    for (i = 0; i < x.length; i++) {
-      x[i].remove();
-    }
-  }
-  
-  events = ["load", "resize"];
-	for (var i = 0; i < events.length; i++) {
-		window.addEventListener(events[i], () => {
-      if (window.innerWidth < 1060) {
-        document.querySelector("#sidetoggle").style.display = "block";
-        document.querySelector(".main-sidebar").style.display = "none";
-      } else {
-        document.querySelector("#sidetoggle").style.display = "none";
-        document.querySelector(".main-sidebar").style.display = "block";
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.min.js"
+      integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+      crossorigin="anonymous">
+    </script>
+    <script src="/static/js/poppler.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stisla@2.3.0/assets/js/stisla.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"
+      integrity="sha512-zMfrMAZYAlNClPKjN+JMuslK/B6sPM09BGvrWlW+cymmPmsUT1xJF3P4kxI3lOh9zypakSgWaTpY6vDJY/3Dig=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js"
+      integrity="sha512-2cbsQGdowNDPcKuoBd2bCcsJky87Mv0LEtD/nunJUgk6MOYTgVMGihS/xCEghNf04DPhNiJ4DZw5BxDd1uyOdw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="/static/js/scripts.js"></script>
+    <script type="text/javascript" defer>
+      toastr.options = {
+        "closeButton": true,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "10000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
       }
-		});
-	}
 
-  $("#navbar-mobile-button").click(function () {
-    if (document.querySelector(".main-sidebar").style.display == "none") {
-      document.querySelector(".main-sidebar").style.display = "block";
-    } else {
-      document.querySelector(".main-sidebar").style.display = "none";
-    }
-  });
-</script>
+      {% if info %}
+        toastr.info("{{ info | safe }}", "Information!")
+      {% endif %}
+
+      {% if success %}
+        toastr.success("{{ success | safe }}", "Success!")
+      {% endif %}
+
+      {% if error %}
+        toastr.error("{{ error | safe }}", "Error!")
+      {% endif %}
+
+
+      var UserPriv = "{{ session.privileges.value }}";
+
+      //privileges
+      NoPriv = 0;
+      UserNormal = 2 << 0;
+      AccessRAP = 2 << 2;
+      ManageUsers = 2 << 3;
+      BanUsers = 2 << 4;
+      SilenceUsers = 2 << 5;
+      WipeUsers = 2 << 6;
+      ManageBeatmaps = 2 << 7;
+      ManageServers = 2 << 8;
+      ManageSettings = 2 << 9;
+      ManageBetaKeys = 2 << 10;
+      ManageReports = 2 << 11;
+      ManageDocs = 2 << 12;
+      ManageBadges = 2 << 13;
+      ViewRAPLogs = 2 << 14;
+      ManagePrivileges = 2 << 15;
+      SendAlerts = 2 << 16;
+      ChatMod = 2 << 17;
+      KickUsers = 2 << 18;
+      PendingVerification = 2 << 19;
+      TournamentStaff = 2 << 20;
+      Caker = 2 << 21;
+      ViewTopScores = 2 << 22;
+      //RealistikPanel Specific Perms
+      RPNominate = 2 << 23;
+      RPNominateAccept = 2 << 24;
+      RPOverwatch = 2 << 25;
+      RPErrorLogs = 2 << 26;
+      RPManageClans = 2 << 27;
+
+      //doing the crossbrowser and ie
+      if (!(UserPriv & AccessRAP)) {
+        var x = document.getElementsByClassName("AccessRAP");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManageUsers)) {
+        var x = document.getElementsByClassName("ManageUsers");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManageBeatmaps)) {
+        var x = document.getElementsByClassName("ManageBeatmaps");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManageServers)) {
+        var x = document.getElementsByClassName("ManageServers");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManageBadges)) {
+        var x = document.getElementsByClassName("ManageBadges");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManageSettings)) {
+        var x = document.getElementsByClassName("ManageSettings");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ManagePrivileges)) {
+        var x = document.getElementsByClassName("ManagePrivileges");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & RPErrorLogs)) {
+        var x = document.getElementsByClassName("RPErrorLogs");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & ViewRAPLogs)) {
+        var x = document.getElementsByClassName("ViewRAPLogs");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+      if (!(UserPriv & RPManageClans)) {
+        var x = document.getElementsByClassName("ManageClans");
+        var i;
+        for (i = 0; i < x.length; i++) {
+          x[i].remove();
+        }
+      }
+
+      $("body").niceScroll();
+    </script>
+  </body>
+</html>

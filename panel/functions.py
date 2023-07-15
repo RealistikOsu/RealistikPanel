@@ -14,9 +14,9 @@ from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import NamedTuple
 from typing import Union
+from typing import cast
 
 import bcrypt
-import mysql.connector
 import pycountry
 import redis
 import requests
@@ -31,7 +31,6 @@ from panel import logger
 from panel.common.cryprography import compare_password
 from panel.common.time import timestamp_as_date
 from panel.common.utils import decode_int_or
-from panel.common.utils import halve_list
 from panel.common.mysql import MySQLPool
 from panel.config import config
 from panel.constants.privileges import Privileges
@@ -80,6 +79,19 @@ if BadUserCount and BadUserCount > 0:
 # public variables
 PlayerCount = []  # list of players
 
+class Country(TypedDict):
+    code: str
+    name: str
+
+def get_countries() -> list[Country]:
+    resp_list = []
+    for country in pycountry.countries:
+        resp_list.append({
+            "code": country.alpha_2,
+            "name": country.name,
+        })
+
+    return cast(list[Country], resp_list)
 
 def load_dashboard_data() -> dict[str, Any]:
     """Grabs all the values for the dashboard."""

@@ -52,20 +52,22 @@
           <tr>
             <td>{{ user["Id"] }}</td>
             <td>
-              {% if not user['Country'] == "XX" %}
-                <img
-                  class="nflag"
-                  src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
-                />
-              {% else %}
-                <img
-                  class="nflag"
-                  src="https://ussr.pl/static/images/new-flags/xx.png"
-                />
-              {% endif %}
-              <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
-                >{{ user["Name"] }}</a
-              >
+              <div class="user-info">
+                {% if not user['Country'] == "XX" %}
+                  <img
+                    class="nflag"
+                    src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
+                  />
+                {% else %}
+                  <img
+                    class="nflag"
+                    src="https://ussr.pl/static/images/new-flags/xx.png"
+                  />
+                {% endif %}
+                <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
+                  >{{ user["Name"] }}</a
+                >
+              </div>
             </td>
             <td>
               <a

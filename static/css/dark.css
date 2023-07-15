@@ -3,128 +3,95 @@ RealistikPanel Dark Stisla
 This is an attempt to introducs dark theme
 into Stisla. Being pretty inexperianced in
 css, dont expect this to be good.
-- RealistikDash
+- RealistikDash 
+- 2023 update: lenforiee rework.
 */
 
-.article .article-details {
-    background-color: rgb(38, 42, 43) !important;
-}
-
-.card {
-    background-color: rgb(38, 42, 43) !important;
-}
-
-.card .card-header {
-    background-color: rgb(38, 42, 43) !important;
-}
-
-.table {
-    background-color: rgb(38, 42, 43) !important;
+* {
+    scrollbar-color: #454a4d #202324;
 }
 
 body {
-    background-image: linear-gradient(rgba(34, 34, 34, .85), rgba(34, 34, 34, .85)), url('/static/img/login-bg.png');
+    background-image: linear-gradient(rgba(17, 18, 19, .90), rgba(17, 18, 19, .90)), url('/static/img/login-bg.jpeg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-    color: #dadada;
-}
-
-.main-sidebar {
-    background-color: rgba(38, 42, 43, 0.7);
-}
-
-.main-sidebar .sidebar-brand a {
-    color: white;
+    color: rgb(226, 232, 240);
 }
 
 .section .section-title {
-    color: white;
+    color: rgb(226, 232, 240);
 }
 
-.section .section-lead {
-    color: white;
+.card, 
+.card-header,
+.article,
+.article-details,
+.table,
+.main-sidebar {
+    background-color: rgb(22, 24, 25) !important;
 }
 
-label {
-    color: white;
+.sidebar-brand > a {
+    color: rgb(226, 232, 240) !important;
 }
 
-.form-control, .form-control[readonly], .form-control:focus {
-    background-color: #444444;
-    border-color: #797979;
-    color: #dadada;
+.main-sidebar .sidebar-menu li a:hover {
+    background-color: #121212 !important;
 }
 
-.form-group label {
-    color: #6777ef;
-}
-
-/* .section {
-    // background-color: #1e1e1f2f;
-} */
-
-.main-wrapper-1 .section .section-header {
-    border-top: 1px solid rgb(38, 42, 43);
-}
-
-.navbar .form-inline .form-control {
-    background-color: #444444;
-}
-
-.navbar .form-inline .btn {
-    background-color: #292929;
-}
-
-.btn > i {
-    color: white;
-}
-
-.bg-whitesmoke {
-    background-color: #3e3e3e !important;
-    color: white;
-}
-
-body.sidebar-mini .main-sidebar:after {
-    background-color: #2e3338;
-}
-
-.dropdown-menu {
-    background-color: #2e3338;;
-}
-
-.dropdown-menu .dropdown-title {
-    color: #dadada!important;
-}
-
-.dropdown-item {
-    color: #dadada;
+body.sidebar-mini .main-sidebar::after {
+    background-color: rgb(22, 24, 25) !important;
 }
 
 .page-link {
-    background-color: #2e3338;
+    background-color: rgb(22, 24, 25);
 }
 
-/*Ok here are some things for selectize.js*/
-
-.selectize-control.single .selectize-input, .selectize-control.single .selectize-input input {
-    background-color: #444444;
+.page-item.disabled .page-link {
+    background-color: rgb(22, 24, 25);
 }
 
-.selectize-dropdown, .selectize-input, .selectize-input input {
-    color: #dadada;
+.article .article-header .article-image {
+    background-color: #202020 !important;
 }
 
-.selectize-input {
-    border: 1px solid #797979;
+tr.bg-danger {
+    background-color: #9c2e27 !important;
+}
+
+label {
+    color: #6777ef !important;
+}
+
+.form-control, .form-control[readonly], .form-control:focus {
+    background-color: rgb(47, 47, 47);
+    border-color: rgb(60, 60, 60);
+    color: rgb(226, 232, 240);
+}
+
+th, h4 {
+    color: rgb(226, 232, 240) !important;
+}
+
+.dropdown-menu {
+    border-color: currentcolor !important;
+    box-shadow: rgba(41, 58, 75, 0.15) 0px 10px 40px 0px !important;
+}
+
+.dropdown-menu {
+    color: rgb(226, 232, 240) !important;
+    list-style-image: none !important;
+    background-color: rgb(24, 26, 27) !important;
+    border-color: rgba(140, 130, 115, 0.15) !important;
 }
 
 .dropdown-item:focus, .dropdown-item:hover {
-    color: white;
-    background-color: #353535;
+    color: rgb(226, 232, 240) !important;
+    text-decoration-color: currentcolor !important;
+    background-color: #121212 !important;
 }
 
-.article-cta {
-    background-color: rgb(38, 42, 43) !important;
-    padding-bottom: 10px !important;
+.dropdown-title, .dropdown-item {
+    color: rgb(226, 232, 240);
 }

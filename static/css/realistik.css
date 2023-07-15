@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+/* @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
 .roboto {
     font-family: 'Roboto', sans-serif;
@@ -26,7 +26,7 @@
     padding: 0 !important;
 }
 
-/* Flags! */
+/* Flags!
 .nflag {
     margin-right: 5px;
     max-width: 20px;
@@ -53,16 +53,6 @@
 }
 
 @media (max-width: 1060px) {
-    .main-sidebar {
-        position: absolute !important;
-        margin-top: 70px !important;
-        background-color: rgb(38, 42, 43) !important;
-        height: max-content !important;
-    }
-
-    .sidebar-brand {
-        display: none !important;
-    }
 
     .mobile-view {
         display: inline-block !important;
@@ -79,4 +69,42 @@
 
 .desktop-view {
     display: inline-block;
+} */
+
+@media (max-width: 1060px) {
+
+    .mobile-view {
+        display: inline-block !important;
+    }
+
+    .desktop-view {
+        display: none !important;
+    }
+}
+
+.mobile-view {
+    display: none;
+}
+
+.desktop-view {
+    display: inline-block;
+}
+
+.nflag {
+    max-width: 20px;
+}
+
+.user-info {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+}
+
+.pptext {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.article-cta {
+    padding-bottom: 10px
 }

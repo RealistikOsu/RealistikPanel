@@ -47,7 +47,7 @@
           <h4>Online Users</h4>
         </div>
         <div class="card-body">
-          <canvas id="PlayerChart" height="50"></canvas>
+          <canvas id="PlayerChart" height="63"></canvas>
         </div>
         <div class="card-footer">RealistikPanel</div>
       </div>
@@ -128,18 +128,24 @@
           {
             label: "Online Players",
             data: data,
-            borderWidth: 2,
-            backgroundColor: "rgba(63,82,227,.8)",
-            borderWidth: 0,
-            borderColor: "transparent",
+            borderWidth: 3,
+            backgroundColor: "transparent",
+            borderColor: "#6777ef",
             pointBorderWidth: 0,
-            pointRadius: 3.5,
+            pointRadius: 3,
+            pointBorderColor: 'transparent',
             pointBackgroundColor: "transparent",
-            pointHoverBackgroundColor: "rgba(63,82,227,.8)",
+            pointHoverBackgroundColor: "#6777ef",
           },
         ],
       },
       options: {
+        layout: {
+          padding: {
+            left: -1,
+            bottom: -1,
+          },
+        },
         legend: {
           display: false,
         },
@@ -147,8 +153,8 @@
           yAxes: [
             {
               gridLines: {
+                display: false,
                 drawBorder: false,
-                color: "#f2f2f2",
               },
               ticks: {
                 beginAtZero: true,
@@ -167,7 +173,7 @@
             {
               gridLines: {
                 display: false,
-                tickMarkLength: 15,
+                drawBorder: false,
               },
             },
           ],

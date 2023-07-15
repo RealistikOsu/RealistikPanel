@@ -123,18 +123,24 @@
           {
             label: "Registered Players",
             data: data,
-            borderWidth: 2,
-            backgroundColor: "rgba(63,82,227,.8)",
-            borderWidth: 0,
-            borderColor: "transparent",
+            borderWidth: 3,
+            backgroundColor: "transparent",
+            borderColor: "#6777ef",
             pointBorderWidth: 0,
-            pointRadius: 3.5,
+            pointRadius: 3,
+            pointBorderColor: 'transparent',
             pointBackgroundColor: "transparent",
-            pointHoverBackgroundColor: "rgba(63,82,227,.8)",
+            pointHoverBackgroundColor: "#6777ef",
           },
         ],
       },
       options: {
+        layout: {
+          padding: {
+            left: -1,
+            bottom: -1,
+          },
+        },
         legend: {
           display: false,
         },
@@ -142,15 +148,19 @@
           yAxes: [
             {
               gridLines: {
+                display: false,
                 drawBorder: false,
-                color: "#f2f2f2",
               },
               ticks: {
                 beginAtZero: true,
                 stepSize: 200,
-                callback: function (value, index, values) {
-                  return value;
-                },
+                callback: function (label, index, labels) {
+									// when the floored value is the same as the value we have a whole number
+									if (Math.floor(label) === label) {
+										return label;
+									}
+
+								},
               },
             },
           ],
@@ -158,7 +168,7 @@
             {
               gridLines: {
                 display: false,
-                tickMarkLength: 15,
+                drawBorder: false,
               },
             },
           ],

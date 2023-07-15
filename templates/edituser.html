@@ -8,18 +8,6 @@
   ></script>
   <link rel="stylesheet" href="/static/css/selectize.bootstrap4.css" />
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function (event) {
-      $("#countryselect").selectize({
-        create: true,
-        sortField: {
-          field: "text",
-          direction: "asc",
-        },
-        //dropdownParent: 'body'
-      });
-    });
-  </script>
 {% endblock %}
 {% block content %}
   <h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
@@ -136,7 +124,11 @@
         </div>
         <div class="form-group">
           <label>Country</label>
-          {% include 'components/countryselect.html' %}
+          <select name="country" id="countryselect" class="form-control">
+            {% for country in countries %}
+              <option value="{{ country['code'] }}">{{ country['name'] }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="form-group">
           <label>User Page</label>
