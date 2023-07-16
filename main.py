@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 from panel import logger
 from panel.common import threads
 from panel.config import config
