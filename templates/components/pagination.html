@@ -59,7 +59,7 @@
       });
     }
 
-    for (let i = plenMobile; i < Math.min(plenMobile + 2 * 2, pageLen); i++) {
+    for (let i = plenMobile; i < Math.min(plenMobile + 3, pageLen); i++) {
       pageItems.forEach((value) => {
         value.innerHTML += `<li class="page-item ${i == page ? "active" : ""} mobile-view">
           <a class="page-link" href="{{ pagination_url }}/${i}">${i}</a>
