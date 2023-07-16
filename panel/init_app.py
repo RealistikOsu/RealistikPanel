@@ -19,6 +19,13 @@ from panel.common.utils import halve_list
 from panel.web.responses import load_panel_template
 from panel.web.sessions import requires_privilege
 
+from panel.adapters.mysql import MySQLPool
+from panel.adapters.sqlite import Sqlite
+
+from panel.constants.traceback import TracebackType
+
+from redis import Redis
+
 # TODO: Make better routers.
 def configure_routes(app: Flask) -> None:
     @app.route("/")
@@ -111,9 +118,11 @@ def configure_routes(app: Flask) -> None:
                     session.user_id,
                 )
                 success = "Bancho settings were successfully edited!"
-            except Exception as e:
-                error = f"Failed to save Bancho settings with error {e}!"
-                logger.error("Failed to save Bancho settings with error: " + traceback.format_exc())
+            except Exception:
+                error = "Failed to save Bancho settings!"
+                tb = traceback.format_exc()
+                logger.error("Failed to save Bancho settings with error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
             "banchosettings.html",
@@ -141,9 +150,11 @@ def configure_routes(app: Flask) -> None:
                     session,
                 )
                 success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
-            except Exception as e:
-                error = f"Failed to rank beatmap {beatmap_id} with error {e}!"
-                logger.error(f"Failed to rank beatmap {beatmap_id} with error: " + traceback.format_exc())
+            except Exception:
+                error = f"Failed to rank beatmap {beatmap_id}!"
+                tb = traceback.format_exc()
+                logger.error(f"Failed to rank beatmap {beatmap_id} with error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
             "beatrank.html",
@@ -171,6 +182,9 @@ def configure_routes(app: Flask) -> None:
     @app.route("/users/<int:page>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_search_users(page: int = 1):
+
+        if page < 1:
+            return redirect("/users/1")
 
         if request.method == "POST":
             user_data = FindUserByUsername(
@@ -225,9 +239,11 @@ def configure_routes(app: Flask) -> None:
                     session.user_id,
                 )
                 success = "Successfully edited the system settings!"
-            except Exception as e:
-                error = "An internal error has occured while saving system settings! An error has been logged to the console."
-                logger.error("An internal error has occured while saving system settings, error: " + traceback.format_exc())
+            except Exception:
+                error = "An internal error has occured while saving system settings!"
+                tb = traceback.format_exc()
+                logger.error("An internal error has occured while saving system settings, error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
             "syssettings.html",
@@ -253,8 +269,10 @@ def configure_routes(app: Flask) -> None:
                 else:
                     success = "User successfully edited!"
             except Exception:
-                error = "An internal error has occured while editing the user! An error has been logged to the console."
-                logger.error("An internal error has occured while editing the user, error: " + traceback.format_exc())
+                error = "An internal error has occured while editing the user!"
+                tb = traceback.format_exc()
+                logger.error("An internal error has occured while editing the user, error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
             "edituser.html",
@@ -275,6 +293,10 @@ def configure_routes(app: Flask) -> None:
     @app.route("/logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_logs(page: int):
+
+        if page < 1:
+            return redirect("/logs/1")
+
         return load_panel_template(
             "raplogs.html",
             title="Admin Logs",
@@ -326,6 +348,10 @@ def configure_routes(app: Flask) -> None:
     @app.route("/ban-logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_ban_logs(page: int):
+
+        if page < 1:
+            return redirect("/ban-logs/1")
+
         return load_panel_template(
             "ban_logs.html",
             title="Ban Logs",
@@ -357,6 +383,8 @@ def configure_routes(app: Flask) -> None:
                 badge=GetBadge(BadgeID),
             )
         
+        success = None
+        error = None
         if request.method == "POST":
             session = web.sessions.get()
             try:
@@ -365,22 +393,22 @@ def configure_routes(app: Flask) -> None:
                     session.user_id,
                     f"edited the badge with the ID of {BadgeID}",
                 )
-                return load_panel_template(
-                    "editbadge.html",
-                    route="/badges",
-                    title="Edit Badge",
-                    badge=GetBadge(BadgeID),
-                    success=f"Badge {BadgeID} has been successfully edited!",
-                )
-            except Exception as e:
-                logger.error(f"An internal error has occured while editing the badge {BadgeID}, error: " + traceback.format_exc())
-                return load_panel_template(
-                    "editbadge.html",
-                    route="/badges",
-                    title="Edit Badge",
-                    badge=GetBadge(BadgeID),
-                    error="An internal error has occured while editing the badge! An error has been logged to the console.",
-                )
+
+                success = f"Badge {BadgeID} has been successfully edited!"
+            except Exception:
+                error = "An internal error has occured while editing the badge!"
+                tb = traceback.format_exc()
+                logger.error(f"An internal error has occured while editing the badge {BadgeID}, error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
+            
+            return load_panel_template(
+                "editbadge.html",
+                route="/badges",
+                title="Edit Badge",
+                badge=GetBadge(BadgeID),
+                success=success,
+                error=error,
+            )
             
         return render_template("errors/403.html")
 
@@ -407,6 +435,8 @@ def configure_routes(app: Flask) -> None:
                 privileges=GetPriv(Privilege),
             )
         
+        success = None
+        error = None
         if request.method == "POST":
             session = web.sessions.get()
             try:
@@ -417,24 +447,22 @@ def configure_routes(app: Flask) -> None:
                     f"has edited the privilege group {Priv['Name']} ({Priv['Id']})",
                 )
 
-                return load_panel_template(
-                    "editprivilege.html",
-                    route="/privileges",
-                    title="Privileges",
-                    privileges=Priv,
-                    success=f"Privilege {Priv['Name']} has been successfully edited!",
-                )
+                success = f"Privilege {Priv['Name']} has been successfully edited!"
             except Exception:
                 Priv = GetPriv(Privilege)
-                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + traceback.format_exc())
-
-                return load_panel_template(
-                    "editprivilege.html",
-                    route="/privileges",
-                    title="Privileges",
-                    privileges=Priv,
-                    error="An internal error has occured while editing the privileges! An error has been logged to the console.",
-                )
+                error = "An internal error has occured while editing the privileges!"
+                tb = traceback.format_exc()
+                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + tb)
+                log_traceback(tb, session, TracebackType.DANGER)
+            
+            return load_panel_template(
+                "editprivilege.html",
+                route="/privileges",
+                title="Privileges",
+                privileges=Priv,
+                success=success,
+                error=error,
+            )
             
         return render_template("errors/403.html")
 
@@ -496,6 +524,9 @@ def configure_routes(app: Flask) -> None:
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_view_rank_requests(Page: int):
 
+        if Page < 1:
+            return redirect("/rankreq/1")
+
         return load_panel_template(
             "rankreq.html",
             title="Ranking Requests",
@@ -508,6 +539,9 @@ def configure_routes(app: Flask) -> None:
     @app.route("/clans/<int:Page>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_view_clans(Page: int):
+
+        if Page < 1:
+            return redirect("/clans/1")
 
         return load_panel_template(
             "clansview.html",
@@ -589,6 +623,9 @@ def configure_routes(app: Flask) -> None:
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def view_user_hwid_route(user_id: int, page: int = 1):
 
+        if page < 1:
+            return redirect(f"/user/hwid/{user_id}/1")
+
         page_info = get_hwid_page(user_id, page - 1)
         username = page_info["user"]["Username"]
 
@@ -616,7 +653,9 @@ def configure_routes(app: Flask) -> None:
                 },
             )
         except Exception:
-            logger.error(f"Error while getting PP calculations, error: " + traceback.format_exc())
+            tb = traceback.format_exc()
+            logger.error(f"Error while getting PP calculations, error: " + tb)
+            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"code": 500})
 
     # api mirrors
@@ -630,7 +669,9 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )
         except Exception:
-            logger.error(f"Error while getting API Service status, error: " + traceback.format_exc())
+            tb = traceback.format_exc()
+            logger.error(f"Error while getting API Service status, error: " + tb)
+            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"code": 503})
 
     @app.route("/js/status/lets")
@@ -643,7 +684,9 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )  # this url to provide a predictable result
         except Exception:
-            logger.error(f"Error while getting Score Service status, error: " + traceback.format_exc())
+            tb = traceback.format_exc()
+            logger.error(f"Error while getting Score Service status, error: " + tb)
+            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"server_status": 0})
 
     @app.route("/js/status/bancho")
@@ -656,7 +699,9 @@ def configure_routes(app: Flask) -> None:
                 ).json(),
             )  # this url to provide a predictable result
         except Exception:
-            logger.error(f"Error while getting Bancho Service status, error: " + traceback.format_exc())
+            tb = traceback.format_exc()
+            logger.error(f"Error while getting Bancho Service status, error: " + tb)
+            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"result": 0})
 
     # actions
@@ -920,6 +965,22 @@ def configure_routes(app: Flask) -> None:
         KickFromClan(AccountID)
         return redirect("/clans/1")
 
+    @app.route("/console/<int:page>")
+    @requires_privilege(Privileges.PANEL_ERROR_LOGS)
+    def console(page: int):
+
+        if page < 1:
+            return redirect("/console/1")
+
+        return load_panel_template(
+            "consolelogs.html",
+            title="Console Logs",
+            route="/console",
+            page=page,
+            pages=traceback_pages(),
+            console_logs=get_tracebacks(page - 1),
+        )
+
 
 def configure_error_handlers(app: Flask) -> None:
     # error handlers
@@ -928,7 +989,12 @@ def configure_error_handlers(app: Flask) -> None:
         return render_template("errors/404.html")
 
     @app.errorhandler(500)
-    def code_error_handler(error):
+    def code_error_handler(_):
+
+        tb = traceback.format_exc()
+        session = web.sessions.get()
+
+        log_traceback(tb, session, TracebackType.DANGER)
         return render_template("errors/500.html")
 
     # we make sure session exists
@@ -936,6 +1002,34 @@ def configure_error_handlers(app: Flask) -> None:
     def pre_request():
         web.sessions.ensure()
 
+def initialise_connectors(app: Flask) -> None:
+    state.database = MySQLPool(
+        host=config.sql_host,
+        user=config.sql_user,
+        password=config.sql_password,
+        database=config.sql_database,
+        port=config.sql_port,
+    )
+
+    state.redis = Redis(
+        host=config.redis_host,
+        port=config.redis_port,
+        password=config.redis_password,
+        db=config.redis_db,
+    )
+
+    state.sqlite = Sqlite("panel.db")
+    state.sqlite.execute(
+        """
+        CREATE TABLE IF NOT EXISTS `tracebacks` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `user_id` INT NOT NULL,
+            `traceback` TEXT NOT NULL,
+            `traceback_type` INT NOT NULL,
+            `time` INT NOT NULL
+        );
+        """
+    )
 
 def init_app() -> Flask:
     app = Flask(
@@ -943,8 +1037,10 @@ def init_app() -> Flask:
         static_folder="../static",
         template_folder="../templates",
     )
+    initialise_connectors(app)
     configure_routes(app)
     configure_error_handlers(app)
+    fix_bad_user_count()
     web.sessions.encrypt(app)
     return app
 

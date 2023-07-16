@@ -8,7 +8,6 @@ import math
 import random
 import string
 import time
-import traceback
 from typing import Any
 from typing import TYPE_CHECKING
 from typing import TypedDict
@@ -18,7 +17,6 @@ from typing import cast
 
 import bcrypt
 import pycountry
-import redis
 import requests
 import timeago
 from discord_webhook import DiscordEmbed
@@ -31,47 +29,25 @@ from panel import logger
 from panel.common.cryprography import compare_password
 from panel.common.time import timestamp_as_date
 from panel.common.utils import decode_int_or
-from panel.common.mysql import MySQLPool
+from panel import state
 from panel.config import config
+from panel.constants.traceback import TracebackType
 from panel.constants.privileges import Privileges
 
-try:
-    db_pool = MySQLPool(
-        host=config.sql_host,
-        port=config.sql_port,
-        user=config.sql_user,
-        password=config.sql_password,
-        database=config.sql_database,
-    )
-    logger.info(f"Successfully connected to MySQL!")
-except Exception:
-    logger.error(
-        f"Failed connecting to MySQL! Abandoning!\n" + traceback.format_exc(),
-    )
-    exit()
+PAGE_SIZE = 50
 
-try:
-    r = redis.Redis(
-        host=config.redis_host,
-        port=config.redis_port,
-        password=config.redis_password,
-        db=config.redis_db,
-    )
-    logger.info(f"Successfully connected to Redis!")
-except Exception:
-    logger.error(
-        f"Failed connecting to Redis! Abandoning!\n" + traceback.format_exc(),
-    )
-    exit()
 
-# fix potential crashes
-# have to do it this way as the crash issue is a connector module issue
-BadUserCount = db_pool.fetch_val("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
-if BadUserCount and BadUserCount > 0:
+def fix_bad_user_count() -> None:
+    # fix potential crashes
+    # have to do it this way as the crash issue is a connector module issue
+    BadUserCount = state.database.fetch_val("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
+    if not BadUserCount or BadUserCount == 0:
+        return
+
     logger.warning(
         f"Found {BadUserCount} users with potentially problematic data!",
     )
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = ''",
     )
     logger.info("Fixed problematic data!")
@@ -93,17 +69,48 @@ def get_countries() -> list[Country]:
 
     return cast(list[Country], resp_list)
 
+def log_traceback(traceback: str, session: "Session", traceback_type: TracebackType) -> None:
+    """Logs a traceback to the database."""
+    state.sqlite.execute(
+        "INSERT INTO tracebacks (user_id, traceback, time, traceback_type) VALUES (?, ?, ?, ?)",
+        (
+            session.user_id,
+            traceback,
+            int(time.time()),
+            traceback_type.value,
+        ),
+    )
+
+def get_tracebacks(page: int = 0) -> list[dict[str, Any]]:
+    """Gets all tracebacks."""
+    tracebacks = state.sqlite.fetch_all(
+        "SELECT user_id, traceback, time, traceback_type FROM "
+        f"tracebacks ORDER BY time DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
+    )
+
+    resp_list = []
+    for traceback in tracebacks:
+        user = GetUser(traceback[0])
+        resp_list.append({
+            "user": user,
+            "traceback": traceback[1],
+            "time": timestamp_as_date(traceback[2], False),
+            "traceback_type": traceback[3],
+        })
+
+    return resp_list
+
 def load_dashboard_data() -> dict[str, Any]:
     """Grabs all the values for the dashboard."""
-    alert = db_pool.fetch_val(
+    alert = state.database.fetch_val(
         "SELECT value_string FROM system_settings WHERE name = 'website_global_alert'",
     )
 
-    total_pp = decode_int_or(r.get("ripple:total_pp"))
-    registered_users = decode_int_or(r.get("ripple:registered_users"))
-    online_users = decode_int_or(r.get("ripple:online_users"))
-    total_plays = decode_int_or(r.get("ripple:total_plays"))
-    total_scores = decode_int_or(r.get("ripple:total_submitted_scores"))
+    total_pp = decode_int_or(state.redis.get("ripple:total_pp"))
+    registered_users = decode_int_or(state.redis.get("ripple:registered_users"))
+    online_users = decode_int_or(state.redis.get("ripple:online_users"))
+    total_plays = decode_int_or(state.redis.get("ripple:total_plays"))
+    total_scores = decode_int_or(state.redis.get("ripple:total_submitted_scores"))
 
     response = {
         "RegisteredUsers": registered_users,
@@ -133,7 +140,7 @@ def LoginHandler(
     password: str,
 ) -> tuple[bool, Union[str, LoginUserData]]:
     """Checks the passwords and handles the sessions."""
-    user = db_pool.fetch_one(
+    user = state.database.fetch_one(
         "SELECT username, password_md5, privileges, id FROM users WHERE username_safe = %s LIMIT 1",
         (RippleSafeUsername(username),),
     )
@@ -194,7 +201,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[st
 
     dash_plays = []
 
-    plays = db_pool.fetch_all(
+    plays = state.database.fetch_all(
         BASE_RECENT_QUERY.format("scores"),
         (
             minimum_pp,
@@ -205,7 +212,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[st
 
     if config.srv_supports_relax:
         # adding relax plays
-        plays_rx = db_pool.fetch_all(
+        plays_rx = state.database.fetch_all(
             BASE_RECENT_QUERY.format("scores_relax"),
             (
                 minimum_pp,
@@ -216,7 +223,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[st
 
     if config.srv_supports_autopilot:
         # adding autopilot plays
-        plays_ap = db_pool.fetch_all(
+        plays_ap = state.database.fetch_all(
             BASE_RECENT_QUERY.format("scores_ap"),
             (
                 minimum_pp,
@@ -253,7 +260,7 @@ def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[st
 
 def FetchBSData() -> dict:
     """Fetches Bancho Settings."""
-    bancho_settings = db_pool.fetch_all(
+    bancho_settings = state.database.fetch_all(
         "SELECT name, value_string, value_int FROM bancho_settings WHERE name = 'bancho_maintenance' OR name = 'menu_icon' OR name = 'login_notification'",
     )
 
@@ -279,26 +286,26 @@ def handle_bancho_settings_edit(
 
     # SQL Queries
     if menu_icon:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE bancho_settings SET value_string = %s, value_int = 1 WHERE name = 'menu_icon'",
             (menu_icon,),
         )
     else:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'menu_icon'",
         )
 
     if login_notification:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE bancho_settings SET value_string = %s, value_int = 1 WHERE name = 'login_notification'",
             (login_notification,),
         )
     else:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE bancho_settings SET value_string = '', value_int = 0 WHERE name = 'login_notification'",
         )
 
-    db_pool.execute(
+    state.database.execute(
         "UPDATE bancho_settings SET value_int = %s WHERE name = 'bancho_maintenance'",
         (int(bancho_maintenence_bool),),
     )
@@ -308,11 +315,11 @@ def handle_bancho_settings_edit(
 
 def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
     """Gets beatmap info."""
-    beatmapset_id = db_pool.fetch_val("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (bmap_id,))
+    beatmapset_id = state.database.fetch_val("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (bmap_id,))
 
     if not beatmapset_id:
         # it might be a beatmap set then
-        beatmaps_data = db_pool.fetch_all(
+        beatmaps_data = state.database.fetch_all(
             "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = %s",
             (bmap_id,),
         )
@@ -327,7 +334,7 @@ def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
                 "Cover": "https://a.ussr.pl/",  # why this%s idk
             }]
     else:
-        beatmaps_data = db_pool.fetch_all(
+        beatmaps_data = state.database.fetch_all(
             "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = %s",
             (beatmapset_id,),
         )
@@ -357,7 +364,7 @@ def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
 
 def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
     # Fetch privileges from database.
-    privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
 
     if privileges is None:
         return False
@@ -380,7 +387,7 @@ def RankBeatmap(BeatmapId: int, ActionName: str, session: "Session") -> None:
         logger.debug("Malformed action name input.")
         return
     
-    db_pool.execute(
+    state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
         (
             ActionId,
@@ -390,7 +397,7 @@ def RankBeatmap(BeatmapId: int, ActionName: str, session: "Session") -> None:
     Webhook(BeatmapId, ActionId, session)
 
     # USSR SUPPORT.
-    map_md5 = db_pool.fetch_val(
+    map_md5 = state.database.fetch_val(
         "SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
         (BeatmapId,),
     )
@@ -411,7 +418,7 @@ def Webhook(BeatmapId: int, ActionId: int, session: "Session") -> None:
         # if no webhook is set, dont do anything
         return
     
-    map_data = db_pool.fetch_one(
+    map_data = state.database.fetch_one(
         "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
         (BeatmapId,),
     )
@@ -459,7 +466,7 @@ def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") ->
     """Logs to the RAP log."""
     Timestamp = round(time.time())
     # now we putting that in oh yea
-    db_pool.execute(
+    state.database.execute(
         "INSERT INTO rap_logs (userid, text, datetime, through) VALUES (%s, %s, %s, 'RealistikPanel!')",
         (
             UserID,
@@ -489,7 +496,7 @@ def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") ->
 
 def SystemSettingsValues() -> dict[str, Any]:
     """Fetches the system settings data."""
-    system_settings = db_pool.fetch_all(
+    system_settings = state.database.fetch_all(
         "SELECT value_int, value_string FROM system_settings WHERE name = 'website_maintenance' OR name = 'game_maintenance' OR name = 'website_global_alert' OR name = 'website_home_alert' OR name = 'registrations_enabled'",
     )
 
@@ -525,36 +532,36 @@ def ApplySystemSettings(DataArray: list[str], user_id: int) -> None:
         Register = 0
 
     # SQL Queries
-    db_pool.execute(
+    state.database.execute(
         "UPDATE system_settings SET value_int = %s WHERE name = 'website_maintenance'",
         (WebMan,),
     )
-    db_pool.execute(
+    state.database.execute(
         "UPDATE system_settings SET value_int = %s WHERE name = 'game_maintenance'",
         (GameMan,),
     )
-    db_pool.execute(
+    state.database.execute(
         "UPDATE system_settings SET value_int = %s WHERE name = 'registrations_enabled'",
         (Register,),
     )
 
     # if empty, disable
     if GlobalAlert != "":
-        db_pool.execute(
+        state.database.execute(
             "UPDATE system_settings SET value_int = 1, value_string = %s WHERE name = 'website_global_alert'",
             (GlobalAlert,),
         )
     else:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_global_alert'",
         )
     if HomeAlert != "":
-        db_pool.execute(
+        state.database.execute(
             "UPDATE system_settings SET value_int = 1, value_string = %s WHERE name = 'website_home_alert'",
             (HomeAlert,),
         )
     else:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE system_settings SET value_int = 0, value_string = '' WHERE name = 'website_home_alert'",
         )
 
@@ -605,7 +612,7 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     """Fetches users for the users page."""
     # This is going to need a lot of patching up i can feel it
     Offset = 50 * page  # for the page system to work
-    users = db_pool.fetch_all(
+    users = state.database.fetch_all(
         "SELECT id, username, privileges, allowed, country FROM users LIMIT 50 OFFSET %s",
         (Offset,),
     )
@@ -620,7 +627,7 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     PrivilegeDict = {}
     # gets all priv info
     for Priv in UniquePrivileges:
-        priv_info = db_pool.fetch_one(
+        priv_info = state.database.fetch_one(
             "SELECT name, color FROM privileges_groups WHERE privileges = %s LIMIT 1",
             (Priv,),
         )
@@ -662,7 +669,7 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
 
 def GetUser(user_id: int) -> dict[str, Any]:
     """Gets data for user. (universal)"""
-    user_data = db_pool.fetch_one(
+    user_data = state.database.fetch_one(
         "SELECT id, username, country FROM users WHERE id = %s LIMIT 1",
         (user_id,),
     )
@@ -687,28 +694,47 @@ def GetUser(user_id: int) -> dict[str, Any]:
 def UserData(UserID: int) -> dict[str, Any]:
     """Gets data for user (specialised for user edit page)."""
     # fix badbad data
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s",
         (UserID,),
     )
 
     user_data = GetUser(UserID)
-    user_data2 = db_pool.fetch_one(
+    user_data2 = state.database.fetch_one(
         "SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1",
         (UserID,),
     )
-    user_data3 = db_pool.fetch_one(
+
+    if not user_data2:
+        user_data2 = ["", "default", ""]
+
+    user_data3 = state.database.fetch_one(
         "SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime, bypass_hwid, ban_reason FROM users WHERE id = %s LIMIT 1",
         (UserID,),
     )
+
+    if not user_data3:
+        user_data3 = [
+            "",
+            0,
+            0,
+            "",
+            0,
+            0,
+            "",
+            0,
+            0,
+            "",
+        ]
+
     # Fetches the IP
-    ip_val = db_pool.fetch_val("SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1", (UserID,))
+    ip_val = state.database.fetch_val("SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1", (UserID,))
     if not ip_val:
         ip_val = "0.0.0.0"
 
 
     # gets privilege name
-    privilege_name = db_pool.fetch_val(
+    privilege_name = state.database.fetch_val(
         "SELECT name FROM privileges_groups WHERE privileges = %s LIMIT 1",
         (user_data3[2],),
     )
@@ -719,7 +745,7 @@ def UserData(UserID: int) -> dict[str, Any]:
     # adds new info to dict
     # I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
     try:
-        freeze_val = db_pool.fetch_val(
+        freeze_val = state.database.fetch_val(
             "SELECT freezedate FROM users WHERE id = %s LIMIT 1",
             (UserID,),
         )
@@ -774,7 +800,7 @@ def RAPFetch(page: int = 1) -> list[dict[str, Any]]:
     page = int(page) - 1  # makes sure is int and is in ok format
     Offset = 50 * page
 
-    panel_logs = db_pool.fetch_all(
+    panel_logs = state.database.fetch_all(
         "SELECT * FROM rap_logs ORDER BY id DESC LIMIT 50 OFFSET %s",
         (Offset,),
     )
@@ -824,7 +850,7 @@ def GetCFullName(country_code: str):
 
 def GetPrivileges() -> list[dict[str, Any]]:
     """Gets list of privileges."""
-    privileges = db_pool.fetch_all("SELECT * FROM privileges_groups")
+    privileges = state.database.fetch_all("SELECT * FROM privileges_groups")
 
     if not privileges:
         return []
@@ -864,7 +890,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     # stop people ascending themselves
     # OriginalPriv = int(session["Privilege"])
     if int(UserId) == from_id:
-        privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s", (from_id,))
+        privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (from_id,))
         if privileges is None:
             return
         
@@ -884,7 +910,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     SetUserBadges(UserId, BadgeList)
     # SQL Queries
     # TODO: transaction?
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges = %s, bypass_hwid = %s, country = %s WHERE id = %s",
         (
             Email,
@@ -897,7 +923,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
             UserId,
         ),
     )
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users_stats SET userpage_content = %s, username_aka = %s, username = %s WHERE id = %s",
         (
             UserPage,
@@ -907,7 +933,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
         ),
     )
     if config.srv_supports_relax:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE rx_stats SET username = %s WHERE id = %s",
             (
                 Username,
@@ -915,7 +941,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
             ),
         )
     if config.srv_supports_autopilot:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE ap_stats SET username = %s WHERE id = %s",
             (
                 Username,
@@ -924,7 +950,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
         )
 
     # Refresh in pep.py - Rosu only
-    r.publish("peppy:refresh_privs", json.dumps({"user_id": UserId}))
+    state.redis.publish("peppy:refresh_privs", json.dumps({"user_id": UserId}))
     refresh_username_cache(UserId, Username)
     RAPLog(
         from_id,
@@ -1003,16 +1029,16 @@ def ModToText(mod: int) -> str:
 
 
 def DeleteProfileComments(AccId: int) -> None:
-    db_pool.execute("DELETE FROM user_comments WHERE prof = %s", (AccId,))
+    state.database.execute("DELETE FROM user_comments WHERE prof = %s", (AccId,))
 
 
 def DeleteUserComments(AccId: int) -> None:
-    db_pool.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
+    state.database.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
 
 
 def WipeAccount(AccId: int) -> None:
     """Wipes the account with the given id."""
-    r.publish(
+    state.redis.publish(
         "peppy:disconnect",
         json.dumps(
             {  # lets the user know what is up
@@ -1034,7 +1060,7 @@ def WipeAccount(AccId: int) -> None:
 
 def WipeVanilla(AccId: int) -> None:
     """Wiped vanilla scores for user."""
-    db_pool.execute(
+    state.database.execute(
         """UPDATE
             users_stats
         SET
@@ -1080,13 +1106,13 @@ def WipeVanilla(AccId: int) -> None:
     """,
         (AccId,),
     )
-    db_pool.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
-    db_pool.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (AccId,))
+    state.database.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
+    state.database.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (AccId,))
 
 
 def WipeRelax(AccId: int) -> None:
     """Wipes the relax user data."""
-    db_pool.execute(
+    state.database.execute(
         """UPDATE
             rx_stats
         SET
@@ -1132,12 +1158,12 @@ def WipeRelax(AccId: int) -> None:
     """,
         (AccId,),
     )
-    db_pool.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
+    state.database.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
 
 
 def WipeAutopilot(AccId: int) -> None:
     """Wipes the autopilot user data."""
-    db_pool.execute(
+    state.database.execute(
         """UPDATE
             ap_stats
         SET
@@ -1183,13 +1209,13 @@ def WipeAutopilot(AccId: int) -> None:
     """,
         (AccId,),
     )
-    db_pool.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
+    state.database.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
 
 
 def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
     """Restricts or unrestricts account yeah."""
     if reason:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET ban_reason = %s WHERE id = %s",
             (
                 reason,
@@ -1197,13 +1223,13 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
             ),
         )
 
-    privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
     if privileges is None:
         return False
     
     if not privileges & 1:  # if restricted
         new_privs = privileges | 1
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET privileges = %s, ban_datetime = 0 WHERE id = %s LIMIT 1",
             (
                 new_privs,
@@ -1216,7 +1242,7 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
         params = {"k": config.api_foka_key, "to": GetUser(user_id)["Username"], "msg": wip}
         FokaMessage(params)
         TimeBan = round(time.time())
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s",
             (
                 TimeBan,
@@ -1228,19 +1254,19 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
 
         # We append the note if it exists to the thingy init bruv
         if note:
-            db_pool.execute(
+            state.database.execute(
                 "UPDATE users SET notes = CONCAT(notes, %s) WHERE id = %s LIMIT 1",
                 ("\n" + note, user_id),
             )
 
         # First places KILL.
-        recalc_md5s = db_pool.fetch_all(
+        recalc_md5s = state.database.fetch_all(
             "SELECT beatmap_md5 FROM first_places WHERE user_id = %s",
             (user_id,),
         )
 
         # Delete all of their old.
-        db_pool.execute("DELETE FROM first_places WHERE user_id = %s", (user_id,))
+        state.database.execute("DELETE FROM first_places WHERE user_id = %s", (user_id,))
         for bmap_md5 in recalc_md5s:
             calc_first_place(bmap_md5[0])
 
@@ -1249,12 +1275,12 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
 
 
 def FreezeHandler(user_id: int) -> bool:
-    freeze_status = db_pool.fetch_val("SELECT frozen FROM users WHERE id = %s", (user_id,))
+    freeze_status = state.database.fetch_val("SELECT frozen FROM users WHERE id = %s", (user_id,))
     if not freeze_status:
         return False
     
     if freeze_status:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s",
             (user_id,),
         )
@@ -1263,7 +1289,7 @@ def FreezeHandler(user_id: int) -> bool:
         freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
         freezedateunix = (freezedate - datetime.datetime(1970, 1, 1)).total_seconds()
 
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s",
             (
                 freezedateunix,
@@ -1282,7 +1308,7 @@ def FreezeHandler(user_id: int) -> bool:
 def BanUser(user_id: int, reason: str = "") -> bool:
     """User go bye bye!"""
     if reason:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET ban_reason = %s WHERE id = %s",
             (
                 reason,
@@ -1290,19 +1316,19 @@ def BanUser(user_id: int, reason: str = "") -> bool:
             ),
         )
 
-    privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
     if privileges is None:
         return False
     
     Timestamp = round(time.time())
     if privileges == 0:  # if already banned
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s",
             (user_id,),
         )
         TheReturn = False
     else:
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s",
             (
                 Timestamp,
@@ -1310,7 +1336,7 @@ def BanUser(user_id: int, reason: str = "") -> bool:
             ),
         )
         RemoveFromLeaderboard(user_id)
-        r.publish(
+        state.redis.publish(
             "peppy:disconnect",
             json.dumps(
                 {  # lets the user know what is up
@@ -1327,12 +1353,12 @@ def BanUser(user_id: int, reason: str = "") -> bool:
 
 def ClearHWID(user_id: int) -> None:
     """Clears the HWID matches for provided acc."""
-    db_pool.execute("DELETE FROM hw_user WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM hw_user WHERE userid = %s", (user_id,))
 
 
 def DeleteAccount(user_id: int) -> None:
     """Deletes the account provided. Press F to pay respects."""
-    r.publish(
+    state.redis.publish(
         "peppy:disconnect",
         json.dumps(
             {  # lets the user know what is up
@@ -1342,49 +1368,49 @@ def DeleteAccount(user_id: int) -> None:
         ),
     )
     # NUKE. BIG NUKE.
-    db_pool.execute("DELETE FROM scores WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM users WHERE id = %s", (user_id,))
-    db_pool.execute("DELETE FROM 2fa WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM 2fa_totp WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,))
-    db_pool.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
-    db_pool.execute("DELETE FROM discord_roles WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM ip_user WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,))
-    db_pool.execute("DELETE FROM rank_requests WHERE userid = %s", (user_id,))
-    db_pool.execute(
+    state.database.execute("DELETE FROM scores WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    state.database.execute("DELETE FROM 2fa WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM 2fa_totp WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,))
+    state.database.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
+    state.database.execute("DELETE FROM discord_roles WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM ip_user WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,))
+    state.database.execute("DELETE FROM rank_requests WHERE userid = %s", (user_id,))
+    state.database.execute(
         "DELETE FROM reports WHERE to_uid = %s OR from_uid = %s",
         (
             user_id,
             user_id,
         ),
     )
-    db_pool.execute("DELETE FROM tokens WHERE user = %s", (user_id,))
-    db_pool.execute("DELETE FROM remember WHERE userid = %s", (user_id,))
-    db_pool.execute("DELETE FROM users_achievements WHERE user_id = %s", (user_id,))
-    db_pool.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (user_id,))
-    db_pool.execute(
+    state.database.execute("DELETE FROM tokens WHERE user = %s", (user_id,))
+    state.database.execute("DELETE FROM remember WHERE userid = %s", (user_id,))
+    state.database.execute("DELETE FROM users_achievements WHERE user_id = %s", (user_id,))
+    state.database.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (user_id,))
+    state.database.execute(
         "DELETE FROM users_relationships WHERE user1 = %s OR user2 = %s",
         (
             user_id,
             user_id,
         ),
     )
-    db_pool.execute("DELETE FROM user_badges WHERE user = %s", (user_id,))
-    db_pool.execute("DELETE FROM user_clans WHERE user = %s", (user_id,))
-    db_pool.execute("DELETE FROM users_stats WHERE id = %s", (user_id,))
+    state.database.execute("DELETE FROM user_badges WHERE user = %s", (user_id,))
+    state.database.execute("DELETE FROM user_clans WHERE user = %s", (user_id,))
+    state.database.execute("DELETE FROM users_stats WHERE id = %s", (user_id,))
     if config.srv_supports_relax:
-        db_pool.execute("DELETE FROM scores_relax WHERE userid = %s", (user_id,))
-        db_pool.execute("DELETE FROM rx_stats WHERE id = %s", (user_id,))
+        state.database.execute("DELETE FROM scores_relax WHERE userid = %s", (user_id,))
+        state.database.execute("DELETE FROM rx_stats WHERE id = %s", (user_id,))
     if config.srv_supports_autopilot:
-        db_pool.execute("DELETE FROM scores_ap WHERE userid = %s", (user_id,))
-        db_pool.execute("DELETE FROM ap_stats WHERE id = %s", (user_id,))
+        state.database.execute("DELETE FROM scores_ap WHERE userid = %s", (user_id,))
+        state.database.execute("DELETE FROM ap_stats WHERE id = %s", (user_id,))
 
 
 def BanchoKick(id: int, reason: str) -> None:
     """Kicks the user from Bancho."""
-    r.publish(
+    state.redis.publish(
         "peppy:disconnect",
         json.dumps({"userID": id, "reason": reason}),  # lets the user know what is up
     )
@@ -1393,7 +1419,7 @@ def BanchoKick(id: int, reason: str) -> None:
 def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
-    occurences = db_pool.fetch_all("SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s", (Ip,))
+    occurences = state.database.fetch_all("SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s", (Ip,))
 
     resp_list = []
     for occurence in occurences:
@@ -1405,7 +1431,7 @@ def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     return resp_list
 
 def find_priv(priv: int) -> dict[str, Any]:
-    priv_info = db_pool.fetch_one(
+    priv_info = state.database.fetch_one(
         "SELECT name, color FROM privileges_groups WHERE privileges = %s LIMIT 1",
         (priv,),
     )
@@ -1431,7 +1457,7 @@ def find_priv(priv: int) -> dict[str, Any]:
 def find_all_ips(user_id: int) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
-    resp = db_pool.fetch_all("SELECT ip FROM ip_user WHERE userid = %s AND ip != ''", (user_id,))
+    resp = state.database.fetch_all("SELECT ip FROM ip_user WHERE userid = %s AND ip != ''", (user_id,))
 
     if not resp:
         return []
@@ -1442,7 +1468,7 @@ def find_all_ips(user_id: int) -> list[dict[str, Any]]:
 
     condition = ", ".join(["%s"] * len(ips))
 
-    occurences = db_pool.fetch_all(
+    occurences = state.database.fetch_all(
         f"SELECT ip_user.userid, ip_user.ip, ip_user.occurencies, users.username, users.privileges FROM ip_user JOIN users ON ip_user.userid = users.id WHERE ip IN ({condition}) ORDER BY ip DESC",
         tuple(ips),
     )
@@ -1476,14 +1502,14 @@ def find_all_ips(user_id: int) -> list[dict[str, Any]]:
 def PlayerCountCollection(loop: bool = True) -> None:
     """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
     while loop:
-        CurrentCount = decode_int_or(r.get("ripple:online_users"), 0)
+        CurrentCount = decode_int_or(state.redis.get("ripple:online_users"), 0)
         PlayerCount.append(CurrentCount)
         time.sleep(300)
         # so graph doesnt get too huge
         if len(PlayerCount) >= 100:
             PlayerCount.remove(PlayerCount[0])
     if not loop:
-        CurrentCount = decode_int_or(r.get("ripple:online_users"), 0)
+        CurrentCount = decode_int_or(state.redis.get("ripple:online_users"), 0)
         PlayerCount.append(CurrentCount)
 
 
@@ -1512,16 +1538,16 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
     """  # messing around with docstrings
     # checking if person already has supporter
     # also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
-    privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     if not privileges:
         return
 
     if privileges & 4:
         # already has supporter, extending
-        ends_on = db_pool.fetch_val("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
+        ends_on = state.database.fetch_val("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
         ends_on += 86400 * Duration
         
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET donor_expire = %s WHERE id=%s",
             (
                 ends_on,
@@ -1533,7 +1559,7 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
         EndTimestamp = round(time.time()) + (86400 * Duration)
         privileges += 4  # adding donor perms
 
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s",
             (
                 privileges,
@@ -1543,12 +1569,12 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
         )
 
         # allowing them to set custom badges
-        db_pool.execute(
+        state.database.execute(
             "UPDATE users_stats SET can_custom_badge = 1 WHERE id = %s LIMIT 1",
             (AccountID,),
         )
         # now we give them the badge
-        db_pool.execute(
+        state.database.execute(
             "INSERT INTO user_badges (user, badge) VALUES (%s, %s)",
             (AccountID, config.srv_donor_badge_id),
         )
@@ -1556,7 +1582,7 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
 
 def RemoveSupporter(AccountID: int, session: "Session") -> None:
     """Removes supporter from the target user."""
-    privileges = db_pool.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
     if not privileges:
         return
     
@@ -1565,7 +1591,7 @@ def RemoveSupporter(AccountID: int, session: "Session") -> None:
         return
     
     privileges -= 4
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s",
         (
             privileges,
@@ -1573,12 +1599,12 @@ def RemoveSupporter(AccountID: int, session: "Session") -> None:
         ),
     )
     # remove custom badge perms and hide custom badge
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users_stats SET can_custom_badge = 0, show_custom_badge = 0 WHERE id = %s LIMIT 1",
         (AccountID,),
     )
     # removing el donor badge
-    db_pool.execute(
+    state.database.execute(
         "DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1",
         (AccountID, config.srv_donor_badge_id),
     )
@@ -1592,7 +1618,7 @@ def RemoveSupporter(AccountID: int, session: "Session") -> None:
 
 def GetBadges() -> list[dict[str, Any]]:
     """Gets all the badges."""
-    badges_data = db_pool.fetch_all("SELECT * FROM badges")
+    badges_data = state.database.fetch_all("SELECT * FROM badges")
     Badges = []
 
     for badge in badges_data:
@@ -1607,13 +1633,21 @@ def GetBadges() -> list[dict[str, Any]]:
 
 def DeleteBadge(BadgeId: int) -> None:
     """ "Delets the badge with the gived id."""
-    db_pool.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
-    db_pool.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
+    state.database.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
+    state.database.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
 
 
 def GetBadge(BadgeID: int) -> dict[str, Any]:
     """Gets data of given badge."""
-    badge_data = db_pool.fetch_one("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
+    badge_data = state.database.fetch_one("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
+
+    if not badge_data:
+        return {
+            "Id": 0,
+            "Name": "Unknown",
+            "Icon": "",
+        }
+
     return {
         "Id": badge_data[0], 
         "Name": badge_data[1], 
@@ -1626,7 +1660,7 @@ def SaveBadge(form: dict[str, str]) -> None:
     BadgeID = form["badgeid"]
     BadgeName = form["name"]
     BadgeIcon = form["icon"]
-    db_pool.execute(
+    state.database.execute(
         "UPDATE badges SET name = %s, icon = %s WHERE id = %s",
         (
             BadgeName,
@@ -1638,13 +1672,22 @@ def SaveBadge(form: dict[str, str]) -> None:
 
 def CreateBadge() -> int:
     """Creates empty badge."""
-    badge_id = db_pool.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
+    badge_id = state.database.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
     return badge_id
 
 
 def GetPriv(PrivID: int) -> dict[str, Any]:
     """Gets the priv data from ID."""
-    priv_data = db_pool.fetch_one("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
+    priv_data = state.database.fetch_one("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
+
+    if not priv_data:
+        return {
+            "Id": 0,
+            "Name": "Unknown",
+            "Privileges": 0,
+            "Colour": "danger",
+        }
+
     return {
         "Id": priv_data[0], 
         "Name": priv_data[1], 
@@ -1655,13 +1698,13 @@ def GetPriv(PrivID: int) -> dict[str, Any]:
 
 def DelPriv(PrivID: int) -> None:
     """Deletes a privilege group."""
-    db_pool.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
+    state.database.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
 
 
 def UpdatePriv(Form: dict[str, str]) -> None:
     """Updates the privilege from form."""
     # Get previous privilege number
-    privileges = db_pool.fetch_val(
+    privileges = state.database.fetch_val(
         "SELECT privileges FROM privileges_groups WHERE id = %s",
         (Form["id"],),
     )
@@ -1669,7 +1712,7 @@ def UpdatePriv(Form: dict[str, str]) -> None:
         return
 
     # Update group
-    db_pool.execute(
+    state.database.execute(
         "UPDATE privileges_groups SET name = %s, privileges = %s, color = %s WHERE id = %s LIMIT 1",
         (Form["name"], Form["privilege"], Form["colour"], Form["id"]),
     )
@@ -1681,7 +1724,7 @@ def UpdatePriv(Form: dict[str, str]) -> None:
 
 def GetMostPlayed() -> dict[str, Any]:
     """Gets the beatmap with the highest playcount."""
-    beatmap = db_pool.fetch_one(
+    beatmap = state.database.fetch_one(
         "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1",
     )
 
@@ -1713,7 +1756,7 @@ def ListToDots(List: list) -> str:
 
 def GetUserBadges(AccountID: int) -> list[int]:
     """Gets badges of a user and returns as list."""
-    badges = db_pool.fetch_all("SELECT badge FROM user_badges WHERE user = %s", (AccountID,))
+    badges = state.database.fetch_all("SELECT badge FROM user_badges WHERE user = %s", (AccountID,))
 
     Badges = []
     for badge in badges:
@@ -1737,14 +1780,14 @@ def SetUserBadges(AccountID: int, Badges: list[int]) -> None:
         ItemFor += 1
     """
     # This might not be the best and most efficient way but its all ive come up with in my application of user badges
-    db_pool.execute(
+    state.database.execute(
         "DELETE FROM user_badges WHERE user = %s",
         (AccountID,),
     )  # deletes all existing badges
 
     for Badge in Badges:
         if Badge != 0 and Badge != 1:  # so we dont add empty badges
-            db_pool.execute(
+            state.database.execute(
                 "INSERT INTO user_badges (user, badge) VALUES (%s, %s)",
                 (
                     AccountID,
@@ -1755,7 +1798,7 @@ def SetUserBadges(AccountID: int, Badges: list[int]) -> None:
 
 def GetUserID(Username: str) -> int:
     """Gets user id from username."""
-    user_id = db_pool.fetch_val("SELECT id FROM users WHERE username LIKE %s LIMIT 1", (Username,))
+    user_id = state.database.fetch_val("SELECT id FROM users WHERE username LIKE %s LIMIT 1", (Username,))
     if not user_id:
         return 0
     
@@ -1776,34 +1819,34 @@ def RemoveFromLeaderboard(UserID: int) -> None:
     Modes = ["std", "ctb", "mania", "taiko"]
     for mode in Modes:
         # redis for each mode
-        r.zrem(f"ripple:leaderboard:{mode}", UserID)
+        state.redis.zrem(f"ripple:leaderboard:{mode}", UserID)
         if config.srv_supports_relax:
             # removes from relax leaderboards
-            r.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
+            state.redis.zrem(f"ripple:leaderboard_relax:{mode}", UserID)
         if config.srv_supports_autopilot:
-            r.zrem(f"ripple:leaderboard_ap:{mode}", UserID)
+            state.redis.zrem(f"ripple:leaderboard_ap:{mode}", UserID)
 
         # removing from country leaderboards
-        country = db_pool.fetch_val(
+        country = state.database.fetch_val(
             "SELECT country FROM users WHERE id = %s LIMIT 1",
             (UserID,),
         )
         if country and country != "XX":  # check if the country is not set
-            r.zrem(f"ripple:leaderboard:{mode}:{country}", UserID)
+            state.redis.zrem(f"ripple:leaderboard:{mode}:{country}", UserID)
             if config.srv_supports_relax:
-                r.zrem(f"ripple:leaderboard_relax:{mode}:{country}", UserID)
+                state.redis.zrem(f"ripple:leaderboard_relax:{mode}:{country}", UserID)
             if config.srv_supports_autopilot:
-                r.zrem(f"ripple:leaderboard_ap:{mode}:{country}", UserID)
+                state.redis.zrem(f"ripple:leaderboard_ap:{mode}:{country}", UserID)
 
 
 def UpdateBanStatus(UserID: int) -> None:
     """Updates the ban statuses in bancho."""
-    r.publish("peppy:ban", str(UserID))
+    state.redis.publish("peppy:ban", str(UserID))
 
 
 def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: "Session"):
     """Sets status for all beatmaps in beatmapset."""
-    db_pool.execute(
+    state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
         (
             Staus,
@@ -1818,7 +1861,7 @@ def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: "Session"):
     elif Staus == 5:
         TitleText = "loved"
 
-    maps_data = db_pool.fetch_all(
+    maps_data = state.database.fetch_all(
         "SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s",
         (BeatmapSet,),
     )
@@ -1859,7 +1902,7 @@ def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     if (
         len(Split) == 2 and "." in Split[1]
     ):  # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
-        users = db_pool.fetch_all(
+        users = state.database.fetch_all(
             "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
@@ -1868,7 +1911,7 @@ def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
         )  # i will keep the like statement unless it causes issues
     else:  # its a username
         User = f"%{User}%"  # for sql to treat is as substring
-        users = db_pool.fetch_all(
+        users = state.database.fetch_all(
             "SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
@@ -1887,7 +1930,7 @@ def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
 
     # gets all priv info (copy pasted from get users as it is based on same infestructure)
     for Priv in UniquePrivileges:
-        priv_info = db_pool.fetch_one(
+        priv_info = state.database.fetch_one(
             "SELECT name, color FROM privileges_groups WHERE privileges = %s LIMIT 1",
             (Priv,),
         )
@@ -1913,7 +1956,7 @@ def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     TheUsersDict = []
     for yuser in users:
         # country query
-        country = db_pool.fetch_val(
+        country = state.database.fetch_val(
             "SELECT country FROM users_stats WHERE id = %s",
             (yuser[0],),
         )
@@ -1947,14 +1990,14 @@ def CreateBcrypt(Password: str):
 def ChangePassword(AccountID: int, NewPassword: str) -> None:
     """Changes the password of a user with given AccID"""
     BCrypted = CreateBcrypt(NewPassword)
-    db_pool.execute(
+    state.database.execute(
         "UPDATE users SET password_md5 = %s WHERE id = %s",
         (
             BCrypted,
             AccountID,
         ),
     )
-    r.publish("peppy:change_pass", json.dumps({"user_id": AccountID}))
+    state.redis.publish("peppy:change_pass", json.dumps({"user_id": AccountID}))
 
 
 def ChangePWForm(form: dict[str, str], session: "Session") -> None:  # this function may be unnecessary but ehh
@@ -1983,7 +2026,7 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     """Gets all the rank requests. This may require some optimisation."""
     Page -= 1
     Offset = 50 * Page  # for the page system to work
-    requests = db_pool.fetch_all(
+    requests = state.database.fetch_all(
         "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 LIMIT 50 OFFSET %s",
         (Offset,),
     )
@@ -1995,13 +2038,13 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
         TriedSet = False
         TriedBeatmap = False
         if request[3] == "s":
-            request_data = db_pool.fetch_one(
+            request_data = state.database.fetch_one(
                 "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1",
                 (request[2],),
             )
             TriedSet = True
         else:
-            request_data = db_pool.fetch_one(
+            request_data = state.database.fetch_one(
                 "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
                 (request[2],),
             )
@@ -2009,12 +2052,12 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
 
         # in case it was added incorrectly for some reason?
         if not request_data and TriedBeatmap:
-            request_data = db_pool.fetch_one(
+            request_data = state.database.fetch_one(
                 "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1",
                 (request[2],),
             )
         elif not request_data and TriedSet:
-            request_data = db_pool.fetch_one(
+            request_data = state.database.fetch_one(
                 "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
                 (request[2],),
             )
@@ -2031,7 +2074,7 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
             BeatmapSetID = request_data[1]
             Cover = f"https://assets.ppy.sh/beatmaps/{BeatmapSetID}/covers/cover.jpg"
 
-        modes = db_pool.fetch_all(
+        modes = state.database.fetch_all(
             "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
             (BeatmapSetID,),
         )
@@ -2060,7 +2103,7 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     # getting the Requester usernames
     Usernames = {}
     for AccoundIdentity in UserIDs:
-        username = db_pool.fetch_val("SELECT username FROM users WHERE id = %s", (AccoundIdentity,))
+        username = state.database.fetch_val("SELECT username FROM users WHERE id = %s", (AccoundIdentity,))
 
         if not username:
             Usernames[str(AccoundIdentity)] = {
@@ -2080,18 +2123,27 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
 
 def DeleteBmapReq(Req: int) -> None:
     """Deletes the beatmap request."""
-    db_pool.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
+    state.database.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
 
 
 def UserPageCount() -> int:
     """Gets the amount of pages for users."""
-    count = db_pool.fetch_val("SELECT count(*) FROM users")
+    count = state.database.fetch_val("SELECT count(*) FROM users")
     return math.ceil(count / PAGE_SIZE)
+
+def traceback_pages() -> int:
+    """Gets the number of pages for the traceback page."""
+    count = state.sqlite.fetch_val(
+        "SELECT COUNT(*) FROM tracebacks",
+    )
+
+    return math.ceil(count / PAGE_SIZE)
+
 
 
 def RapLogCount() -> int:
     """Gets the amount of pages for rap logs."""
-    count = db_pool.fetch_val("SELECT count(*) FROM rap_logs")
+    count = state.database.fetch_val("SELECT count(*) FROM rap_logs")
     return math.ceil(count / PAGE_SIZE)
 
 
@@ -2101,7 +2153,7 @@ def GetClans(Page: int = 1) -> list[dict[str, Any]]:
     Page = int(Page) - 1
     Offset = 50 * Page
     # the sql part
-    clans_data = db_pool.fetch_all(
+    clans_data = state.database.fetch_all(
         "SELECT id, name, description, icon, tag FROM clans LIMIT 50 OFFSET %s",
         (Offset,),
     )
@@ -2121,14 +2173,14 @@ def GetClans(Page: int = 1) -> list[dict[str, Any]]:
 
 def GetClanPages() -> int:
     """Gets amount of pages for clans."""
-    count = db_pool.fetch_val("SELECT count(*) FROM clans")
+    count = state.database.fetch_val("SELECT count(*) FROM clans")
     return math.ceil(count / PAGE_SIZE)
 
 
 def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     """Returns a list of clan members."""
     # ok so we assume the list isnt going to be too long
-    clan_members = db_pool.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    clan_members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
     if not clan_members:
         return []
     
@@ -2141,7 +2193,7 @@ def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     Conditions = Conditions[:-4]  # remove the OR
 
     # getting the users
-    members_data = db_pool.fetch_all(
+    members_data = state.database.fetch_all(
         f"SELECT username, id, register_datetime FROM users WHERE {Conditions}",
         tuple(args),
     )  # here i use format as the conditions are a trusted input
@@ -2161,7 +2213,7 @@ def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
 
 def GetClan(ClanID: int) -> dict[str, Any]:
     """Gets information for a specified clan."""
-    clan_data = db_pool.fetch_one(
+    clan_data = state.database.fetch_one(
         "SELECT id, name, description, icon, tag, mlimit FROM clans WHERE id = %s LIMIT 1",
         (ClanID,),
     )
@@ -2177,7 +2229,7 @@ def GetClan(ClanID: int) -> dict[str, Any]:
         }
     
     # getting current member count
-    member_count = db_pool.fetch_val("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
+    member_count = state.database.fetch_val("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
     return {
         "ID": clan_data[0],
         "Name": clan_data[1],
@@ -2192,7 +2244,7 @@ def GetClan(ClanID: int) -> dict[str, Any]:
 def GetClanOwner(ClanID: int) -> dict[str, Any]:
     """Gets user info for the owner of a clan."""
     # wouldve been done quicker but i decided to play jawbreaker and only got up to 81%
-    owner_id = db_pool.fetch_val(
+    owner_id = state.database.fetch_val(
         "SELECT user FROM user_clans WHERE clan = %s and perms = 8",
         (ClanID,),
     )
@@ -2203,7 +2255,7 @@ def GetClanOwner(ClanID: int) -> dict[str, Any]:
         }
 
     # getting account info
-    username = db_pool.fetch_val(
+    username = state.database.fetch_val(
         "SELECT username FROM users WHERE id = %s",
         (owner_id,),
     )  # will add more info maybe
@@ -2227,13 +2279,13 @@ def ApplyClanEdit(Form: dict[str, str], session: "Session") -> None:
     ClanTag = Form["tag"]
     ClanIcon = Form["icon"]
     MemberLimit = Form["limit"]
-    db_pool.execute(
+    state.database.execute(
         "UPDATE clans SET name = %s, description = %s, tag = %s, mlimit = %s, icon = %s WHERE id = %s LIMIT 1",
         (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID),
     )
 
     # Make all tags refresh.
-    members = db_pool.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
 
     for user_id in members:
         cache_clan(user_id[0])
@@ -2248,10 +2300,10 @@ def NukeClan(ClanID: int, session: "Session") -> None:
         return
 
     # Make all tags refresh.
-    members = db_pool.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
 
-    db_pool.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
-    db_pool.execute("DELETE FROM user_clans WHERE clan = %s", (ClanID,))
+    state.database.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
+    state.database.execute("DELETE FROM user_clans WHERE clan = %s", (ClanID,))
     # run this after
 
     for user_id in members:
@@ -2262,7 +2314,7 @@ def NukeClan(ClanID: int, session: "Session") -> None:
 
 def KickFromClan(AccountID: int) -> None:
     """Kicks user from all clans (supposed to be only one)."""
-    db_pool.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
+    state.database.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
     cache_clan(AccountID)
 
 
@@ -2277,7 +2329,7 @@ def GetUsersRegisteredBetween(Offset: int = 0, Ahead: int = 24) -> int:
     OffsetTime = CurrentTime - Offset
     AheadTime = OffsetTime - Ahead
 
-    count = db_pool.fetch_val(
+    count = state.database.fetch_val(
         "SELECT COUNT(*) FROM users WHERE register_datetime > %s AND register_datetime < %s",
         (AheadTime, OffsetTime),
     )
@@ -2296,7 +2348,7 @@ def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24) -> int:
     OffsetTime = CurrentTime - Offset
     AheadTime = OffsetTime - Ahead
 
-    count = db_pool.fetch_val(
+    count = state.database.fetch_val(
         "SELECT COUNT(*) FROM users WHERE latest_activity > %s AND latest_activity < %s",
         (AheadTime, OffsetTime),
     )
@@ -2310,12 +2362,12 @@ def RippleSafeUsername(Username: str) -> str:
 
 def GetSuggestedRank() -> list[dict[str, Any]]:
     """Gets suggested maps to rank (based on play count)."""
-    beatmaps_data = db_pool.fetch_all(
+    beatmaps_data = state.database.fetch_all(
         "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 8",
     )
     BeatmapList = []
     for TopBeatmap in beatmaps_data:
-        modes = db_pool.fetch_all(
+        modes = state.database.fetch_all(
             "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
             (TopBeatmap[2],),
         )
@@ -2336,7 +2388,7 @@ def GetSuggestedRank() -> list[dict[str, Any]]:
 
 def CountRestricted() -> int:
     """Calculates the amount of restricted or banned users."""
-    count = db_pool.fetch_val("SELECT COUNT(*) FROM users WHERE privileges = 2")
+    count = state.database.fetch_val("SELECT COUNT(*) FROM users WHERE privileges = 2")
     return count
 
 def GetStatistics(MinPP: int = 0) -> dict[str, Any]:
@@ -2365,7 +2417,7 @@ def GetStatistics(MinPP: int = 0) -> dict[str, Any]:
 
 def CreatePrivilege() -> int:
     """Creates a new default privilege."""
-    privilege_id = db_pool.execute(
+    privilege_id = state.database.execute(
         "INSERT INTO privileges_groups (name, privileges, color) VALUES ('New Privilege', 0, '')",
     )
     return privilege_id
@@ -2393,7 +2445,7 @@ def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
 
     # WHY IS THE ROSU IMPLEMENTATION SO SCUFFED.
     # FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid
-    first_place_data = db_pool.fetch_one(
+    first_place_data = state.database.fetch_one(
         "SELECT s.id, s.userid, s.score, s.max_combo, s.full_combo, s.mods, s.300_count,"
         "s.100_count, s.50_count, s.misses_count, s.time, s.play_mode, s.completed,"
         f"s.accuracy, s.pp, s.playtime, s.beatmap_md5 FROM {table} s RIGHT JOIN users a ON a.id = s.userid WHERE "
@@ -2407,7 +2459,7 @@ def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
         return
 
     # INSERT BRRRR
-    db_pool.execute(
+    state.database.execute(
         """
         INSERT INTO first_places
          (
@@ -2442,19 +2494,19 @@ def cache_clan(user_id: int) -> None:
     requirement for RealistikOsu lets, or else clan tags may get out of sync.
     """
 
-    r.publish("rosu:clan_update", str(user_id))
+    state.redis.publish("rosu:clan_update", str(user_id))
 
 
 def refresh_bmap(md5: str) -> None:
     """Tells USSR to update the beatmap cache for a specific beatmap."""
 
-    r.publish("ussr:refresh_bmap", md5)
+    state.redis.publish("ussr:refresh_bmap", md5)
 
 
 def refresh_username_cache(user_id: int, new_name: str) -> None:
     """Refreshes the username cache for a specific user."""
 
-    r.publish(
+    state.redis.publish(
         "peppy:change_username",
         json.dumps({"userID": user_id, "newUsername": new_name}),
     )
@@ -2477,13 +2529,12 @@ BAN_LOG_BASE = (
     "INNER JOIN users f ON f.id = from_id "
     "INNER JOIN users t ON t.id = to_id "
 )
-PAGE_SIZE = 50
 
 
 def fetch_banlogs(page: int = 0) -> list[BanLog]:
     """Fetches a page of ban logs."""
 
-    ban_logs = db_pool.fetch_all(
+    ban_logs = state.database.fetch_all(
         BAN_LOG_BASE
         + f"ORDER BY b.id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
     )
@@ -2507,7 +2558,7 @@ def fetch_banlogs(page: int = 0) -> list[BanLog]:
 def ban_count() -> int:
     """Returns the total number of bans."""
 
-    count = db_pool.fetch_val("SELECT COUNT(*) FROM ban_logs")
+    count = state.database.fetch_val("SELECT COUNT(*) FROM ban_logs")
     return count
 
 
@@ -2520,7 +2571,7 @@ def ban_pages() -> int:
 def request_count() -> int:
     """Returns the total number of requests."""
 
-    count = db_pool.fetch_val("SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0")
+    count = state.database.fetch_val("SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0")
     return count
 
 
@@ -2539,7 +2590,7 @@ def fetch_user_banlogs(user_id: int) -> list[BanLog]:
     Returns:
         list[BanLog]: A list of all banlogs for the user.
     """
-    ban_logs = db_pool.fetch_all(BAN_LOG_BASE + "WHERE to_id = %s ORDER BY b.id DESC", (user_id,))
+    ban_logs = state.database.fetch_all(BAN_LOG_BASE + "WHERE to_id = %s ORDER BY b.id DESC", (user_id,))
 
     return [
         {
@@ -2571,7 +2622,7 @@ class ClanInvite(TypedDict):
 
 
 def get_clan_invites(clan_id: int) -> list[ClanInvite]:
-    invites = db_pool.fetch_all(
+    invites = state.database.fetch_all(
         "SELECT id, clan, invite FROM clans_invites WHERE clan = %s",
         (clan_id,),
     )
@@ -2588,7 +2639,7 @@ def get_clan_invites(clan_id: int) -> list[ClanInvite]:
 
 def create_clan_invite(clan_id: int) -> ClanInvite:
     invite_code = random_str(8)
-    invite_id = db_pool.execute(
+    invite_id = state.database.execute(
         "INSERT INTO clans_invites (clan, invite) VALUES (%s, %s)",
         (clan_id, invite_code),
     )
@@ -2611,7 +2662,7 @@ class HWIDLog(TypedDict):
 
 
 def get_hwid_history(user_id: int) -> list[HWIDLog]:
-    hwid_history = db_pool.fetch_all(
+    hwid_history = state.database.fetch_all(
         "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user WHERE userid = %s",
         (user_id,),
     )
@@ -2631,7 +2682,7 @@ def get_hwid_history(user_id: int) -> list[HWIDLog]:
 
 def get_hwid_history_paginated(user_id: int, page: int = 0) -> list[HWIDLog]:
 
-    occurences = db_pool.fetch_all(
+    occurences = state.database.fetch_all(
         "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
         f"WHERE userid = %s ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
         (user_id,),
@@ -2662,7 +2713,7 @@ def get_hwid_matches_exact(log: HWIDLog) -> list[HWIDLog]:
             `log`.
     """
 
-    occurences = db_pool.fetch_all(
+    occurences = state.database.fetch_all(
         "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
         "WHERE userid != %s AND mac = %s AND unique_id = %s AND "
         "disk_id = %s",
@@ -2693,7 +2744,7 @@ def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
         list[HWIDLog]: A list of logs sharing at least one hash with `log`.
     """
 
-    occurences = db_pool.fetch_all(
+    occurences = state.database.fetch_all(
         "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
         "WHERE userid != %s AND (mac = %s OR unique_id = %s OR "
         "disk_id = %s) AND mac != 'b4ec3c4334a0249dae95c284ec5983df'",
@@ -2714,7 +2765,7 @@ def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
 
 
 def get_hwid_count(user_id: int) -> int:
-    count = db_pool.fetch_val("SELECT COUNT(*) FROM hw_user WHERE userid = %s", (user_id,))
+    count = state.database.fetch_val("SELECT COUNT(*) FROM hw_user WHERE userid = %s", (user_id,))
     return count
 
 
