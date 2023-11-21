@@ -1276,7 +1276,7 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
 
 def FreezeHandler(user_id: int) -> bool:
     freeze_status = state.database.fetch_val("SELECT frozen FROM users WHERE id = %s", (user_id,))
-    if not freeze_status:
+    if freeze_status is None:
         return False
     
     if freeze_status:
