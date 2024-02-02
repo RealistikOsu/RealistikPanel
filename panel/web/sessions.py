@@ -78,7 +78,7 @@ def requires_privilege(privilege: Privileges) -> Callable:
                 not has_privilege_value(session.user_id, privilege)
             ):
                 return no_permission_response(session)
-            
+
             return func(**args)
 
         new_func.__name__ = func.__name__  # Flask hack.

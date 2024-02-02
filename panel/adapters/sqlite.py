@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import sqlite3
+from typing import Any
+from typing import Optional
 
 from panel import logger
 
-from typing import Any
-from typing import Optional
 
 class Sqlite:
     def __init__(self, db: str):
@@ -45,7 +47,7 @@ class Sqlite:
 
         cursor.close()
         return rows
-    
+
     def fetch_val(self, query: str, args: tuple = ()) -> Any:
         cursor = self.conn.cursor()
         cursor.execute(query, args)
