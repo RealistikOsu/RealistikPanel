@@ -3033,11 +3033,17 @@ def apply_username_change(
     new_username: str,
     changed_by_id: int,
 ) -> Optional[str]:
+    # Minor cleanups (we sorta trust staff to be kinda sane with the charset)
+    new_username = new_username.strip()
+
+    old_user = GetUser(user_id)
+
+    if new_username == old_user["Username"]:
+        return "The new username may not be the same as the old."
+
     if taken_id := is_username_taken(new_username, user_id):
         taken_user = GetUser(taken_id)
         return f"This username is already occupied by {taken_user['Username']} ({taken_id})"
-
-    old_user = GetUser(user_id)
 
     if not change_username(user_id, new_username):
         return "Failed to change the username. Perhaps the user doesn't exist anymore?"
