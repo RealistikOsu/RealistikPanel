@@ -9,11 +9,11 @@ import random
 import string
 import time
 from typing import Any
+from typing import cast
+from typing import NamedTuple
 from typing import TYPE_CHECKING
 from typing import TypedDict
-from typing import NamedTuple
 from typing import Union
-from typing import cast
 
 import bcrypt
 import pycountry
@@ -40,7 +40,9 @@ PAGE_SIZE = 50
 def fix_bad_user_count() -> None:
     # fix potential crashes
     # have to do it this way as the crash issue is a connector module issue
-    BadUserCount = state.database.fetch_val("SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''")
+    BadUserCount = state.database.fetch_val(
+        "SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''",
+    )
     if not BadUserCount or BadUserCount == 0:
         return
 
@@ -52,24 +54,34 @@ def fix_bad_user_count() -> None:
     )
     logger.info("Fixed problematic data!")
 
+
 # public variables
 PlayerCount = []  # list of players
+
 
 class Country(TypedDict):
     code: str
     name: str
 
+
 def get_countries() -> list[Country]:
     resp_list = []
     for country in pycountry.countries:
-        resp_list.append({
-            "code": country.alpha_2,
-            "name": country.name,
-        })
+        resp_list.append(
+            {
+                "code": country.alpha_2,
+                "name": country.name,
+            },
+        )
 
     return cast(list[Country], resp_list)
 
-def log_traceback(traceback: str, session: "Session", traceback_type: TracebackType) -> None:
+
+def log_traceback(
+    traceback: str,
+    session: Session,
+    traceback_type: TracebackType,
+) -> None:
     """Logs a traceback to the database."""
     state.sqlite.execute(
         "INSERT INTO tracebacks (user_id, traceback, time, traceback_type) VALUES (?, ?, ?, ?)",
@@ -81,6 +93,7 @@ def log_traceback(traceback: str, session: "Session", traceback_type: TracebackT
         ),
     )
 
+
 def get_tracebacks(page: int = 0) -> list[dict[str, Any]]:
     """Gets all tracebacks."""
     tracebacks = state.sqlite.fetch_all(
@@ -91,14 +104,17 @@ def get_tracebacks(page: int = 0) -> list[dict[str, Any]]:
     resp_list = []
     for traceback in tracebacks:
         user = GetUser(traceback[0])
-        resp_list.append({
-            "user": user,
-            "traceback": traceback[1],
-            "time": timestamp_as_date(traceback[2], False),
-            "traceback_type": traceback[3],
-        })
+        resp_list.append(
+            {
+                "user": user,
+                "traceback": traceback[1],
+                "time": timestamp_as_date(traceback[2], False),
+                "traceback_type": traceback[3],
+            },
+        )
 
     return resp_list
+
 
 def load_dashboard_data() -> dict[str, Any]:
     """Grabs all the values for the dashboard."""
@@ -190,7 +206,10 @@ LIMIT %s
 """
 
 
-def get_recent_plays(total_plays: int = 20, minimum_pp: int = 0) -> list[dict[str, Any]]:
+def get_recent_plays(
+    total_plays: int = 20,
+    minimum_pp: int = 0,
+) -> list[dict[str, Any]]:
     """Returns recent plays."""
     divisor = 1
     if config.srv_supports_relax:
@@ -315,7 +334,10 @@ def handle_bancho_settings_edit(
 
 def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
     """Gets beatmap info."""
-    beatmapset_id = state.database.fetch_val("SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s", (bmap_id,))
+    beatmapset_id = state.database.fetch_val(
+        "SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
+        (bmap_id,),
+    )
 
     if not beatmapset_id:
         # it might be a beatmap set then
@@ -325,14 +347,16 @@ def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
         )
 
         if not beatmaps_data:  # if still havent found anything
-            return [{
-                "SongName": "Not Found",
-                "Ar": "0",
-                "Difficulty": "0",
-                "BeatmapsetId": "",
-                "BeatmapId": 0,
-                "Cover": "https://a.ussr.pl/",  # why this%s idk
-            }]
+            return [
+                {
+                    "SongName": "Not Found",
+                    "Ar": "0",
+                    "Difficulty": "0",
+                    "BeatmapsetId": "",
+                    "BeatmapId": 0,
+                    "Cover": "https://a.ussr.pl/",  # why this%s idk
+                },
+            ]
     else:
         beatmaps_data = state.database.fetch_all(
             "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked FROM beatmaps WHERE beatmapset_id = %s",
@@ -353,7 +377,6 @@ def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
         BeatmapList.append(thing)
     BeatmapList = sorted(BeatmapList, key=lambda i: i["Difficulty"])
 
-
     # assigning each bmap a number to be later used
     BMapNumber = 0
     for beatmap in BeatmapList:
@@ -364,16 +387,20 @@ def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
 
 def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
     # Fetch privileges from database.
-    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s",
+        (user_id,),
+    )
 
     if privileges is None:
         return False
-    
+
     user_privileges = Privileges(privileges)
 
     return user_privileges & privilege == privilege
 
-def RankBeatmap(BeatmapId: int, ActionName: str, session: "Session") -> None:
+
+def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None:
     """Ranks a beatmap"""
 
     # converts actions to numbers
@@ -386,7 +413,7 @@ def RankBeatmap(BeatmapId: int, ActionName: str, session: "Session") -> None:
     else:
         logger.debug("Malformed action name input.")
         return
-    
+
     state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
         (
@@ -411,13 +438,13 @@ def FokaMessage(params: dict[str, Any]) -> None:
     requests.get(config.api_bancho_url + "api/v1/fokabotMessage", params=params)
 
 
-def Webhook(BeatmapId: int, ActionId: int, session: "Session") -> None:
+def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
     """Beatmap rank webhook."""
     URL = config.webhook_ranked
     if not URL:
         # if no webhook is set, dont do anything
         return
-    
+
     map_data = state.database.fetch_one(
         "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
         (BeatmapId,),
@@ -444,7 +471,9 @@ def Webhook(BeatmapId: int, ActionId: int, session: "Session") -> None:
     )
 
     embed.set_footer(text="via RealistikPanel!")
-    embed.set_image(url=f"https://assets.ppy.sh/beatmaps/{map_data[1]}/covers/cover.jpg")
+    embed.set_image(
+        url=f"https://assets.ppy.sh/beatmaps/{map_data[1]}/covers/cover.jpg",
+    )
     webhook.add_embed(embed)
 
     logger.info("Posting webhook....")
@@ -478,7 +507,7 @@ def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") ->
     # webhook time
     if not config.webhook_admin_log:
         return
-    
+
     Username = GetUser(UserID)["Username"]
     webhook = DiscordWebhook(config.webhook_admin_log)
 
@@ -593,6 +622,7 @@ def CalcPPRX(BmapID: int) -> float:
     reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=128").json()
     return round(reqjson["pp"][0], 2)
 
+
 def CalcPPAP(BmapID: int) -> float:
     """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
     reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=8192").json()
@@ -622,7 +652,6 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     for person in users:
         AllPrivileges.append(person[2])
     UniquePrivileges = Unique(AllPrivileges)
-
 
     PrivilegeDict = {}
     # gets all priv info
@@ -667,7 +696,14 @@ def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     return Users
 
 
-def GetUser(user_id: int) -> dict[str, Any]:
+class SimpleUserData(TypedDict):
+    Id: int
+    Username: str
+    IsOnline: bool
+    Country: str
+
+
+def GetUser(user_id: int) -> SimpleUserData:
     """Gets data for user. (universal)"""
     user_data = state.database.fetch_one(
         "SELECT id, username, country FROM users WHERE id = %s LIMIT 1",
@@ -682,7 +718,7 @@ def GetUser(user_id: int) -> dict[str, Any]:
             "IsOnline": False,
             "Country": "GB",  # RULE BRITANNIA
         }
-    
+
     return {
         "Id": user_data[0],
         "Username": user_data[1],
@@ -728,10 +764,12 @@ def UserData(UserID: int) -> dict[str, Any]:
         ]
 
     # Fetches the IP
-    ip_val = state.database.fetch_val("SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1", (UserID,))
+    ip_val = state.database.fetch_val(
+        "SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1",
+        (UserID,),
+    )
     if not ip_val:
         ip_val = "0.0.0.0"
-
 
     # gets privilege name
     privilege_name = state.database.fetch_val(
@@ -819,7 +857,6 @@ def RAPFetch(page: int = 1) -> list[dict[str, Any]]:
         UserData = GetUser(user)
         UserDict[str(user)] = UserData
 
-
     LogArray = []
     for log in panel_logs:
         # we making it into cool dicts
@@ -854,15 +891,17 @@ def GetPrivileges() -> list[dict[str, Any]]:
 
     if not privileges:
         return []
-    
+
     Privs = []
     for x in privileges:
-        Privs.append({
-            "Id": x[0],
-            "Name": x[1],
-            "Priv": x[2],
-            "Colour": x[3],
-        })
+        Privs.append(
+            {
+                "Id": x[0],
+                "Name": x[1],
+                "Priv": x[2],
+                "Colour": x[3],
+            },
+        )
 
     return Privs
 
@@ -889,10 +928,13 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     # stop people ascending themselves
     # OriginalPriv = int(session["Privilege"])
     if int(UserId) == from_id:
-        privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (from_id,))
+        privileges = state.database.fetch_val(
+            "SELECT privileges FROM users WHERE id = %s",
+            (from_id,),
+        )
         if privileges is None:
             return
-        
+
         if int(Privilege) > privileges:
             return "You cannot ascend yourself."
 
@@ -1087,7 +1129,10 @@ def WipeVanilla(AccId: int) -> None:
         (AccId,),
     )
     state.database.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
-    state.database.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (AccId,))
+    state.database.execute(
+        "DELETE FROM users_beatmap_playcount WHERE user_id = %s",
+        (AccId,),
+    )
 
 
 def WipeRelax(AccId: int) -> None:
@@ -1203,10 +1248,13 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
             ),
         )
 
-    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s",
+        (user_id,),
+    )
     if privileges is None:
         return False
-    
+
     if not privileges & 1:  # if restricted
         new_privs = privileges | 1
         state.database.execute(
@@ -1219,7 +1267,11 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
         TheReturn = False
     else:
         wip = "Your account has been restricted! Check with staff to see whats up."
-        params = {"k": config.api_foka_key, "to": GetUser(user_id)["Username"], "msg": wip}
+        params = {
+            "k": config.api_foka_key,
+            "to": GetUser(user_id)["Username"],
+            "msg": wip,
+        }
         FokaMessage(params)
         TimeBan = round(time.time())
         state.database.execute(
@@ -1246,7 +1298,10 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
         )
 
         # Delete all of their old.
-        state.database.execute("DELETE FROM first_places WHERE user_id = %s", (user_id,))
+        state.database.execute(
+            "DELETE FROM first_places WHERE user_id = %s",
+            (user_id,),
+        )
         for bmap_md5 in recalc_md5s:
             calc_first_place(bmap_md5[0])
 
@@ -1255,10 +1310,13 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
 
 
 def FreezeHandler(user_id: int) -> bool:
-    freeze_status = state.database.fetch_val("SELECT frozen FROM users WHERE id = %s", (user_id,))
+    freeze_status = state.database.fetch_val(
+        "SELECT frozen FROM users WHERE id = %s",
+        (user_id,),
+    )
     if freeze_status is None:
         return False
-    
+
     if freeze_status:
         state.database.execute(
             "UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s",
@@ -1279,7 +1337,11 @@ def FreezeHandler(user_id: int) -> bool:
 
         TheReturn = True
         wip = f"Your account has been frozen. Please join the {config.srv_name} Discord and submit a liveplay to a staff member in order to be unfrozen"
-        params = {"k": config.api_foka_key, "to": GetUser(user_id)["Username"], "msg": wip}
+        params = {
+            "k": config.api_foka_key,
+            "to": GetUser(user_id)["Username"],
+            "msg": wip,
+        }
         FokaMessage(params)
 
     return TheReturn
@@ -1296,10 +1358,13 @@ def BanUser(user_id: int, reason: str = "") -> bool:
             ),
         )
 
-    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s", (user_id,))
+    privileges = state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s",
+        (user_id,),
+    )
     if privileges is None:
         return False
-    
+
     Timestamp = round(time.time())
     if privileges == 0:  # if already banned
         state.database.execute(
@@ -1368,8 +1433,14 @@ def DeleteAccount(user_id: int) -> None:
     )
     state.database.execute("DELETE FROM tokens WHERE user = %s", (user_id,))
     state.database.execute("DELETE FROM remember WHERE userid = %s", (user_id,))
-    state.database.execute("DELETE FROM users_achievements WHERE user_id = %s", (user_id,))
-    state.database.execute("DELETE FROM users_beatmap_playcount WHERE user_id = %s", (user_id,))
+    state.database.execute(
+        "DELETE FROM users_achievements WHERE user_id = %s",
+        (user_id,),
+    )
+    state.database.execute(
+        "DELETE FROM users_beatmap_playcount WHERE user_id = %s",
+        (user_id,),
+    )
     state.database.execute(
         "DELETE FROM users_relationships WHERE user1 = %s OR user2 = %s",
         (
@@ -1399,16 +1470,20 @@ def BanchoKick(id: int, reason: str) -> None:
 def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
-    occurences = state.database.fetch_all("SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s", (Ip,))
+    occurences = state.database.fetch_all(
+        "SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s",
+        (Ip,),
+    )
 
     resp_list = []
     for occurence in occurences:
-        user_data = GetUser(occurence[0])
+        user_data = cast(dict, GetUser(occurence[0]))
         user_data["Ip"] = occurence[1]
         user_data["Occurencies"] = occurence[2]
         resp_list.append(user_data)
 
     return resp_list
+
 
 def find_priv(priv: int) -> dict[str, Any]:
     priv_info = state.database.fetch_one(
@@ -1434,10 +1509,14 @@ def find_priv(priv: int) -> dict[str, Any]:
 
     return resp
 
+
 def find_all_ips(user_id: int) -> list[dict[str, Any]]:
     """Gets array of users."""
     # fetching user id of person with given ip
-    resp = state.database.fetch_all("SELECT ip FROM ip_user WHERE userid = %s AND ip != ''", (user_id,))
+    resp = state.database.fetch_all(
+        "SELECT ip FROM ip_user WHERE userid = %s AND ip != ''",
+        (user_id,),
+    )
 
     if not resp:
         return []
@@ -1458,7 +1537,6 @@ def find_all_ips(user_id: int) -> list[dict[str, Any]]:
 
     data = []
     for user in occurences:
-
         priv_status = "Banned"
         priv_colour = "danger"
         if (user[4] & 3) >= 3:
@@ -1468,16 +1546,19 @@ def find_all_ips(user_id: int) -> list[dict[str, Any]]:
             priv_status = "Restricted"
             priv_colour = "warning"
 
-        data.append({
-            "user_id": user[0],
-            "ip": user[1],
-            "occurencies": user[2],
-            "username": user[3],
-            "privileges": find_priv(user[4]),
-            "priv_status": {"text": priv_status, "colour": priv_colour},
-        })
-    
+        data.append(
+            {
+                "user_id": user[0],
+                "ip": user[1],
+                "occurencies": user[2],
+                "username": user[3],
+                "privileges": find_priv(user[4]),
+                "priv_status": {"text": priv_status, "colour": priv_colour},
+            },
+        )
+
     return data
+
 
 def PlayerCountCollection(loop: bool = True) -> None:
     """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
@@ -1518,15 +1599,21 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
     """  # messing around with docstrings
     # checking if person already has supporter
     # also i believe there is a way better to do this, i am tired and may rewrite this and lower the query count
-    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    privileges = state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s LIMIT 1",
+        (AccountID,),
+    )
     if not privileges:
         return
 
     if privileges & 4:
         # already has supporter, extending
-        ends_on = state.database.fetch_val("SELECT donor_expire FROM users WHERE id = %s", (AccountID,))
+        ends_on = state.database.fetch_val(
+            "SELECT donor_expire FROM users WHERE id = %s",
+            (AccountID,),
+        )
         ends_on += 86400 * Duration
-        
+
         state.database.execute(
             "UPDATE users SET donor_expire = %s WHERE id=%s",
             (
@@ -1560,16 +1647,19 @@ def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
         )
 
 
-def RemoveSupporter(AccountID: int, session: "Session") -> None:
+def RemoveSupporter(AccountID: int, session: Session) -> None:
     """Removes supporter from the target user."""
-    privileges = state.database.fetch_val("SELECT privileges FROM users WHERE id = %s LIMIT 1", (AccountID,))
+    privileges = state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s LIMIT 1",
+        (AccountID,),
+    )
     if not privileges:
         return
-    
+
     # checking if they dont have it so privs arent messed up
     if not privileges & 4:
         return
-    
+
     privileges -= 4
     state.database.execute(
         "UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s",
@@ -1602,11 +1692,7 @@ def GetBadges() -> list[dict[str, Any]]:
     Badges = []
 
     for badge in badges_data:
-        Badges.append({
-            "Id": badge[0], 
-            "Name": badge[1], 
-            "Icon": badge[2]
-        })
+        Badges.append({"Id": badge[0], "Name": badge[1], "Icon": badge[2]})
 
     return Badges
 
@@ -1619,7 +1705,10 @@ def DeleteBadge(BadgeId: int) -> None:
 
 def GetBadge(BadgeID: int) -> dict[str, Any]:
     """Gets data of given badge."""
-    badge_data = state.database.fetch_one("SELECT * FROM badges WHERE id = %s LIMIT 1", (BadgeID,))
+    badge_data = state.database.fetch_one(
+        "SELECT * FROM badges WHERE id = %s LIMIT 1",
+        (BadgeID,),
+    )
 
     if not badge_data:
         return {
@@ -1628,11 +1717,7 @@ def GetBadge(BadgeID: int) -> dict[str, Any]:
             "Icon": "",
         }
 
-    return {
-        "Id": badge_data[0], 
-        "Name": badge_data[1], 
-        "Icon": badge_data[2]
-    }
+    return {"Id": badge_data[0], "Name": badge_data[1], "Icon": badge_data[2]}
 
 
 def SaveBadge(form: dict[str, str]) -> None:
@@ -1652,13 +1737,18 @@ def SaveBadge(form: dict[str, str]) -> None:
 
 def CreateBadge() -> int:
     """Creates empty badge."""
-    badge_id = state.database.execute("INSERT INTO badges (name, icon) VALUES ('New Badge', '')")
+    badge_id = state.database.execute(
+        "INSERT INTO badges (name, icon) VALUES ('New Badge', '')",
+    )
     return badge_id
 
 
 def GetPriv(PrivID: int) -> dict[str, Any]:
     """Gets the priv data from ID."""
-    priv_data = state.database.fetch_one("SELECT * FROM privileges_groups WHERE id = %s", (PrivID,))
+    priv_data = state.database.fetch_one(
+        "SELECT * FROM privileges_groups WHERE id = %s",
+        (PrivID,),
+    )
 
     if not priv_data:
         return {
@@ -1669,10 +1759,10 @@ def GetPriv(PrivID: int) -> dict[str, Any]:
         }
 
     return {
-        "Id": priv_data[0], 
-        "Name": priv_data[1], 
-        "Privileges": priv_data[2], 
-        "Colour": priv_data[3]
+        "Id": priv_data[0],
+        "Name": priv_data[1],
+        "Privileges": priv_data[2],
+        "Colour": priv_data[3],
     }
 
 
@@ -1697,7 +1787,7 @@ def UpdatePriv(Form: dict[str, str]) -> None:
         (Form["name"], Form["privilege"], Form["colour"], Form["id"]),
     )
     # update privs for users
-    #TheFormPriv = int(Form["privilege"])
+    # TheFormPriv = int(Form["privilege"])
     # if TheFormPriv != 0 and TheFormPriv != 3 and TheFormPriv != 2: #i accidentally modded everyone because of this....
     #    mycursor.execute("UPDATE users SET privileges = REPLACE(privileges, %s, %s)", (PrevPriv, TheFormPriv,))
 
@@ -1736,7 +1826,10 @@ def ListToDots(List: list) -> str:
 
 def GetUserBadges(AccountID: int) -> list[int]:
     """Gets badges of a user and returns as list."""
-    badges = state.database.fetch_all("SELECT badge FROM user_badges WHERE user = %s", (AccountID,))
+    badges = state.database.fetch_all(
+        "SELECT badge FROM user_badges WHERE user = %s",
+        (AccountID,),
+    )
 
     Badges = []
     for badge in badges:
@@ -1778,10 +1871,13 @@ def SetUserBadges(AccountID: int, Badges: list[int]) -> None:
 
 def GetUserID(Username: str) -> int:
     """Gets user id from username."""
-    user_id = state.database.fetch_val("SELECT id FROM users WHERE username LIKE %s LIMIT 1", (Username,))
+    user_id = state.database.fetch_val(
+        "SELECT id FROM users WHERE username LIKE %s LIMIT 1",
+        (Username,),
+    )
     if not user_id:
         return 0
-    
+
     return user_id
 
 
@@ -1824,7 +1920,7 @@ def UpdateBanStatus(UserID: int) -> None:
     state.redis.publish("peppy:ban", str(UserID))
 
 
-def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: "Session"):
+def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
     """Sets status for all beatmaps in beatmapset."""
     state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
@@ -1980,7 +2076,10 @@ def ChangePassword(AccountID: int, NewPassword: str) -> None:
     state.redis.publish("peppy:change_pass", json.dumps({"user_id": AccountID}))
 
 
-def ChangePWForm(form: dict[str, str], session: "Session") -> None:  # this function may be unnecessary but ehh
+def ChangePWForm(
+    form: dict[str, str],
+    session: Session,
+) -> None:  # this function may be unnecessary but ehh
     """Handles the change password POST request."""
     ChangePassword(int(form["accid"]), form["newpass"])
     User = GetUser(int(form["accid"]))
@@ -1994,6 +2093,7 @@ def GiveSupporterForm(form: dict[str, str]) -> None:
     """Handles the give supporter form/POST request."""
     GiveSupporter(int(form["accid"]), int(form["time"]))
 
+
 def convert_mode_to_str(mode: int) -> str:
     return {
         0: "osu!std",
@@ -2001,6 +2101,7 @@ def convert_mode_to_str(mode: int) -> str:
         2: "osu!catch",
         3: "osu!mania",
     }.get(mode, "osu!std")
+
 
 def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     """Gets all the rank requests. This may require some optimisation."""
@@ -2012,7 +2113,9 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     )
     # turning what we have so far into
     TheRequests = []
-    UserIDs = [] # used for later fetching the users, so we dont have a repeat of 50 queries
+    UserIDs = (
+        []
+    )  # used for later fetching the users, so we dont have a repeat of 50 queries
     for request in requests:
         # getting song info, like 50 individual queries at peak lmao
         TriedSet = False
@@ -2049,7 +2152,9 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
             Cover = "https://i.ytimg.com/vi/erb4n8PW2qw/maxresdefault.jpg"
         else:
             SongName = request_data[0]
-            SongName = SongName.split("[")[0].rstrip()  # kind of a way to get rid of diff name
+            SongName = SongName.split("[")[
+                0
+            ].rstrip()  # kind of a way to get rid of diff name
 
             BeatmapSetID = request_data[1]
             Cover = f"https://assets.ppy.sh/beatmaps/{BeatmapSetID}/covers/cover.jpg"
@@ -2083,7 +2188,10 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     # getting the Requester usernames
     Usernames = {}
     for AccoundIdentity in UserIDs:
-        username = state.database.fetch_val("SELECT username FROM users WHERE id = %s", (AccoundIdentity,))
+        username = state.database.fetch_val(
+            "SELECT username FROM users WHERE id = %s",
+            (AccoundIdentity,),
+        )
 
         if not username:
             Usernames[str(AccoundIdentity)] = {
@@ -2094,7 +2202,9 @@ def GetRankRequests(Page: int) -> list[dict[str, Any]]:
 
     # things arent going to be very performant lmao
     for i in range(0, len(TheRequests)):
-        TheRequests[i]["RequestUsername"] = Usernames[str(TheRequests[i]["RequestBy"])]["Username"]
+        TheRequests[i]["RequestUsername"] = Usernames[str(TheRequests[i]["RequestBy"])][
+            "Username"
+        ]
 
     # flip so it shows newest first yes
     TheRequests.reverse()
@@ -2111,6 +2221,7 @@ def UserPageCount() -> int:
     count = state.database.fetch_val("SELECT count(*) FROM users")
     return math.ceil(count / PAGE_SIZE)
 
+
 def traceback_pages() -> int:
     """Gets the number of pages for the traceback page."""
     count = state.sqlite.fetch_val(
@@ -2118,7 +2229,6 @@ def traceback_pages() -> int:
     )
 
     return math.ceil(count / PAGE_SIZE)
-
 
 
 def RapLogCount() -> int:
@@ -2140,13 +2250,15 @@ def GetClans(Page: int = 1) -> list[dict[str, Any]]:
     # making cool, easy to work with dicts and arrays!
     Clans = []
     for Clan in clans_data:
-        Clans.append({
-            "ID": Clan[0],
-            "Name": Clan[1],
-            "Description": Clan[2],
-            "Icon": Clan[3],
-            "Tag": Clan[4],
-        })
+        Clans.append(
+            {
+                "ID": Clan[0],
+                "Name": Clan[1],
+                "Description": Clan[2],
+                "Icon": Clan[3],
+                "Tag": Clan[4],
+            },
+        )
 
     return Clans
 
@@ -2160,10 +2272,13 @@ def GetClanPages() -> int:
 def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     """Returns a list of clan members."""
     # ok so we assume the list isnt going to be too long
-    clan_members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    clan_members = state.database.fetch_all(
+        "SELECT user FROM user_clans WHERE clan = %s",
+        (ClanID,),
+    )
     if not clan_members:
         return []
-    
+
     Conditions = ""
     args = []
     # this is so we can use one long query rather than a bunch of small ones
@@ -2181,12 +2296,14 @@ def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     # turning the data into a dictionary list
     ReturnList = []
     for User in members_data:
-        ReturnList.append({
-            "AccountID": User[1],
-            "Username": User[0],
-            "RegisterTimestamp": User[2],
-            "RegisterAgo": TimeToTimeAgo(User[2]),
-        })
+        ReturnList.append(
+            {
+                "AccountID": User[1],
+                "Username": User[0],
+                "RegisterTimestamp": User[2],
+                "RegisterAgo": TimeToTimeAgo(User[2]),
+            },
+        )
 
     return ReturnList
 
@@ -2207,9 +2324,12 @@ def GetClan(ClanID: int) -> dict[str, Any]:
             "MemberLimit": 0,
             "MemberCount": 0,
         }
-    
+
     # getting current member count
-    member_count = state.database.fetch_val("SELECT COUNT(*) FROM user_clans WHERE clan = %s", (ClanID,))
+    member_count = state.database.fetch_val(
+        "SELECT COUNT(*) FROM user_clans WHERE clan = %s",
+        (ClanID,),
+    )
     return {
         "ID": clan_data[0],
         "Name": clan_data[1],
@@ -2245,13 +2365,10 @@ def GetClanOwner(ClanID: int) -> dict[str, Any]:
             "Username": "Unknown",
         }
 
-    return {
-        "AccountID": owner_id, 
-        "Username": username
-    }
+    return {"AccountID": owner_id, "Username": username}
 
 
-def ApplyClanEdit(Form: dict[str, str], session: "Session") -> None:
+def ApplyClanEdit(Form: dict[str, str], session: Session) -> None:
     """Uses the post request to set new clan settings."""
     ClanID = Form["id"]
     ClanName = Form["name"]
@@ -2265,7 +2382,10 @@ def ApplyClanEdit(Form: dict[str, str], session: "Session") -> None:
     )
 
     # Make all tags refresh.
-    members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    members = state.database.fetch_all(
+        "SELECT user FROM user_clans WHERE clan = %s",
+        (ClanID,),
+    )
 
     for user_id in members:
         cache_clan(user_id[0])
@@ -2273,14 +2393,17 @@ def ApplyClanEdit(Form: dict[str, str], session: "Session") -> None:
     RAPLog(session.user_id, f"edited the clan {ClanName} ({ClanID})")
 
 
-def NukeClan(ClanID: int, session: "Session") -> None:
+def NukeClan(ClanID: int, session: Session) -> None:
     """Deletes a clan from the face of the earth."""
     Clan = GetClan(ClanID)
     if not Clan:
         return
 
     # Make all tags refresh.
-    members = state.database.fetch_all("SELECT user FROM user_clans WHERE clan = %s", (ClanID,))
+    members = state.database.fetch_all(
+        "SELECT user FROM user_clans WHERE clan = %s",
+        (ClanID,),
+    )
 
     state.database.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
     state.database.execute("DELETE FROM user_clans WHERE clan = %s", (ClanID,))
@@ -2370,6 +2493,7 @@ def CountRestricted() -> int:
     """Calculates the amount of restricted or banned users."""
     count = state.database.fetch_val("SELECT COUNT(*) FROM users WHERE privileges = 2")
     return count
+
 
 def GetStatistics(MinPP: int = 0) -> dict[str, Any]:
     """Gets statistics for the stats page and is incredibly slow...."""
@@ -2488,7 +2612,12 @@ def refresh_username_cache(user_id: int) -> None:
 
     state.redis.publish(
         "peppy:disconnect",
-        json.dumps({"userID": user_id, "reason": "Your username has been changed. Please re-log."}),
+        json.dumps(
+            {
+                "userID": user_id,
+                "reason": "Your username has been changed. Please re-log.",
+            },
+        ),
     )
 
 
@@ -2551,7 +2680,9 @@ def ban_pages() -> int:
 def request_count() -> int:
     """Returns the total number of requests."""
 
-    count = state.database.fetch_val("SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0")
+    count = state.database.fetch_val(
+        "SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0",
+    )
     return count
 
 
@@ -2570,7 +2701,10 @@ def fetch_user_banlogs(user_id: int) -> list[BanLog]:
     Returns:
         list[BanLog]: A list of all banlogs for the user.
     """
-    ban_logs = state.database.fetch_all(BAN_LOG_BASE + "WHERE to_id = %s ORDER BY b.id DESC", (user_id,))
+    ban_logs = state.database.fetch_all(
+        BAN_LOG_BASE + "WHERE to_id = %s ORDER BY b.id DESC",
+        (user_id,),
+    )
 
     return [
         {
@@ -2661,7 +2795,6 @@ def get_hwid_history(user_id: int) -> list[HWIDLog]:
 
 
 def get_hwid_history_paginated(user_id: int, page: int = 0) -> list[HWIDLog]:
-
     occurences = state.database.fetch_all(
         "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
         f"WHERE userid = %s ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
@@ -2745,7 +2878,10 @@ def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
 
 
 def get_hwid_count(user_id: int) -> int:
-    count = state.database.fetch_val("SELECT COUNT(*) FROM hw_user WHERE userid = %s", (user_id,))
+    count = state.database.fetch_val(
+        "SELECT COUNT(*) FROM hw_user WHERE userid = %s",
+        (user_id,),
+    )
     return count
 
 
@@ -2762,7 +2898,7 @@ class HWIDResult(TypedDict):
 
 
 class HWIDPage(TypedDict):
-    user: dict
+    user: SimpleUserData
     results: list[HWIDResult]
 
 
@@ -2788,3 +2924,76 @@ def get_hwid_page(user_id: int, page: int = 0) -> HWIDPage:
         "user": GetUser(user_id),
         "results": results,
     }
+
+
+# Username history.
+def is_username_taken(username: str) -> bool:
+    registered_exists = state.database.fetch_val(
+        "SELECT 1 FROM USERS WHERE username LIKE %s LIMIT 1",
+        (username,),
+    )
+
+    if registered_exists:
+        return True
+
+    history_exists = state.database.fetch_val(
+        "SELECT 1 FROM user_name_history WHERE username LIKE %s LIMIT 1",
+        (username,),
+    )
+
+    if history_exists:
+        return True
+
+    return False
+
+
+_USERNAME_TABLES = (
+    "users",
+    "users_stats",
+    "rx_stats",
+    "ap_stats",
+)
+
+
+def change_username(
+    user_id: int,
+    new_username: str,
+    bypass_name_history: bool = False,
+) -> bool:
+    """Internal function to handle the renaming of the individual.
+
+    Returns false if the username is already occupied or we are
+    attempting to rename an unknown user."""
+
+    if is_username_taken(new_username):
+        return False
+
+    old_data = GetUser(user_id)
+
+    if old_data["Id"] == 0:
+        return False
+
+    # Store the old username
+    if not bypass_name_history:
+        state.database.execute(
+            "INSERT INTO user_name_history VALUES (NULL, %s, %s, UNIX_TIMESTAMP())",
+            (
+                user_id,
+                old_data["Username"],
+            ),
+        )
+
+    # Update existing table entries (including data repetition...)
+    for username_table in _USERNAME_TABLES:
+        state.database.execute(
+            f"UPDATE {username_table} SET username = %s WHERE id = %s",
+            (
+                new_username,
+                user_id,
+            ),
+        )
+
+    # Re-log the user if they are online (can cause some weird behaviour in-game otherwise).
+    refresh_username_cache(user_id)
+
+    return True
