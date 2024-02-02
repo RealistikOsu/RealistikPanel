@@ -973,11 +973,13 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
 
     # Refresh in pep.py - Rosu only
     state.redis.publish("peppy:refresh_privs", json.dumps({"user_id": UserId}))
-    refresh_username_cache(UserId)
     RAPLog(
         from_id,
         f"has edited the user {old_data['Username']} ({UserId})",
     )
+
+    # Force pep.py to reload data.
+    BanchoKick(UserId, "Reloading data...")
 
 
 def ModToText(mod: int) -> str:
@@ -2607,15 +2609,27 @@ def refresh_bmap(md5: str) -> None:
     state.redis.publish("ussr:refresh_bmap", md5)
 
 
-def refresh_username_cache(user_id: int) -> None:
+def refresh_username_cache(user_id: int, new_username: str) -> None:
     """Refreshes the username cache for a specific user."""
 
+    # Handle pep.py tokens.
     state.redis.publish(
         "peppy:disconnect",
         json.dumps(
             {
                 "userID": user_id,
                 "reason": "Your username has been changed. Please re-log.",
+            },
+        ),
+    )
+
+    # Handle USSR cache.
+    state.redis.publish(
+        "peppy:change_username",
+        json.dumps(
+            {
+                "userID": user_id,
+                "newUsername": new_username,
             },
         ),
     )
@@ -2994,6 +3008,6 @@ def change_username(
         )
 
     # Re-log the user if they are online (can cause some weird behaviour in-game otherwise).
-    refresh_username_cache(user_id)
+    refresh_username_cache(user_id, new_username)
 
     return True
