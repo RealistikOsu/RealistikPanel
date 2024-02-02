@@ -996,11 +996,12 @@ def configure_routes(app: Flask) -> None:
         error = None
 
         if request.method == "POST":
-            ignore_name_history = request.form["no_name_history"] == "1"
+            ignore_name_history = request.form.get("no_name_history") == "on"
             error = apply_username_change(
                 user_id,
                 request.form["username"],
                 web.sessions.get().user_id,
+                ignore_name_history,
             )
 
             if error is None:
