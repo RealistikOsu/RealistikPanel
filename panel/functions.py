@@ -11,6 +11,7 @@ import time
 from typing import Any
 from typing import cast
 from typing import NamedTuple
+from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import Union
@@ -2941,24 +2942,28 @@ def get_hwid_page(user_id: int, page: int = 0) -> HWIDPage:
 
 
 # Username history.
-def is_username_taken(username: str) -> bool:
+def is_username_taken(username: str, ignore_user_id: int = 0) -> Optional[int]:
+    """Check if a username is taken by an existing user or previously belonged to them.
+    Returns `None` if not, else the user id."""
+
     registered_exists = state.database.fetch_val(
-        "SELECT 1 FROM USERS WHERE username LIKE %s LIMIT 1",
+        "SELECT id FROM USERS WHERE username LIKE %s LIMIT 1",
         (username,),
     )
 
     if registered_exists:
-        return True
+        return registered_exists
 
     history_exists = state.database.fetch_val(
-        "SELECT 1 FROM user_name_history WHERE username LIKE %s LIMIT 1",
-        (username,),
+        "SELECT user_id FROM user_name_history WHERE username LIKE %s "
+        "AND user_id != %s LIMIT 1",
+        (username, ignore_user_id),
     )
 
     if history_exists:
-        return True
+        return history_exists
 
-    return False
+    return None
 
 
 _USERNAME_TABLES = (
@@ -2979,7 +2984,7 @@ def change_username(
     Returns false if the username is already occupied or we are
     attempting to rename an unknown user."""
 
-    if is_username_taken(new_username):
+    if is_username_taken(new_username, user_id):
         return False
 
     old_data = GetUser(user_id)
@@ -3015,8 +3020,30 @@ def change_username(
 
 def get_username_history(user_id: int) -> list[str]:
     username_history = state.database.fetch_all(
-        "SELECT username FROM user_name_history WHERE user_id = %s",
+        # XXX: Distinct should be fast enough on a small dataset like this.
+        "SELECT DISTINCT(username) FROM user_name_history WHERE user_id = %s",
         (user_id,),
     )
 
     return [entry[0] for entry in username_history]
+
+
+def apply_username_change(
+    user_id: int,
+    new_username: str,
+    changed_by_id: int,
+) -> Optional[str]:
+    if taken_id := is_username_taken(new_username, user_id):
+        taken_user = GetUser(taken_id)
+        return f"This username is already occupied by {taken_user['Username']} ({taken_id})"
+
+    old_user = GetUser(user_id)
+
+    if not change_username(user_id, new_username):
+        return "Failed to change the username. Perhaps the user doesn't exist anymore?"
+
+    RAPLog(
+        changed_by_id,
+        f"renamed {old_user['Username']} ({user_id}) to {new_username!r}",
+    )
+    return
