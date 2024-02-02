@@ -985,6 +985,33 @@ def configure_routes(app: Flask) -> None:
             console_logs=get_tracebacks(page - 1),
         )
 
+    @app.route("/user/rename/<int:user_id>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def rename_user(user_id: int):
+        user = GetUser(user_id)
+
+        if user["Id"] == 0:
+            return redirect("/users/1")
+
+        error = None
+
+        if request.method == "POST":
+            error = apply_username_change(
+                user_id,
+                request.form["username"],
+                web.sessions.get().user_id,
+            )
+
+            if error is None:
+                return redirect(f"/user/edit/{user_id}")
+
+        return load_panel_template(
+            "user_rename.html",
+            title=f"Rename {user['Username']}",
+            user=user,
+            error=error,
+        )
+
 
 def configure_error_handlers(app: Flask) -> None:
     # error handlers
