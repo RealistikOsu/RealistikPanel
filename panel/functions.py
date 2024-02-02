@@ -3012,6 +3012,12 @@ def change_username(
             ),
         )
 
+    # If this username was previously in our name history, delete it.
+    state.database.execute(
+        "DELETE FROM user_name_history WHERE username LIKE %s AND user_id = %s",
+        (new_username, user_id),
+    )
+
     # Re-log the user if they are online (can cause some weird behaviour in-game otherwise).
     refresh_username_cache(user_id, new_username)
 
