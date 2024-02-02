@@ -3,7 +3,7 @@ RealistikPanel Dark Stisla
 This is an attempt to introducs dark theme
 into Stisla. Being pretty inexperianced in
 css, dont expect this to be good.
-- RealistikDash 
+- RealistikDash
 - 2023 update: lenforiee rework.
 */
 
@@ -23,7 +23,7 @@ body {
     color: rgb(226, 232, 240);
 }
 
-.card, 
+.card,
 .card-header,
 .article,
 .article-details,
@@ -94,4 +94,8 @@ th, h4 {
 
 .dropdown-title, .dropdown-item {
     color: rgb(226, 232, 240);
+}
+
+hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
 }

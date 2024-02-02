@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="section-title">Rename {{ user["Username"] }}</h2>
+<p class="section-lead">Change a player's username and keep track of their past names.</p>
+
+<div class="card">
+    <div class="card-header">
+        <h4>Rename</h4>
+    </div>
+    <div class="card-body">
+        <form action="/user/rename/{{ user['Id'] }}" method="post">
+            <div class="form-group">
+                <label>User ID</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="user_id"
+                  value="{{ user['Id'] }}"
+                  readonly
+                />
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="username"
+                  value="{{ user['Username'] }}"
+                />
+            </div>
+            <div class="form-group">
+                <label>Name History</label>
+                <div class="form-check">
+                    <input
+                        name="no_name_history"
+                        type="checkbox"
+                        class="form-check-input"
+                    />
+                    Do not add the old name to the name history.
+                </div>
+            </div>
+
+            <button class="btn btn-success" type="submit" name="">Rename!</button>
+        </form>
+    </div>
+</div>
+<!--
+<div class="card">
+    <div class="card-header">
+        <h4>Relinquish Past Names</h4>
+    </div>
+    <div class="card-body">
+
+    </div>
+</div>
+-->
+{% endblock %}

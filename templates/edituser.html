@@ -76,6 +76,16 @@
           if they do not submit a liveplay.</span
         >
       {% endif %}
+      <hr>
+      {% if past_username_history %}
+        They were previously known as:
+        {% for past_name in  past_username_history %}
+          <b>{{ past_name }}</b>
+          {% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        They have no past username history.
+      {% endif %}
     </div>
     <div class="card-footer">RealistikPanel</div>
   </div>
@@ -102,6 +112,7 @@
             class="form-control"
             name="username"
             value="{{ UserData['Username'] }}"
+            readonly
           />
         </div>
         <div class="form-group">
@@ -308,6 +319,9 @@
         >
         <a href="/user/fulliplookup/{{ UserData['Id'] }}" class="btn btn-success"
           >Full IP Lookup</a
+        >
+        <a href="/user/rename/{{ UserData['Id'] }}" class="btn btn-warning"
+          >Rename User</a
         >
         <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning"
           >Change Password</a
