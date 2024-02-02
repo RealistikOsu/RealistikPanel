@@ -76,6 +76,16 @@
           if they do not submit a liveplay.</span
         >
       {% endif %}
+      <hr>
+      {% if past_username_history %}
+        They were previously known as:
+        {% for past_name in  past_username_history %}
+          <b>{{ past_name }}</b>
+          {% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        They have no past username history.
+      {% endif %}
     </div>
     <div class="card-footer">RealistikPanel</div>
   </div>

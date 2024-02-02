@@ -1,8 +1,8 @@
 # This file is responsible for running the web server and (mostly nothing else)
 from __future__ import annotations
-from copy import copy
 
 import traceback
+from copy import copy
 
 from flask import Flask
 from flask import jsonify
@@ -10,21 +10,19 @@ from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from redis import Redis
 
 from panel import logger
 from panel import web
-from panel.config import config
-from panel.functions import *
+from panel.adapters.mysql import MySQLPool
+from panel.adapters.sqlite import Sqlite
 from panel.common.utils import halve_list
+from panel.config import config
+from panel.constants.traceback import TracebackType
+from panel.functions import *
 from panel.web.responses import load_panel_template
 from panel.web.sessions import requires_privilege
 
-from panel.adapters.mysql import MySQLPool
-from panel.adapters.sqlite import Sqlite
-
-from panel.constants.traceback import TracebackType
-
-from redis import Redis
 
 # TODO: Make better routers.
 def configure_routes(app: Flask) -> None:
@@ -55,9 +53,12 @@ def configure_routes(app: Flask) -> None:
     def panel_login():
         session = web.sessions.get()
 
-        if session.logged_in and has_privilege_value(session.user_id, Privileges.ADMIN_ACCESS_RAP):
+        if session.logged_in and has_privilege_value(
+            session.user_id,
+            Privileges.ADMIN_ACCESS_RAP,
+        ):
             return redirect(url_for("panel_dashboard"))
-        
+
         if request.method == "GET":
             redir = request.args.get("redirect")
             if redir:
@@ -76,11 +77,11 @@ def configure_routes(app: Flask) -> None:
                     alert=data,
                     conf=config,
                 )
-            
+
             session.logged_in = True
-            session.privileges = data.privileges # type: ignore
-            session.user_id = data.user_id # type: ignore
-            session.username = data.username # type: ignore
+            session.privileges = data.privileges  # type: ignore
+            session.user_id = data.user_id  # type: ignore
+            session.username = data.username  # type: ignore
             web.sessions.set(session)
 
             redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
@@ -89,7 +90,7 @@ def configure_routes(app: Flask) -> None:
                 return redirect(redir)
 
             return redirect(url_for("panel_home_redirect"))
-        
+
         return render_template("errors/403.html")
 
     @app.route("/logout")
@@ -182,7 +183,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/users/<int:page>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_search_users(page: int = 1):
-
         if page < 1:
             return redirect("/users/1")
 
@@ -242,7 +242,10 @@ def configure_routes(app: Flask) -> None:
             except Exception:
                 error = "An internal error has occured while saving system settings!"
                 tb = traceback.format_exc()
-                logger.error("An internal error has occured while saving system settings, error: " + tb)
+                logger.error(
+                    "An internal error has occured while saving system settings, error: "
+                    + tb,
+                )
                 log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
@@ -271,7 +274,10 @@ def configure_routes(app: Flask) -> None:
             except Exception:
                 error = "An internal error has occured while editing the user!"
                 tb = traceback.format_exc()
-                logger.error("An internal error has occured while editing the user, error: " + tb)
+                logger.error(
+                    "An internal error has occured while editing the user, error: "
+                    + tb,
+                )
                 log_traceback(tb, session, TracebackType.DANGER)
 
         return load_panel_template(
@@ -286,6 +292,7 @@ def configure_routes(app: Flask) -> None:
             ban_logs=fetch_user_banlogs(user_id),
             hwid_count=get_hwid_count(user_id),
             countries=get_countries(),
+            past_username_history=get_username_history(user_id),
             error=error,
             success=success,
         )
@@ -293,7 +300,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_logs(page: int):
-
         if page < 1:
             return redirect("/logs/1")
 
@@ -348,7 +354,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/ban-logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
     def panel_view_ban_logs(page: int):
-
         if page < 1:
             return redirect("/ban-logs/1")
 
@@ -374,7 +379,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/badge/edit/<int:BadgeID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
     def panel_edit_badge(BadgeID: int):
-
         if request.method == "GET":
             return load_panel_template(
                 "editbadge.html",
@@ -382,7 +386,7 @@ def configure_routes(app: Flask) -> None:
                 title="Edit Badge",
                 badge=GetBadge(BadgeID),
             )
-        
+
         success = None
         error = None
         if request.method == "POST":
@@ -398,9 +402,12 @@ def configure_routes(app: Flask) -> None:
             except Exception:
                 error = "An internal error has occured while editing the badge!"
                 tb = traceback.format_exc()
-                logger.error(f"An internal error has occured while editing the badge {BadgeID}, error: " + tb)
+                logger.error(
+                    f"An internal error has occured while editing the badge {BadgeID}, error: "
+                    + tb,
+                )
                 log_traceback(tb, session, TracebackType.DANGER)
-            
+
             return load_panel_template(
                 "editbadge.html",
                 route="/badges",
@@ -409,13 +416,12 @@ def configure_routes(app: Flask) -> None:
                 success=success,
                 error=error,
             )
-            
+
         return render_template("errors/403.html")
 
     @app.route("/privileges")
     @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
     def panel_view_privileges():
-
         return load_panel_template(
             "privileges.html",
             route="/privileges",
@@ -426,7 +432,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/privilege/edit/<int:Privilege>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
     def panel_edit_privilege(Privilege: int):
-
         if request.method == "GET":
             return load_panel_template(
                 "editprivilege.html",
@@ -434,7 +439,7 @@ def configure_routes(app: Flask) -> None:
                 title="Privileges",
                 privileges=GetPriv(Privilege),
             )
-        
+
         success = None
         error = None
         if request.method == "POST":
@@ -452,9 +457,12 @@ def configure_routes(app: Flask) -> None:
                 Priv = GetPriv(Privilege)
                 error = "An internal error has occured while editing the privileges!"
                 tb = traceback.format_exc()
-                logger.error(f"An internal error has occured while editing the privilege '{Priv['Name']}' error: " + tb)
+                logger.error(
+                    f"An internal error has occured while editing the privilege '{Priv['Name']}' error: "
+                    + tb,
+                )
                 log_traceback(tb, session, TracebackType.DANGER)
-            
+
             return load_panel_template(
                 "editprivilege.html",
                 route="/privileges",
@@ -463,13 +471,12 @@ def configure_routes(app: Flask) -> None:
                 success=success,
                 error=error,
             )
-            
+
         return render_template("errors/403.html")
 
     @app.route("/changepass/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_edit_user_password(AccountID: int):
-
         if request.method == "GET":
             User = GetUser(AccountID)
             return load_panel_template(
@@ -478,19 +485,18 @@ def configure_routes(app: Flask) -> None:
                 title=f"Change the Password for {User['Username']}",
                 User=User,
             )
-        
+
         if request.method == "POST":
             session = web.sessions.get()
             ChangePWForm(request.form, session)
             User = GetUser(AccountID)
             return redirect(f"/user/edit/{AccountID}")
-        
+
         return render_template("errors/403.html")
 
     @app.route("/donoraward/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_award_user_donor(AccountID: int):
-
         if request.method == "GET":
             User = GetUser(AccountID)
             return load_panel_template(
@@ -499,7 +505,7 @@ def configure_routes(app: Flask) -> None:
                 title=f"Award Donor to {User['Username']}",
                 User=User,
             )
-        
+
         if request.method == "POST":
             session = web.sessions.get()
             GiveSupporterForm(request.form)
@@ -509,7 +515,7 @@ def configure_routes(app: Flask) -> None:
                 f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.",
             )
             return redirect(f"/user/edit/{AccountID}")
-        
+
         return render_template("errors/403.html")
 
     @app.route("/donorremove/<int:AccountID>")
@@ -523,7 +529,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/rankreq/<int:Page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
     def panel_view_rank_requests(Page: int):
-
         if Page < 1:
             return redirect("/rankreq/1")
 
@@ -539,7 +544,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/clans/<int:Page>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_view_clans(Page: int):
-
         if Page < 1:
             return redirect("/clans/1")
 
@@ -555,7 +559,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/clan/<int:ClanID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
     def panel_edit_clan(ClanID: int):
-
         if request.method == "GET":
             return load_panel_template(
                 "editclan.html",
@@ -580,7 +583,7 @@ def configure_routes(app: Flask) -> None:
                 success="Clan edited successfully!",
                 clan_invites=get_clan_invites(ClanID),
             )
-        
+
         return render_template("errors/403.html")
 
     # TODO: probably should be an action
@@ -609,7 +612,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/stats", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     def panel_view_server_stats():
-
         minimum_pp = int(request.form.get("minpp", "0"))
         return load_panel_template(
             "stats.html",
@@ -622,7 +624,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/user/hwid/<int:user_id>/<int:page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def view_user_hwid_route(user_id: int, page: int = 1):
-
         if page < 1:
             return redirect(f"/user/hwid/{user_id}/1")
 
@@ -725,7 +726,7 @@ def configure_routes(app: Flask) -> None:
     def panel_delete_user_commants_action(AccountID: int):
         """Wipe all comments made by this user"""
         session = web.sessions.get()
-        
+
         Account = GetUser(AccountID)
         DeleteUserComments(AccountID)
 
@@ -797,7 +798,11 @@ def configure_routes(app: Flask) -> None:
         session = web.sessions.get()
 
         Account = GetUser(user_id)
-        if ResUnTrict(user_id, request.args.get("note", ""), request.args.get("reason", "")):
+        if ResUnTrict(
+            user_id,
+            request.args.get("note", ""),
+            request.args.get("reason", ""),
+        ):
             RAPLog(
                 session.user_id,
                 f"has restricted the account {Account['Username']} ({user_id})",
@@ -968,7 +973,6 @@ def configure_routes(app: Flask) -> None:
     @app.route("/console/<int:page>")
     @requires_privilege(Privileges.PANEL_ERROR_LOGS)
     def console(page: int):
-
         if page < 1:
             return redirect("/console/1")
 
@@ -990,7 +994,6 @@ def configure_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(500)
     def code_error_handler(_):
-
         tb = traceback.format_exc()
         session = web.sessions.get()
 
@@ -1001,6 +1004,7 @@ def configure_error_handlers(app: Flask) -> None:
     @app.before_request
     def pre_request():
         web.sessions.ensure()
+
 
 def initialise_connectors(app: Flask) -> None:
     state.database = MySQLPool(
@@ -1028,8 +1032,9 @@ def initialise_connectors(app: Flask) -> None:
             `traceback_type` INT NOT NULL,
             `time` INT NOT NULL
         );
-        """
+        """,
     )
+
 
 def init_app() -> Flask:
     app = Flask(

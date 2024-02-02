@@ -3011,3 +3011,12 @@ def change_username(
     refresh_username_cache(user_id, new_username)
 
     return True
+
+
+def get_username_history(user_id: int) -> list[str]:
+    username_history = state.database.fetch_all(
+        "SELECT username FROM user_name_history WHERE user_id = %s",
+        (user_id,),
+    )
+
+    return [entry[0] for entry in username_history]
