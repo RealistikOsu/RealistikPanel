@@ -869,9 +869,9 @@ def GetPrivileges() -> list[dict[str, Any]]:
 
 def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     """Apples the user settings."""
+
     # getting variables from form
     UserId = int(form.get("userid", "0"))
-    Username = form.get("username", "")
     Aka = form.get("aka", "")
     Email = form.get("email", "")
     Country = form.get("country", "")
@@ -880,8 +880,7 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     Privilege = form.get("privilege", "0")
     HWIDBypass = form.get("hwid_bypass", "0") == "1"
 
-    # Creating safe username
-    SafeUsername = RippleSafeUsername(Username)
+    old_data = GetUser(UserId)
 
     # fixing crash bug
     if UserPage == "":
@@ -911,12 +910,10 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     # SQL Queries
     # TODO: transaction?
     state.database.execute(
-        "UPDATE users SET email = %s, notes = %s, username = %s, username_safe = %s, privileges = %s, bypass_hwid = %s, country = %s WHERE id = %s",
+        "UPDATE users SET email = %s, notes = %s, privileges = %s, bypass_hwid = %s, country = %s WHERE id = %s",
         (
             Email,
             Notes,
-            Username,
-            SafeUsername,
             Privilege,
             HWIDBypass,
             Country,
@@ -924,37 +921,20 @@ def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
         ),
     )
     state.database.execute(
-        "UPDATE users_stats SET userpage_content = %s, username_aka = %s, username = %s WHERE id = %s",
+        "UPDATE users_stats SET userpage_content = %s, username_aka = %s WHERE id = %s",
         (
             UserPage,
             Aka,
-            Username,
             UserId,
         ),
     )
-    if config.srv_supports_relax:
-        state.database.execute(
-            "UPDATE rx_stats SET username = %s WHERE id = %s",
-            (
-                Username,
-                UserId,
-            ),
-        )
-    if config.srv_supports_autopilot:
-        state.database.execute(
-            "UPDATE ap_stats SET username = %s WHERE id = %s",
-            (
-                Username,
-                UserId,
-            ),
-        )
 
     # Refresh in pep.py - Rosu only
     state.redis.publish("peppy:refresh_privs", json.dumps({"user_id": UserId}))
-    refresh_username_cache(UserId, Username)
+    refresh_username_cache(UserId)
     RAPLog(
         from_id,
-        f"has edited the user {Username} ({UserId})",
+        f"has edited the user {old_data['Username']} ({UserId})",
     )
 
 
@@ -2503,12 +2483,12 @@ def refresh_bmap(md5: str) -> None:
     state.redis.publish("ussr:refresh_bmap", md5)
 
 
-def refresh_username_cache(user_id: int, new_name: str) -> None:
+def refresh_username_cache(user_id: int) -> None:
     """Refreshes the username cache for a specific user."""
 
     state.redis.publish(
-        "peppy:change_username",
-        json.dumps({"userID": user_id, "newUsername": new_name}),
+        "peppy:disconnect",
+        json.dumps({"userID": user_id, "reason": "Your username has been changed. Please re-log."}),
     )
 
 
