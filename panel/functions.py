@@ -3032,6 +3032,7 @@ def apply_username_change(
     user_id: int,
     new_username: str,
     changed_by_id: int,
+    no_name_history: bool,
 ) -> Optional[str]:
     # Minor cleanups (we sorta trust staff to be kinda sane with the charset)
     new_username = new_username.strip()
@@ -3045,7 +3046,7 @@ def apply_username_change(
         taken_user = GetUser(taken_id)
         return f"This username is already occupied by {taken_user['Username']} ({taken_id})"
 
-    if not change_username(user_id, new_username):
+    if not change_username(user_id, new_username, no_name_history):
         return "Failed to change the username. Perhaps the user doesn't exist anymore?"
 
     RAPLog(
