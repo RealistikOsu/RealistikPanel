@@ -2947,7 +2947,7 @@ def is_username_taken(username: str, ignore_user_id: int = 0) -> Optional[int]:
     Returns `None` if not, else the user id."""
 
     registered_exists = state.database.fetch_val(
-        "SELECT id FROM USERS WHERE username LIKE %s LIMIT 1",
+        "SELECT id FROM users WHERE username LIKE %s LIMIT 1",
         (username,),
     )
 
