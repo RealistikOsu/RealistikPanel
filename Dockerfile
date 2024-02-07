@@ -12,6 +12,7 @@ RUN pip install -r requirements.txt
 # App setup
 COPY panel /app/panel
 COPY main.py /app
+COPY templates /app/templates
+COPY static /app/static
 
-EXPOSE 1337
 CMD ["python3.9", "main.py"]
