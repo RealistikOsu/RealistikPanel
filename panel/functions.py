@@ -2463,7 +2463,7 @@ def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24) -> int:
 
 def RippleSafeUsername(Username: str) -> str:
     """Generates a ripple-style safe username."""
-    return Username.lower().replace(" ", "_").rstrip()
+    return Username.lower().replace(" ", "_").strip()
 
 
 def GetSuggestedRank() -> list[dict[str, Any]]:
@@ -2967,7 +2967,6 @@ def is_username_taken(username: str, ignore_user_id: int = 0) -> Optional[int]:
 
 
 _USERNAME_TABLES = (
-    "users",
     "users_stats",
     "rx_stats",
     "ap_stats",
@@ -3003,6 +3002,15 @@ def change_username(
         )
 
     # Update existing table entries (including data repetition...)
+    state.database.execute(
+        "UPDATE users SET username = %s, username_safe = %s WHERE id = %s",
+        (
+            new_username,
+            RippleSafeUsername(new_username),
+            user_id,
+        ),
+    )
+
     for username_table in _USERNAME_TABLES:
         state.database.execute(
             f"UPDATE {username_table} SET username = %s WHERE id = %s",
