@@ -28,13 +28,10 @@ class Config:
     srv_url: str = "https://ussr.pl/"
     srv_supports_relax: bool = True
     srv_supports_autopilot: bool = True
-    srv_switcher_ips: str = "173.249.42.180"
     srv_donor_badge_id: int = 1002
-    api_lets_url: str = "https://old.ussr.pl/letsapi/"
-    api_avatar_url: str = "https://a.ussr.pl/"
-    api_bancho_url: str = "https://c.ussr.pl/"
-    api_geoloc_url: str = "https://ip.zxq.co/"
-    api_foka_key: str = ""
+    api_ussr_url: str = "https://osu.ussr.pl/web"
+    api_avatar_url: str = "https://a.ussr.pl"
+    api_bancho_url: str = "https://c.ussr.pl"
     webhook_ranked: str = ""
     webhook_admin_log: str = ""
     app_repo_url: str = "https://github.com/RealistikOsu/RealistikPanel"
@@ -85,18 +82,24 @@ def load_json_config() -> Config:
     return config
 
 
+def read_bool(value: str) -> bool:
+    return value.lower() in ("1", "true")
+
+
 def load_env_config() -> Config:
     conf = Config()
 
     for key, cast in get_type_hints(conf).items():
         if (env_value := os.environ.get(key.upper())) is not None:
+            if cast is bool:
+                env_value = read_bool(env_value)
             setattr(conf, key, cast(env_value))
 
     return conf
 
 
 def load_config() -> Config:
-    if os.environ.get("USE_ENV_CONFIG") == "1":
+    if read_bool(os.environ.get("USE_ENV_CONFIG", "false").lower()):
         return load_env_config()
     return load_json_config()
 
