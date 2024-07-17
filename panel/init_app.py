@@ -680,7 +680,7 @@ def configure_routes(app: Flask) -> None:
         try:
             resp = requests.get(config.api_ussr_url)
             return jsonify(
-                {"server_status": int(resp.status_code == 404)}
+                {"server_status": int(resp.status_code == 404)},
             )  # this url to provide a predictable result
         except Exception:
             tb = traceback.format_exc()

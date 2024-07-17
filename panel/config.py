@@ -81,8 +81,10 @@ def load_json_config() -> Config:
 
     return config
 
+
 def read_bool(value: str) -> bool:
     return value.lower() in ("1", "true")
+
 
 def load_env_config() -> Config:
     conf = Config()

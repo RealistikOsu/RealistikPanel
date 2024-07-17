@@ -617,13 +617,17 @@ def CalcPP(BmapID: int) -> float:
 
 def CalcPPRX(BmapID: int) -> float:
     """Sends request to USSR to calc PP for beatmap id with the Relax mod."""
-    reqjson = requests.get(url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=128").json()
+    reqjson = requests.get(
+        url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=128",
+    ).json()
     return round(reqjson["pp"][0], 2)
 
 
 def CalcPPAP(BmapID: int) -> float:
     """Sends request to USSR to calc PP for beatmap id with the Autopilot mod."""
-    reqjson = requests.get(url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=8192").json()
+    reqjson = requests.get(
+        url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=8192",
+    ).json()
     return round(reqjson["pp"][0], 2)
 
 
