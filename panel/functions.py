@@ -436,7 +436,7 @@ def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None:
 
 def FokaMessage(params: dict[str, Any]) -> None:
     """Sends a fokabot message."""
-    requests.get(config.api_bancho_url + "api/v1/fokabotMessage", params=params)
+    requests.get(config.api_bancho_url + "/api/v1/fokabotMessage", params=params)
 
 
 def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
@@ -468,7 +468,7 @@ def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
     embed.set_author(
         name=f"{map_data[0]} was just {TitleText}",
         url=f"{config.srv_url}b/{BeatmapId}",
-        icon_url=f"{config.api_avatar_url}{session.user_id}",
+        icon_url=f"{config.api_avatar_url}/{session.user_id}",
     )
 
     embed.set_footer(text="via RealistikPanel!")
@@ -487,9 +487,6 @@ def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
         Logtext = "loved"
 
     RAPLog(session.user_id, f"{Logtext} the beatmap {map_data[0]} ({BeatmapId})")
-    ingamemsg = f"[https://{config.srv_url}u/{session.user_id} {session.username}] {Logtext.lower()} the map [https://osu.ppy.sh/b/{BeatmapId} {map_data[0]}]"
-    params = {"k": config.api_foka_key, "to": "#announce", "msg": ingamemsg}
-    FokaMessage(params)
 
 
 def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") -> None:
@@ -517,7 +514,7 @@ def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") ->
     embed.set_author(
         name=f"New action done by {Username}!",
         url=f"{config.srv_url}u/{UserID}",
-        icon_url=f"{config.api_avatar_url}{UserID}",
+        icon_url=f"{config.api_avatar_url}/{UserID}",
     )
 
     webhook.add_embed(embed)
@@ -602,7 +599,7 @@ def IsOnline(AccountId: int) -> bool:
     """Checks if given user is online."""
     try:
         Online = requests.get(
-            url=f"{config.api_bancho_url}api/v1/isOnline?id={AccountId}",
+            url=f"{config.api_bancho_url}/api/v1/isOnline?id={AccountId}",
         ).json()
         if Online["status"] == 200:
             return Online["result"]
@@ -613,20 +610,20 @@ def IsOnline(AccountId: int) -> bool:
 
 
 def CalcPP(BmapID: int) -> float:
-    """Sends request to letsapi to calc PP for beatmap id."""
-    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}").json()
+    """Sends request to USSR to calc PP for beatmap id."""
+    reqjson = requests.get(url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}").json()
     return round(reqjson["pp"][0], 2)
 
 
 def CalcPPRX(BmapID: int) -> float:
-    """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
-    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=128").json()
+    """Sends request to USSR to calc PP for beatmap id with the Relax mod."""
+    reqjson = requests.get(url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=128").json()
     return round(reqjson["pp"][0], 2)
 
 
 def CalcPPAP(BmapID: int) -> float:
-    """Sends request to letsapi to calc PP for beatmap id with the double time mod."""
-    reqjson = requests.get(url=f"{config.api_lets_url}v1/pp?b={BmapID}&m=8192").json()
+    """Sends request to USSR to calc PP for beatmap id with the Autopilot mod."""
+    reqjson = requests.get(url=f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=8192").json()
     return round(reqjson["pp"][0], 2)
 
 
@@ -811,7 +808,7 @@ def UserData(UserID: int) -> dict[str, Any]:
         "DonorExpire": user_data3[4],
         "SilenceEnd": user_data3[5],
         "SilenceReason": user_data3[6],
-        "Avatar": config.api_avatar_url + str(UserID),
+        "Avatar": f"{config.api_avatar_url}/{UserID}",
         "Ip": ip_val,
         "CountryFull": GetCFullName(user_data["Country"]),
         "PrivName": privilege_name,
@@ -1269,13 +1266,6 @@ def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
         )  # unrestricts
         TheReturn = False
     else:
-        wip = "Your account has been restricted! Check with staff to see whats up."
-        params = {
-            "k": config.api_foka_key,
-            "to": GetUser(user_id)["Username"],
-            "msg": wip,
-        }
-        FokaMessage(params)
         TimeBan = round(time.time())
         state.database.execute(
             "UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s",
@@ -1339,13 +1329,6 @@ def FreezeHandler(user_id: int) -> bool:
         )
 
         TheReturn = True
-        wip = f"Your account has been frozen. Please join the {config.srv_name} Discord and submit a liveplay to a staff member in order to be unfrozen"
-        params = {
-            "k": config.api_foka_key,
-            "to": GetUser(user_id)["Username"],
-            "msg": wip,
-        }
-        FokaMessage(params)
 
     return TheReturn
 

@@ -678,11 +678,9 @@ def configure_routes(app: Flask) -> None:
     @app.route("/js/status/lets")
     def panel_lets_status_api():
         try:
+            resp = requests.get(config.api_ussr_url)
             return jsonify(
-                requests.get(
-                    config.api_lets_url + "v1/status",
-                    timeout=1,
-                ).json(),
+                {"server_status": int(resp.status_code == 404)}
             )  # this url to provide a predictable result
         except Exception:
             tb = traceback.format_exc()
@@ -695,7 +693,7 @@ def configure_routes(app: Flask) -> None:
         try:
             return jsonify(
                 requests.get(
-                    config.api_bancho_url + "api/v1/serverStatus",
+                    config.api_bancho_url + "/api/v1/serverStatus",
                     timeout=1,
                 ).json(),
             )  # this url to provide a predictable result
