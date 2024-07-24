@@ -86,6 +86,12 @@
       {% else %}
         They have no past username history.
       {% endif %}
+      {% if UserData["Whitelisted"] %}
+        <br />
+        <span style="color: #3437eb;"
+          >This user is currently whitelisted.</span
+        >
+      {% endif %}
     </div>
     <div class="card-footer">RealistikPanel</div>
   </div>
@@ -406,6 +412,9 @@
             >Wipe Autopilot</a
           >
         {% endif %}
+        <a href="/actions/whitelist/{{ UserData['Id'] }}" class="btn btn-danger"
+          >Whitelist/Unwhitelist</a
+        >
       </div>
     </div>
     <div class="card-footer">RealistikPanel</div>

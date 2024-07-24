@@ -967,6 +967,15 @@ def configure_routes(app: Flask) -> None:
     def panel_kick_user_from_clan_action(AccountID: int):
         KickFromClan(AccountID)
         return redirect("/clans/1")
+    
+
+    @app.route("/action/whitelist/<int:user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    def panel_whitelist_user_action(user_id: int):
+        session = web.sessions.get()
+
+        apply_whitelist_change(user_id, session.user_id)
+        return redirect(f"/user/edit/{user_id}")
 
     @app.route("/console/<int:page>")
     @requires_privilege(Privileges.PANEL_ERROR_LOGS)

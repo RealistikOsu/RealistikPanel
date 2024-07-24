@@ -801,6 +801,9 @@ def UserData(UserID: int) -> dict[str, Any]:
     if not user_data2[0] is None:
         userpage_content = user_data2[0].strip()
 
+
+    whitelist = is_whitelisted(UserID)
+
     user_data |= {
         "UserpageContent": userpage_content,
         "UserColour": user_data2[1],
@@ -824,6 +827,7 @@ def UserData(UserID: int) -> dict[str, Any]:
         "BanedAgo": TimeToTimeAgo(CoolerInt(user_data3[7])),
         "IsSilenced": CoolerInt(user_data3[5]) > round(time.time()),
         "SilenceEndAgo": TimeToTimeAgo(CoolerInt(user_data3[5])),
+        "Whitelisted": whitelist,
     }
     if freeze_val:
         user_data["IsFrozen"] = int(freeze_val) > 0
@@ -3055,3 +3059,36 @@ def apply_username_change(
         f"renamed {old_user['Username']} ({user_id}) to {new_username!r}",
     )
     return
+
+
+
+def add_to_whitelist(user_id: int) -> None:
+    state.database.execute(
+        "INSERT INTO whitelist VALUES (%s)",
+        (user_id,)
+    )
+
+
+def remove_from_whitelist(user_id: int) -> None:
+    state.database.execute(
+        "DELETE FROM whitelist WHERE user_id = %s",
+        (user_id,)
+    )
+
+
+def is_whitelisted(user_id: int) -> bool:
+    return state.database.fetch_val(
+        "SELECT user_id FROM whitelist WHERE user_id = %s",
+        (user_id,)
+    ) is not None
+
+
+def apply_whitelist_change(user_id: int, changed_by_id: int) -> None:
+    user = GetUser(user_id)
+
+    if is_whitelisted(user_id):
+        remove_from_whitelist(user_id)
+        RAPLog(changed_by_id, f"removed {user_id} from the whitelist")
+    else:
+        add_to_whitelist(user_id)
+        RAPLog(changed_by_id, f"added {user_id} to the whitelist")
