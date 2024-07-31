@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ddtrace
+
 from panel import logger
 from panel.common import threads
 from panel.config import config
@@ -8,6 +10,7 @@ from panel.init_app import wsgi_app
 
 
 def main() -> int:
+    ddtrace.patch_all()
     logger.configure_logging("DEBUG" if config.app_developer_build else "INFO")
     # Temporary.
     threads.run(

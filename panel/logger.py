@@ -3,9 +3,13 @@ from __future__ import annotations
 import logging
 from typing import Union
 
-import structlog
+from pythonjsonlogger import jsonlogger
 
-logger = structlog.get_logger()
+logger = logging.getLogger()
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter()
+logHandler.setFormatter(formatter)
+logger.addHandler(logHandler)
 
 
 def configure_logging(log_level: Union[str, int]) -> None:

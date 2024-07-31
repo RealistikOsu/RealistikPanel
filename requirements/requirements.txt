@@ -1,9 +1,10 @@
 bcrypt==4.0.1
+ddtrace
 discord-webhook==1.0.0
 flask==2.2.2
 mysql-connector-python==8.0.31
 pycountry==22.3.5
+python-json-logger==2.0.7
 redis==4.4.0
-structlog==22.3.0
 timeago==1.0.16
 werkzeug==2.2.2
