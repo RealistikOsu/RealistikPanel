@@ -969,7 +969,7 @@ def configure_routes(app: Flask) -> None:
         return redirect("/clans/1")
     
 
-    @app.route("/action/whitelist/<int:user_id>")
+    @app.route("/actions/whitelist/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
     def panel_whitelist_user_action(user_id: int):
         session = web.sessions.get()
