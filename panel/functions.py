@@ -801,7 +801,6 @@ def UserData(UserID: int) -> dict[str, Any]:
     if not user_data2[0] is None:
         userpage_content = user_data2[0].strip()
 
-
     whitelist = is_whitelisted(UserID)
 
     user_data |= {
@@ -3061,26 +3060,21 @@ def apply_username_change(
     return
 
 
-
 def add_to_whitelist(user_id: int) -> None:
-    state.database.execute(
-        "INSERT INTO whitelist VALUES (%s)",
-        (user_id,)
-    )
+    state.database.execute("INSERT INTO whitelist VALUES (%s)", (user_id,))
 
 
 def remove_from_whitelist(user_id: int) -> None:
-    state.database.execute(
-        "DELETE FROM whitelist WHERE user_id = %s",
-        (user_id,)
-    )
+    state.database.execute("DELETE FROM whitelist WHERE user_id = %s", (user_id,))
 
 
 def is_whitelisted(user_id: int) -> bool:
-    return state.database.fetch_val(
-        "SELECT user_id FROM whitelist WHERE user_id = %s",
-        (user_id,)
-    ) is not None
+    return (
+        state.database.fetch_val(
+            "SELECT user_id FROM whitelist WHERE user_id = %s", (user_id,),
+        )
+        is not None
+    )
 
 
 def apply_whitelist_change(user_id: int, changed_by_id: int) -> None:
