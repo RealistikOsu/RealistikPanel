@@ -3071,7 +3071,8 @@ def remove_from_whitelist(user_id: int) -> None:
 def is_whitelisted(user_id: int) -> bool:
     return (
         state.database.fetch_val(
-            "SELECT user_id FROM whitelist WHERE user_id = %s", (user_id,),
+            "SELECT user_id FROM whitelist WHERE user_id = %s",
+            (user_id,),
         )
         is not None
     )
