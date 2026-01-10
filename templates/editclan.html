@@ -105,11 +105,13 @@
       <div class="space-y-8">
           <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-8 text-center flex flex-col items-center">
               <div class="h-24 w-24 rounded-2xl bg-slate-900 border-2 border-slate-700 flex items-center justify-center text-blue-500 text-4xl mb-4 overflow-hidden shadow-2xl shadow-black/50">
-                  {% if Clan["Icon"] %}
-                      <img src="{{ Clan['Icon'] }}" class="h-full w-full object-cover" alt="Icon">
-                  {% else %}
-                      <i class="fas fa-users"></i>
-                  {% endif %}
+                  <!-- Clan Icon with Fallback -->
+                  <img src="{{ Clan['Icon'] }}" 
+                       class="h-full w-full object-cover" 
+                       onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+                       {% if not Clan['Icon'] %}style="display:none;"{% endif %}
+                       alt="">
+                  <i class="fas fa-users" style="{% if Clan['Icon'] %}display:none;{% endif %}"></i>
               </div>
               <h3 class="text-2xl font-display font-bold text-white">{{ Clan['Name'] }}</h3>
               <span class="inline-flex items-center rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-400 mt-3 shadow-sm">

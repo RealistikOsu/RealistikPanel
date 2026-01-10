@@ -1,130 +1,155 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <h2 class="section-title">{{ user["Username"] }}'s HWID History</h2>
-
-  <div class="card">
-    <div class="card-header">
-      <img
-        alt="image"
-        src="{{ config.api_avatar_url }}{{ user['Id'] }}"
-        class="rounded-circle mr-1"
-        style="width:100%; max-width:30px; max-height:30px;"
-      />
-      <h4><b>{{ user['Username'] }}</b></h4>
-    </div>
-    <div class="card-body">
-      They have a total of <b>{{ total_hwids }}</b> HWID logs.
-    </div>
-    <div class="card-footer">RealistikPanel</div>
+  <div class="mb-8">
+      <div class="flex items-center gap-3">
+        <a href="/user/edit/{{ user['Id'] }}" class="h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-600 transition-all">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="text-3xl font-display font-bold tracking-tight text-white">HWID History</h2>
+            <p class="text-slate-400 mt-1 font-medium text-sm">
+                Viewing hardware logs for <span class="text-white">{{ user["Username"] }}</span>
+            </p>
+        </div>
+      </div>
   </div>
 
-  {{ pagination.pagination("/user/hwid/" + user['Id']|string,
-  page, pages) }}
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8 p-6 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+          <img src="{{ config.api_avatar_url }}{{ user['Id'] }}" alt="Avatar" class="h-12 w-12 rounded-xl border border-slate-600 shadow-sm">
+          <div>
+              <h4 class="font-bold text-white text-lg">{{ user['Username'] }}</h4>
+              <p class="text-xs text-slate-400 font-medium">User ID: <span class="font-mono text-slate-300">{{ user['Id'] }}</span></p>
+          </div>
+      </div>
+      <div class="text-right">
+          <div class="text-2xl font-bold text-white">{{ total_hwids }}</div>
+          <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Logs</div>
+      </div>
+  </div>
 
-  <!--Start of logs-->
-  {% for log in hwid_logs %}
-    <div class="card">
-      <div class="card-header">
-        Hardware Log (<b>{{ log["result"]["id"] }}</b>)
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">ID</th>
-                <th scope="col">User ID</th>
-                <th scope="col">Mac Hash</th>
-                <th scope="col">Unique ID</th>
-                <th scope="col">Disk Hash</th>
-                <th scope="col">Occurences</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ log["result"]["id"] }}</td>
-                <td>{{ log["result"]["user_id"] }}</td>
-                <td>{{ log["result"]["mac"] }}</td>
-                <td>{{ log["result"]["unique_id"] }}</td>
-                <td>{{ log["result"]["disk_id"] }}</td>
-                <td>{{ log["result"]["occurences"] }}</td>
-              </tr>
-            </tbody>
-          </table>
+  {{ pagination.pagination("/user/hwid/" + user['Id']|string, page, pages) }}
+
+  <div class="space-y-8 mt-6">
+    {% for log in hwid_logs %}
+      <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+        <div class="border-b border-slate-700/50 px-6 py-4 bg-slate-900/30 flex items-center justify-between">
+          <h3 class="font-bold text-white flex items-center gap-2">
+              <i class="fas fa-microchip text-slate-500"></i> Hardware Log <span class="font-mono text-slate-400 ml-1">#{{ log["result"]["id"] }}</span>
+          </h3>
+          <span class="text-xs font-bold bg-slate-800 border border-slate-700 px-2 py-1 rounded text-slate-400">Occurrences: {{ log["result"]["occurences"] }}</span>
         </div>
-        <hr />
-        <h4>Exact Matches</h4>
-        These are usually a tell-tale sign of multiaccounting.
-        {% if not log["exact_matches"] %}
-          <span style="color: #32a852;">All Good!</span>
-        {% else %}
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
+        
+        <!-- Main Log Table -->
+        <div class="relative w-full overflow-auto">
+            <table class="w-full caption-bottom text-sm text-left">
+              <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
                 <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">User ID</th>
-                  <th scope="col">Mac Hash</th>
-                  <th scope="col">Unique ID</th>
-                  <th scope="col">Disk Hash</th>
-                  <th scope="col">Occurences</th>
+                  <th class="h-10 px-6 align-middle font-bold">Mac Hash</th>
+                  <th class="h-10 px-6 align-middle font-bold">Unique ID</th>
+                  <th class="h-10 px-6 align-middle font-bold">Disk Hash</th>
                 </tr>
               </thead>
-              <tbody>
-                {% for exact_log in log["exact_matches"] %}
-                  <tr>
-                    <td>{{ exact_log["id"] }}</td>
-                    <td>{{ exact_log["user_id"] }}</td>
-                    <td>{{ exact_log["mac"] }}</td>
-                    <td>{{ exact_log["unique_id"] }}</td>
-                    <td>{{ exact_log["disk_id"] }}</td>
-                    <td>{{ exact_log["occurences"] }}</td>
+              <tbody class="divide-y divide-slate-700/50">
+                  <tr class="group">
+                    <td class="p-6 align-middle font-mono text-xs text-slate-300">{{ log["result"]["mac"] }}</td>
+                    <td class="p-6 align-middle font-mono text-xs text-slate-300">{{ log["result"]["unique_id"] }}</td>
+                    <td class="p-6 align-middle font-mono text-xs text-slate-300">{{ log["result"]["disk_id"] }}</td>
                   </tr>
-                {% endfor %}
               </tbody>
             </table>
-          </div>
-        {% endif %}
-        <hr />
-        <h4>Partial Matches</h4>
-        These show whenever the person's HWID bears any resemblence to any
-        other's, meaning they frequently lead to false positives.
-        {% if not log["partial_matches"] %}
-          <span style="color: #32a852;">All Good!</span>
-        {% else %}
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">User ID</th>
-                  <th scope="col">Mac Hash</th>
-                  <th scope="col">Unique ID</th>
-                  <th scope="col">Disk Hash</th>
-                  <th scope="col">Occurences</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for partial_log in log["partial_matches"] %}
-                  <tr>
-                    <td>{{ partial_log["id"] }}</td>
-                    <td>{{ partial_log["user_id"] }}</td>
-                    <td>{{ partial_log["mac"] }}</td>
-                    <td>{{ partial_log["unique_id"] }}</td>
-                    <td>{{ partial_log["disk_id"] }}</td>
-                    <td>{{ partial_log["occurences"] }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
+        </div>
+
+        <!-- Matches Section -->
+        <div class="p-6 space-y-6 bg-slate-900/20 border-t border-slate-700/50">
+            
+            <!-- Exact Matches -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-red-500"></span> Exact Matches
+                </h4>
+                <p class="text-xs text-slate-400 mb-3">Logs that match completely. High likelihood of multi-accounting.</p>
+                
+                {% if not log["exact_matches"] %}
+                  <div class="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                      <i class="fas fa-check-circle"></i> Clean Record - No exact matches found.
+                  </div>
+                {% else %}
+                  <div class="rounded-xl border border-slate-700/50 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                      <thead class="bg-slate-800/80 text-[10px] uppercase font-bold text-slate-500">
+                        <tr>
+                          <th class="p-3 pl-4">Log ID</th>
+                          <th class="p-3">User ID</th>
+                          <th class="p-3">Hashes</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-700/50 bg-slate-900/20">
+                        {% for exact_log in log["exact_matches"] %}
+                          <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="p-3 pl-4 font-mono text-xs text-slate-400">#{{ exact_log["id"] }}</td>
+                            <td class="p-3">
+                                <a href="/user/edit/{{ exact_log['user_id'] }}" class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800 text-xs font-bold text-blue-400 hover:text-white hover:bg-blue-600 transition-all">
+                                    <i class="fas fa-user text-[10px]"></i> {{ exact_log["user_id"] }}
+                                </a>
+                            </td>
+                            <td class="p-3 font-mono text-[10px] text-slate-500 truncate max-w-xs">
+                                M: {{ exact_log["mac"]|truncate(10) }}...
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% endif %}
+            </div>
+
+            <!-- Partial Matches -->
+            <div>
+                <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-amber-500"></span> Partial Matches
+                </h4>
+                <p class="text-xs text-slate-400 mb-3">Logs sharing at least one component. May be false positives.</p>
+                
+                {% if not log["partial_matches"] %}
+                  <div class="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                      <i class="fas fa-check-circle"></i> Clean Record - No partial matches found.
+                  </div>
+                {% else %}
+                  <div class="rounded-xl border border-slate-700/50 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                      <thead class="bg-slate-800/80 text-[10px] uppercase font-bold text-slate-500">
+                        <tr>
+                          <th class="p-3 pl-4">Log ID</th>
+                          <th class="p-3">User ID</th>
+                          <th class="p-3">Hashes</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-700/50 bg-slate-900/20">
+                        {% for partial_log in log["partial_matches"] %}
+                          <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="p-3 pl-4 font-mono text-xs text-slate-400">#{{ partial_log["id"] }}</td>
+                            <td class="p-3">
+                                <a href="/user/edit/{{ partial_log['user_id'] }}" class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-800 text-xs font-bold text-blue-400 hover:text-white hover:bg-blue-600 transition-all">
+                                    <i class="fas fa-user text-[10px]"></i> {{ partial_log["user_id"] }}
+                                </a>
+                            </td>
+                            <td class="p-3 font-mono text-[10px] text-slate-500 truncate max-w-xs">
+                                M: {{ partial_log["mac"]|truncate(10) }}...
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% endif %}
+            </div>
+
+        </div>
       </div>
-    </div>
-  {% endfor %}
-  {{ pagination.pagination("/user/hwid/" + user['Id']|string,
-  page, pages) }}
-  {{ pagination.paginationJs("/user/hwid/" + user['Id']|string,
-  page, pages) }}
+    {% endfor %}
+  </div>
+
+  {{ pagination.paginationJs("/user/hwid/" + user['Id']|string, page, pages) }}
 {% endblock %}

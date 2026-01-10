@@ -156,7 +156,7 @@
               {% endif %}
               
               {% if not UserData["IsSilenced"] and not UserData["IsBanned"] and not UserData["IsFrozen"] %}
-                <div class="h-full flex items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-slate-500 text-sm italic p-4">
+                <div class="h-32 flex items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-slate-500 text-sm italic p-4">
                     No active penalties
                 </div>
               {% endif %}
@@ -241,7 +241,7 @@
 
                 <div class="space-y-2">
                   <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">User Page (BBCode)</label>
-                  <textarea class="flex min-h-[120px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900 font-mono text-xs" name="userpage" rows="6">{{ UserData['UserpageContent'] }}</textarea>
+                  <textarea class="flex min-h-[120px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors hover:bg-slate-900 font-mono text-xs" name="userpage" rows="6">{{ UserData['UserpageContent'] }}</textarea>
                 </div>
 
                 <div class="space-y-2">
@@ -260,7 +260,7 @@
 
                 <div class="space-y-2">
                   <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Admin Notes</label>
-                  <textarea class="flex min-h-[100px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900 font-sans" name="notes" rows="4">{{ UserData['Notes'] }}</textarea>
+                  <textarea class="flex min-h-[100px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors hover:bg-slate-900 font-sans" name="notes" rows="4">{{ UserData['Notes'] }}</textarea>
                 </div>
 
                 <div class="space-y-2">

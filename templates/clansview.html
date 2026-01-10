@@ -56,13 +56,18 @@
                 </td>
                 <td class="p-6 align-middle font-bold text-white text-base">
                     <div class="flex items-center gap-3">
-                        {% if Clan["Icon"] %}
-                             <img src="{{ Clan['Icon'] }}" class="h-8 w-8 rounded-lg object-cover bg-slate-900 border border-slate-600" alt="Icon">
-                        {% else %}
-                             <div class="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xs border border-blue-500/20">
+                        <!-- Clan Icon with Fallback -->
+                        <div class="relative h-8 w-8 shrink-0">
+                            <img src="{{ Clan['Icon'] }}" 
+                                 class="h-8 w-8 rounded-lg object-cover bg-slate-900 border border-slate-600" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                 {% if not Clan['Icon'] %}style="display:none;"{% endif %}
+                                 alt="">
+                            <div class="h-8 w-8 rounded-lg bg-blue-500/10 items-center justify-center text-blue-500 text-[10px] border border-blue-500/20"
+                                 style="{% if Clan['Icon'] %}display:none;{% else %}display:flex;{% endif %}">
                                 <i class="fas fa-users"></i>
-                             </div>
-                        {% endif %}
+                            </div>
+                        </div>
                         {{ Clan["Name"] }}
                     </div>
                 </td>
@@ -90,6 +95,8 @@
         </table>
       </div>
   </div>
+
+  {{ pagination.pagination('/clans', page, Pages, search_term) }}
 
   {{ pagination.paginationJs('/clans', page, Pages, search_term) }}
 {% endblock %}

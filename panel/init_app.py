@@ -85,6 +85,7 @@ def configure_routes(app: Quart) -> None:
             session.privileges = data.privileges  # type: ignore
             session.user_id = data.user_id  # type: ignore
             session.username = data.username  # type: ignore
+            session.privilege_name = data.privilege_name # type: ignore
             web.sessions.set(session)
 
             redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
@@ -824,6 +825,7 @@ def configure_routes(app: Quart) -> None:
         Account = await GetUser(user_id)
         if await ResUnTrict(
             user_id,
+            session.user_id,
             request.args.get("note", ""),
             request.args.get("reason", ""),
         ):
@@ -858,7 +860,7 @@ def configure_routes(app: Quart) -> None:
         session = web.sessions.get()
 
         Account = await GetUser(user_id)
-        if await BanUser(user_id, request.args.get("reason", "")):
+        if await BanUser(user_id, session.user_id, request.args.get("reason", "")):
             await RAPLog(
                 session.user_id,
                 f"has banned the account {Account['Username']} ({user_id})",

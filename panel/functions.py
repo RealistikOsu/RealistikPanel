@@ -148,6 +148,7 @@ class LoginUserData(NamedTuple):
     user_id: int
     username: str
     privileges: Privileges
+    privilege_name: str
 
 
 async def LoginHandler(
@@ -177,12 +178,21 @@ async def LoginHandler(
 
         if await has_privilege_value(user_id, Privileges.ADMIN_ACCESS_RAP):
             if compare_password(password, password_md5):
+                # Get privilege name
+                priv_name = await state.database.fetch_val(
+                    "SELECT name FROM privileges_groups WHERE privileges = %s",
+                    (privileges,),
+                )
+                if not priv_name:
+                    priv_name = "Unknown Group"
+
                 return (
                     True,
                     LoginUserData(
                         user_id,
                         username,
                         Privileges(privileges),
+                        priv_name
                     ),
                 )
             else:
@@ -748,10 +758,10 @@ async def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
             "Privilege": PrivilegeDict[str(user[2])],
             "Country": user[4],
         }
-        if user[3] == 1:
-            Dict["Allowed"] = True
-        else:
+        if user[2] == 0 or user[2] == 2:
             Dict["Allowed"] = False
+        else:
+            Dict["Allowed"] = True
         Users.append(Dict)
 
     return Users
@@ -1306,7 +1316,7 @@ async def WipeAutopilot(AccId: int) -> None:
     await state.database.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
 
 
-async def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
+async def ResUnTrict(user_id: int, from_id: int, note: str = "", reason: str = "") -> bool:
     """Restricts or unrestricts account yeah."""
     if reason:
         await state.database.execute(
@@ -1333,6 +1343,10 @@ async def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
                 user_id,
             ),
         )  # unrestricts
+        await state.database.execute(
+            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
+            (from_id, user_id, "Unrestrict", reason if reason else "No reason provided."),
+        )
         TheReturn = False
     else:
         TimeBan = round(time.time())
@@ -1344,6 +1358,10 @@ async def ResUnTrict(user_id: int, note: str = "", reason: str = "") -> bool:
             ),
         )  # restrict em bois
         await RemoveFromLeaderboard(user_id)
+        await state.database.execute(
+            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
+            (from_id, user_id, "Restrict", reason if reason else "No reason provided."),
+        )
         TheReturn = True
 
         # We append the note if it exists to the thingy init bruv
@@ -1402,7 +1420,7 @@ async def FreezeHandler(user_id: int) -> bool:
     return TheReturn
 
 
-async def BanUser(user_id: int, reason: str = "") -> bool:
+async def BanUser(user_id: int, from_id: int, reason: str = "") -> bool:
     """User go bye bye!"""
     if reason:
         await state.database.execute(
@@ -1426,6 +1444,10 @@ async def BanUser(user_id: int, reason: str = "") -> bool:
             "UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s",
             (user_id,),
         )
+        await state.database.execute(
+            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
+            (from_id, user_id, "Unban", reason if reason else "No reason provided."),
+        )
         TheReturn = False
     else:
         await state.database.execute(
@@ -1444,6 +1466,10 @@ async def BanUser(user_id: int, reason: str = "") -> bool:
                     "reason": f"You have been banned from {config.srv_name}. You will not be missed.",
                 },
             ),
+        )
+        await state.database.execute(
+            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
+            (from_id, user_id, "Ban", reason if reason else "No reason provided."),
         )
         TheReturn = True
 

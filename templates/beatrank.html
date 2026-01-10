@@ -2,70 +2,80 @@
 {% import "components/pagination.html" as pagination %}
 {% block content %}
   <div class="mb-8">
-      <h2 class="text-3xl font-bold tracking-tight text-white">Rank Beatmap</h2>
-      <p class="text-muted-foreground mt-2">
-        Manage the ranking status of beatmaps on the server.
-      </p>
+      <div class="flex items-center gap-3">
+        <a href="/rank" class="h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-600 transition-all">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="text-3xl font-display font-bold tracking-tight text-white">Rank Beatmap</h2>
+            <p class="text-slate-400 mt-1 font-medium text-sm">
+                Manage the ranking status of beatmaps on the server.
+            </p>
+        </div>
+      </div>
   </div>
 
-  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden">
-    <div class="border-b border-white/10 p-6 bg-black/20">
-      <div class="flex items-center gap-4">
-          <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10">
-               <img class="aspect-square h-full w-full object-cover" src="{{ beatdata[0]['Cover'] }}" alt="Cover">
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+    <div class="border-b border-slate-700/50 p-6 bg-slate-900/30">
+      <div class="flex items-center gap-6">
+          <div class="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-slate-600 shadow-lg group">
+               <img class="aspect-square h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" src="{{ beatdata[0]['Cover'] }}" alt="Cover">
           </div>
-          <div>
-              <h4 class="text-xl font-bold text-white">{{ beatdata[0]["SongName"] }}</h4>
-              <div class="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                  <span>Beatmap Set ID: {{ beatdata[0]["BeatmapsetId"] }}</span>
+          <div class="space-y-1">
+              <h4 class="text-2xl font-display font-bold text-white">{{ beatdata[0]["SongName"] }}</h4>
+              <div class="flex items-center gap-3 text-sm font-medium text-slate-400">
+                  <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs">Set ID: {{ beatdata[0]["BeatmapsetId"] }}</span>
               </div>
           </div>
       </div>
     </div>
     
     <div class="p-6">
-      <div class="relative w-full overflow-auto rounded-lg border border-white/10">
+      <div class="relative w-full overflow-auto rounded-xl border border-slate-700/50">
         <table class="w-full caption-bottom text-sm text-left">
-          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
+          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
             <tr>
-              <th class="h-12 px-6 align-middle">Difficulty</th>
-              <th class="h-12 px-6 align-middle">Star Rating</th>
-              <th class="h-12 px-6 align-middle">Status</th>
-              <th class="h-12 px-6 align-middle text-right">Action</th>
+              <th class="h-12 px-6 align-middle font-bold">Difficulty</th>
+              <th class="h-12 px-6 align-middle font-bold">Star Rating</th>
+              <th class="h-12 px-6 align-middle font-bold">Status</th>
+              <th class="h-12 px-6 align-middle text-right font-bold">Action</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
+          <tbody class="divide-y divide-slate-700/50">
             <form action="/rank/{{ Id }}" method="post">
             {% for bmap in beatdata %}
-              <tr class="transition-colors hover:bg-white/5">
-                <td class="p-6 align-middle font-medium text-white">{{ bmap["DiffName"] }}</td>
+              <tr class="transition-colors hover:bg-slate-700/30 group">
+                <td class="p-6 align-middle font-bold text-white">{{ bmap["DiffName"] }}</td>
                 <td class="p-6 align-middle">
-                    <span class="inline-flex items-center gap-1 text-yellow-500">
-                        <i class="fas fa-star text-xs"></i> {{ bmap["Difficulty"] }}
+                    <span class="inline-flex items-center gap-1.5 text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20">
+                        <i class="fas fa-star text-[10px]"></i> {{ bmap["Difficulty"] }}
                     </span>
                 </td>
                 <td class="p-6 align-middle">
                     {% if bmap["Ranked"] == 2 %}
-                        <span class="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">Ranked</span>
+                        <span class="inline-flex items-center rounded-lg bg-blue-500/10 px-2.5 py-1 text-xs font-bold text-blue-400 border border-blue-500/20">Ranked</span>
                     {% elif bmap["Ranked"] == 5 %}
-                        <span class="inline-flex items-center rounded-md bg-pink-500/10 px-2 py-1 text-xs font-medium text-pink-400 ring-1 ring-inset ring-pink-500/20">Loved</span>
+                        <span class="inline-flex items-center rounded-lg bg-pink-500/10 px-2.5 py-1 text-xs font-bold text-pink-400 border border-pink-500/20">Loved</span>
                     {% elif bmap["Ranked"] == 0 %}
-                        <span class="inline-flex items-center rounded-md bg-gray-500/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-500/20">Pending</span>
+                        <span class="inline-flex items-center rounded-lg bg-slate-500/10 px-2.5 py-1 text-xs font-bold text-slate-400 border border-slate-500/20">Pending</span>
                     {% else %}
-                        <span class="inline-flex items-center rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/20">Unknown</span>
+                        <span class="inline-flex items-center rounded-lg bg-white/5 px-2.5 py-1 text-xs font-bold text-slate-300 border border-white/10">Unknown</span>
                     {% endif %}
                 </td>
                 <td class="p-6 align-middle text-right">
                     <div class="flex items-center justify-end gap-2">
                         <input type="hidden" name="bmapid-{{ bmap['BmapNumber'] }}" value="{{ bmap['BeatmapId'] }}">
-                        <select name="rankstatus-{{ bmap['BmapNumber'] }}" class="h-9 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-primary/50 [&>option]:bg-[#1e1e2e] [&>option]:text-white">
+                        <select name="rankstatus-{{ bmap['BmapNumber'] }}" class="h-9 rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-slate-800 [&>option]:text-white">
                             <option {% if bmap["Ranked"] == 2 %}selected{% endif %}>Ranked</option>
                             <option {% if bmap["Ranked"] == 5 %}selected{% endif %}>Loved</option>
                             <option {% if bmap["Ranked"] == 0 %}selected{% endif %}>Unranked</option>
                         </select>
-                        <button class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-3" type="submit" name="beatmapnumber" value="{{ bmap['BmapNumber'] }}">
+                        <button class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-primary hover:bg-blue-600 text-white h-9 px-3 hover:-translate-y-0.5 shadow-sm" type="submit" name="beatmapnumber" value="{{ bmap['BmapNumber'] }}">
                             Update
                         </button>
+                        <a href="https://osu.ppy.sh/b/{{ bmap['BeatmapId'] }}" target="_blank" class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-colors bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-600 h-9 w-9" title="View on Bancho">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
                     </div>
                 </td>
               </tr>
@@ -75,16 +85,21 @@
         </table>
       </div>
       
-      <div class="mt-6 flex flex-wrap gap-3">
-          <a href="/action/rankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2">
+      <div class="mt-6 flex flex-wrap gap-3 pt-6 border-t border-slate-700/50">
+          <a href="/action/rankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-blue-600 hover:bg-blue-500 text-white h-11 px-6 shadow-lg shadow-blue-500/20 hover:-translate-y-0.5">
               Rank Set
           </a>
-          <a href="/action/loveset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-pink-600 text-white hover:bg-pink-700 h-10 px-4 py-2">
+          <a href="/action/loveset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50 bg-pink-600 hover:bg-pink-500 text-white h-11 px-6 shadow-lg shadow-pink-500/20 hover:-translate-y-0.5">
               Love Set
           </a>
-          <a href="/action/unrankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2">
+          <a href="/action/unrankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-red-600 hover:bg-red-500 text-white h-11 px-6 shadow-lg shadow-red-500/20 hover:-translate-y-0.5">
               Unrank Set
           </a>
+          <div class="ml-auto">
+              <a href="https://osu.ppy.sh/s/{{ beatdata[0]['BeatmapsetId'] }}" target="_blank" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-11 px-6 hover:text-blue-400 group">
+                  <i class="fas fa-globe mr-2 group-hover:animate-pulse"></i> View on Bancho
+              </a>
+          </div>
       </div>
     </div>
   </div>

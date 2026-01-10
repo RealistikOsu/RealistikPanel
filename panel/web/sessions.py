@@ -22,6 +22,7 @@ class Session:
     user_id: int
     username: str
     privileges: Privileges
+    privilege_name: str = ""
 
 
 DEFAULT_SESSION = Session(
@@ -29,6 +30,7 @@ DEFAULT_SESSION = Session(
     user_id=0,
     username="",
     privileges=Privileges(0),
+    privilege_name="",
 )
 
 
@@ -38,6 +40,7 @@ def _session_from_dict(s: dict[str, Any]) -> Session:
         user_id=s["user_id"],
         username=s["username"],
         privileges=Privileges(s["privileges"]),
+        privilege_name=s.get("privilege_name", ""),
     )
 
 

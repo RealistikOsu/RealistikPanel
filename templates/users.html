@@ -117,5 +117,7 @@
       </div>
   </div>
 
+  {{ pagination.pagination('/users', page, pages, search_term) }}
+
   {{ pagination.paginationJs('/users', page, pages, search_term) }}
 {% endblock %}

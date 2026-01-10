@@ -192,61 +192,61 @@
                 
                 <div class="px-4 py-2 text-[10px] font-bold uppercase text-slate-500 tracking-[0.2em] mb-2 transition-opacity duration-300 whitespace-nowrap" :class="sidebarCollapsed ? 'lg:opacity-0 lg:hidden' : 'opacity-100'">General</div>
                 
-                <a href="/dash" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/dash' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Dashboard' : ''">
+                <a href="/dash" class="AccessRAP group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/dash' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Dashboard' : ''">
                     <i class="fas fa-gauge-high w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Dashboard</span>
                 </a>
-                <a href="/users/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/users' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Users' : ''">
+                <a href="/users/1" class="ManageUsers group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/users' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Users' : ''">
                     <i class="fas fa-users w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Users</span>
                 </a>
-                <a href="/stats" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/stats' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Statistics' : ''">
+                <a href="/stats" class="AccessRAP group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/stats' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Statistics' : ''">
                     <i class="fas fa-chart-line w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Statistics</span>
                 </a>
                 
                 <div class="px-4 py-2 text-[10px] font-bold uppercase text-slate-500 tracking-[0.2em] mb-2 mt-6 transition-opacity duration-300 whitespace-nowrap" :class="sidebarCollapsed ? 'lg:opacity-0 lg:hidden' : 'opacity-100'">System</div>
 
-                <a href="/logs/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/logs' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Action Logs' : ''">
+                <a href="/logs/1" class="ViewRAPLogs group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/logs' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Action Logs' : ''">
                     <i class="fas fa-list-check w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Action Logs</span>
                 </a>
-                <a href="/ban-logs/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/ban-logs' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Ban Logs' : ''">
+                <a href="/ban-logs/1" class="ViewRAPLogs group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/ban-logs' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Ban Logs' : ''">
                     <i class="fas fa-user-xmark w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Ban Logs</span>
                 </a>
-                <a href="/console/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/console' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Console' : ''">
+                <a href="/console/1" class="RPErrorLogs group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/console' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Console' : ''">
                     <i class="fas fa-terminal w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Console</span>
                 </a>
 
                 <div class="px-4 py-2 text-[10px] font-bold uppercase text-slate-500 tracking-[0.2em] mb-2 mt-6 transition-opacity duration-300 whitespace-nowrap" :class="sidebarCollapsed ? 'lg:opacity-0 lg:hidden' : 'opacity-100'">Management</div>
                 
-                <a href="/rank" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/rank' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Ranking' : ''">
+                <a href="/rank" class="ManageBeatmaps group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/rank' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Ranking' : ''">
                     <i class="fas fa-award w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Ranking</span>
                 </a>
-                <a href="/rankreq/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/rankreq' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Requests' : ''">
+                <a href="/rankreq/1" class="ManageBeatmaps group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/rankreq' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Requests' : ''">
                     <i class="fas fa-paper-plane w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Requests</span>
                 </a>
-                <a href="/bancho/settings" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/bancho/settings' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Bancho Settings' : ''">
+                <a href="/bancho/settings" class="ManageSettings group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/bancho/settings' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Bancho' : ''">
                     <i class="fas fa-server w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Bancho Settings</span>
                 </a>
-                <a href="/system/settings" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/system/settings' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Settings' : ''">
+                <a href="/system/settings" class="ManageSettings group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/system/settings' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Settings' : ''">
                     <i class="fas fa-sliders w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">System Settings</span>
                 </a>
-                <a href="/badges" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/badges' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Badges' : ''">
+                <a href="/badges" class="ManageBadges group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/badges' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Badges' : ''">
                     <i class="fas fa-certificate w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Badges</span>
                 </a>
-                <a href="/privileges" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/privileges' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Privileges' : ''">
+                <a href="/privileges" class="ManagePrivileges group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/privileges' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Privileges' : ''">
                     <i class="fas fa-key w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Privileges</span>
                 </a>
-                <a href="/clans/1" class="group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/clans' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Clans' : ''">
+                <a href="/clans/1" class="ManageClans group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-blue-500/10 {% if route == '/clans' %}bg-primary text-white shadow-lg shadow-blue-500/20{% else %}text-slate-400 hover:text-white{% endif %}" :title="sidebarCollapsed ? 'Clans' : ''">
                     <i class="fas fa-people-group w-5 text-center mr-3 shrink-0"></i> 
                     <span :class="sidebarCollapsed ? 'lg:hidden' : ''">Clans</span>
                 </a>
@@ -294,7 +294,7 @@
                          <img src="{{ config.api_avatar_url }}{{ session.user_id }}" alt="Avatar" class="h-8 w-8 rounded-xl object-cover">
                          <div class="text-left hidden md:block leading-none">
                              <div class="text-sm font-semibold text-white group-hover:text-primary transition-colors">{{ session.username }}</div>
-                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Administrator</div>
+                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{{ session.privilege_name }}</div>
                          </div>
                          <i class="fas fa-angle-down text-xs text-slate-500 ml-2"></i>
                     </button>
@@ -353,10 +353,8 @@
 
       // Handle back/forward cache (bfcache)
       window.addEventListener('pageshow', function(event) {
-          if (event.persisted) {
-              const loader = document.getElementById('page-loader');
-              if (loader) loader.classList.add('loader-hidden');
-          }
+          const loader = document.getElementById('page-loader');
+          if (loader) loader.classList.add('loader-hidden');
       });
 
       // Show loader on internal navigation links
