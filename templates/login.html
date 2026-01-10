@@ -81,15 +81,16 @@
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-sans">
     
-    <!-- Background Gradient -->
-    <div class="fixed inset-0 z-[-1] bg-page-gradient opacity-60"></div>
+    <!-- Background Image with Overlay -->
+    <div class="fixed inset-0 z-[-1]">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-10"></div>
+        <img src="/static/img/login-bg.jpeg" alt="Background" class="w-full h-full object-cover">
+    </div>
 
-    <div class="w-full max-w-md p-8 space-y-8 bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl relative z-10">
+    <div class="w-full max-w-md p-8 space-y-8 bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl relative z-20">
       <div class="flex flex-col items-center text-center space-y-4">
-        <div class="h-14 w-14 rounded-2xl bg-primary-gradient flex items-center justify-center text-white shadow-lg shadow-blue-500/40 mb-2">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-             </svg>
+        <div class="h-16 w-16 rounded-2xl bg-slate-700/50 flex items-center justify-center text-white shadow-lg shadow-black/20 mb-2 border border-slate-600/50 p-3">
+             <img src="/static/img/logo.ico" alt="Logo" class="w-full h-full object-contain">
         </div>
         <div class="space-y-1">
             <h1 class="text-3xl font-display font-bold tracking-tight text-white">RealistikPanel</h1>
@@ -140,10 +141,6 @@
           Sign In
         </button>
       </form>
-      
-      <p class="text-center text-xs text-slate-500 font-medium">
-        &copy; 2024 {{ conf.srv_name }}. All rights reserved.
-      </p>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

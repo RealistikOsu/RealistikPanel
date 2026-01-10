@@ -1834,7 +1834,7 @@ async def UpdatePriv(Form: dict[str, str]) -> None:
         "SELECT privileges FROM privileges_groups WHERE id = %s",
         (Form["id"],),
     )
-    if not privileges:
+    if privileges is None:
         return
 
     # Update group

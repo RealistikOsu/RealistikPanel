@@ -13,51 +13,51 @@
   <!-- Stats Grid -->
   <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mb-8" id="statuses">
     <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-blue-500/30 group relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-blue-500/5 group-hover:text-blue-500/10 transition-colors pointer-events-none">
+          <i class="fas fa-users text-9xl transform -rotate-12"></i>
+      </div>
       <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-blue-400 transition-colors">Registered Users</h3>
-        <div class="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-            <i class="fas fa-user-plus text-sm"></i>
-        </div>
       </div>
       <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["RegisteredUsers"] }}</div>
     </div>
     
     <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-green-500/30 group relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-green-500/5 group-hover:text-green-500/10 transition-colors pointer-events-none">
+          <i class="fas fa-signal text-9xl transform -rotate-12"></i>
+      </div>
       <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-green-400 transition-colors">Online Users</h3>
-        <div class="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
-            <i class="fas fa-globe text-sm"></i>
-        </div>
       </div>
       <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["OnlineUsers"] }}</div>
     </div>
 
     <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-yellow-500/30 group relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-yellow-500/5 group-hover:text-yellow-500/10 transition-colors pointer-events-none">
+          <i class="fas fa-trophy text-9xl transform -rotate-12"></i>
+      </div>
       <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-yellow-400 transition-colors">Total PP</h3>
-        <div class="h-8 w-8 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500 group-hover:scale-110 transition-transform">
-            <i class="fas fa-star text-sm"></i>
-        </div>
       </div>
       <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPP"] }}</div>
     </div>
 
     <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-cyan-500/30 group relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-cyan-500/5 group-hover:text-cyan-500/10 transition-colors pointer-events-none">
+          <i class="fas fa-play text-9xl transform -rotate-12"></i>
+      </div>
       <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-cyan-400 transition-colors">Total Plays</h3>
-        <div class="h-8 w-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500 group-hover:scale-110 transition-transform">
-            <i class="fas fa-gamepad text-sm"></i>
-        </div>
       </div>
       <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPlays"] }}</div>
     </div>
 
     <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-purple-500/30 group relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 text-purple-500/5 group-hover:text-purple-500/10 transition-colors pointer-events-none">
+          <i class="fas fa-file-invoice text-9xl transform -rotate-12"></i>
+      </div>
       <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
         <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-purple-400 transition-colors">Total Scores</h3>
-        <div class="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
-            <i class="fas fa-scroll text-sm"></i>
-        </div>
       </div>
       <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalScores"] }}</div>
     </div>
@@ -282,12 +282,14 @@
         if (title.includes("Score")) iconClass = "fa-database";
 
         return `
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${borderColor} group">
-          <div class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
-            <i class="fas ${iconClass} text-slate-600 group-hover:text-white transition-colors"></i>
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${borderColor} group relative overflow-hidden">
+          <div class="absolute -right-6 -bottom-6 text-slate-500/5 group-hover:text-slate-500/10 transition-colors pointer-events-none">
+              <i class="fas ${iconClass} text-9xl transform -rotate-12"></i>
           </div>
-          <div class="text-xl font-display font-bold ${textClass} mt-1">${status}</div>
+          <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
+          </div>
+          <div class="text-xl font-display font-bold ${textClass} mt-1 relative z-10">${status}</div>
         </div>`;
     }
 

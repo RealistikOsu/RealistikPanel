@@ -4,7 +4,7 @@
     <nav aria-label="Pagination" class="isolate inline-flex -space-x-px rounded-md shadow-sm">
       <a 
         href="{{ pagination_url }}/1{{ query_string }}" 
-        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled-link transition-colors"
         id="first-page"
       >
         <span class="sr-only">First</span>
@@ -12,7 +12,7 @@
       </a>
       <a 
         href="{{ pagination_url }}/{{ page-1 }}{{ query_string }}" 
-        class="relative inline-flex items-center px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        class="relative inline-flex items-center px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled-link transition-colors"
         id="page-before"
       >
         <span class="sr-only">Previous</span>
@@ -23,7 +23,7 @@
 
       <a 
         href="{{ pagination_url }}/{{ page+1 }}{{ query_string }}" 
-        class="relative inline-flex items-center px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        class="relative inline-flex items-center px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled-link transition-colors"
         id="page-after"
       >
         <span class="sr-only">Next</span>
@@ -31,7 +31,7 @@
       </a>
       <a 
         href="{{ pagination_url }}/{{ pages }}{{ query_string }}" 
-        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-700 hover:bg-slate-800 hover:text-white focus:z-20 focus:outline-offset-0 disabled-link transition-colors"
         id="last-page"
       >
         <span class="sr-only">Last</span>
@@ -44,6 +44,7 @@
       .disabled-link.disabled {
           pointer-events: none;
           opacity: 0.5;
+          cursor: not-allowed;
       }
       .page-btn {
           position: relative;
@@ -56,17 +57,18 @@
           font-size: 0.875rem;
           line-height: 1.25rem;
           font-weight: 600;
-          color: hsl(var(--foreground));
-          box-shadow: 0 0 0 1px hsl(var(--border)) inset;
+          color: #94a3b8; /* text-slate-400 */
+          box-shadow: 0 0 0 1px #334155 inset; /* ring-slate-700 */
+          transition: all 0.2s;
       }
       .page-btn:hover {
-          background-color: hsl(var(--accent));
-          color: hsl(var(--accent-foreground));
+          background-color: #1e293b; /* bg-slate-800 */
+          color: #ffffff;
       }
       .page-btn.active {
           z-index: 10;
-          background-color: hsl(var(--primary));
-          color: hsl(var(--primary-foreground));
+          background-color: #3b82f6; /* bg-blue-500 */
+          color: #ffffff;
           box-shadow: none;
       }
   </style>
