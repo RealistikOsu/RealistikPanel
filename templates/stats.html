@@ -1,177 +1,137 @@
 {% extends "base.html" %}
-{% block head %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-{% endblock %}
 {% block content %}
-  <h2 class="section-title">Server Statistics</h2>
-  <p class="section-lead">
-    View and explore that data and statistcs side of your server.
-  </p>
-  <div class="buttons">
-    <div class="btn btn-primary">
-      <div>
-        <h3>{{ StatData["ActiveToday"] }}</h3>
-      </div>
-      <div>Active Today</div>
-    </div>
-    <div class="btn btn-danger">
-      <div>
-        <h3>{{ StatData["DisallowedCount"] }}</h3>
-      </div>
-      <div>Banned Users</div>
-    </div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Server Statistics</h2>
+      <p class="text-muted-foreground mt-2">
+        Detailed breakdown of server activity and user growth.
+      </p>
   </div>
-  <h2 class="section-title">Activity Graphs</h2>
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-      <div class="card">
-        <div class="card-header">
-          <h4>Registrations</h4>
-        </div>
-        <div class="card-body">
-          <canvas id="RegisterChart" height="50"></canvas>
-        </div>
-        <div class="card-footer">RealistikPanel</div>
+
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div class="rounded-xl border border-white/10 bg-card/50 backdrop-blur-sm p-6 shadow-lg">
+          <h3 class="text-sm font-medium text-muted-foreground">Active Today</h3>
+          <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white">{{ StatData["ActiveToday"] }}</span>
+              <span class="text-sm text-green-400">users</span>
+          </div>
       </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-6">
-      <!--To Be Done-->
-    </div>
+      <div class="rounded-xl border border-white/10 bg-card/50 backdrop-blur-sm p-6 shadow-lg">
+          <h3 class="text-sm font-medium text-muted-foreground">Restricted Users</h3>
+          <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-3xl font-bold text-white">{{ StatData["DisallowedCount"] }}</span>
+              <span class="text-sm text-red-400">banned</span>
+          </div>
+      </div>
   </div>
-  <h2 class="section-title">Extended recent plays graph</h2>
-  <p class="section-lead">
-    Rather than viewing the usual 20 recent plays in the dash, this shows the
-    500 most recent plays.
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Recent Plays</h4>
-    </div>
-    <div class="card-body">
-      <h3>Filters</h3>
-      Choose the minimum PP value that plays are required to have to appear on
-      the list. The current value is <b>{{ MinPP }}</b>.
-      <form action="/stats" method="post">
-        <div class="row">
-          <div class="col-12 col-md-6 col-lg-6">
-            <input
-              type="number"
-              class="form-control"
-              name="minpp"
-              min="0"
-              value="{{ MinPP }}"
-              style="margin-top: 5px; margin-bottom: 10px;"
-            />
+
+  <div class="grid gap-6 lg:grid-cols-2 mb-8">
+      <div class="rounded-xl border border-white/10 bg-card/50 backdrop-blur-sm p-6 shadow-lg">
+          <h3 class="text-lg font-semibold text-white mb-4">User Registrations (Last 7 Days)</h3>
+          <div class="relative h-[300px] w-full">
+              <canvas id="RegisterChart"></canvas>
           </div>
-          <div class="col-12 col-md-6 col-lg-6">
-            <button
-              class="btn btn-success"
-              type="submit"
-              name=""
-              style="margin-top: 8px;"
-            >
-              Filter
-            </button>
-          </div>
-        </div>
-      </form>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+      </div>
+      
+      <div class="rounded-xl border border-white/10 bg-card/50 backdrop-blur-sm p-6 shadow-lg">
+          <h3 class="text-lg font-semibold text-white mb-4">Filter Statistics</h3>
+          <form action="/stats" method="post" class="space-y-4">
+              <div class="space-y-2">
+                  <label class="text-sm font-medium text-muted-foreground">Minimum PP for Recent Plays</label>
+                  <input type="number" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="minpp" value="{{ MinPP }}">
+              </div>
+              <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                  Update Stats
+              </button>
+          </form>
+      </div>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden">
+      <div class="p-6 border-b border-white/10">
+          <h3 class="text-lg font-semibold text-white">Recent Plays (Top {{ MinPP }}pp+)</h3>
+      </div>
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
             <tr>
-              <th scope="col">Time</th>
-              <th scope="col">Player</th>
-              <th scope="col">Song</th>
-              <th scope="col">Mode</th>
-              <th scope="col">Score</th>
-              <th scope="col">PP</th>
+              <th class="h-12 px-6 align-middle">Time</th>
+              <th class="h-12 px-6 align-middle">Player</th>
+              <th class="h-12 px-6 align-middle">Song</th>
+              <th class="h-12 px-6 align-middle">Mode</th>
+              <th class="h-12 px-6 align-middle">Score</th>
+              <th class="h-12 px-6 align-middle">PP</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-white/5">
             {% for play in StatData["RecentPlays"] %}
-              <tr>
-                <td>{{ play["Time"] }}</td>
-                <td>
-                  <a
-                    href="{{ config.srv_url }}u/{{ play['PlayerId'] }}"
-                    target="_blank"
-                    >{{ play["Player"] }}</a
-                  >
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle text-muted-foreground">{{ play["Time"] }}</td>
+                <td class="p-6 align-middle">
+                  <a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank" class="font-medium text-white hover:text-primary transition-colors">{{ play["Player"] }}</a>
                 </td>
-                <td>{{ play["SongName"] }} <i>({{ play["Accuracy"] }}%)</i></td>
-                <td>{{ play["Mode"] }}</td>
-                <td>{{ play["Score"] }}</td>
-                <td>{{ play["pp"] }}pp</td>
+                <td class="p-6 align-middle text-gray-300">{{ play["SongName"] }} <span class="text-xs text-muted-foreground ml-1">({{ play["Accuracy"] }}%)</span></td>
+                <td class="p-6 align-middle text-muted-foreground">{{ play["Mode"] }}</td>
+                <td class="p-6 align-middle text-gray-300 font-mono">{{ play["Score"] }}</td>
+                <td class="p-6 align-middle font-bold text-primary">{{ play["pp"] }}pp</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
-    <div class="card-footer">RealistikPanel</div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
   <script>
-    //js is spooky
-    var labels = {{ StatData["RegisterGraph"]["DateList"]|safe }};
-    var data = {{ StatData["RegisterGraph"]["RegisterList"]|safe }};
     var ctx = document.getElementById("RegisterChart").getContext("2d");
     var myChart = new Chart(ctx, {
-      type: "line",
+      type: "bar",
       data: {
-        labels: labels,
+        labels: {{ StatData["RegisterGraph"]["DateList"]|safe }},
         datasets: [
           {
-            label: "Registered Players",
-            data: data,
-            borderWidth: 3,
-            backgroundColor: "transparent",
-            borderColor: "#6777ef",
-            pointBorderWidth: 0,
-            pointRadius: 3,
-            pointBorderColor: 'transparent',
-            pointBackgroundColor: "transparent",
-            pointHoverBackgroundColor: "#6777ef",
+            label: "Registered Users",
+            data: {{ StatData["RegisterGraph"]["RegisterList"]|safe }},
+            backgroundColor: "rgba(139, 92, 246, 0.5)",
+            borderColor: "rgba(139, 92, 246, 1)",
+            borderWidth: 1,
           },
         ],
       },
       options: {
-        layout: {
-          padding: {
-            left: -1,
-            bottom: -1,
-          },
-        },
+        maintainAspectRatio: false,
         legend: {
-          display: false,
+            labels: {
+                fontColor: "rgba(255, 255, 255, 0.7)"
+            }
         },
         scales: {
           yAxes: [
             {
-              gridLines: {
-                display: false,
-                drawBorder: false,
-              },
               ticks: {
                 beginAtZero: true,
-                stepSize: 200,
+                fontColor: "rgba(255, 255, 255, 0.5)",
                 callback: function (label, index, labels) {
-									// when the floored value is the same as the value we have a whole number
-									if (Math.floor(label) === label) {
-										return label;
-									}
-
-								},
+                    if (Math.floor(label) === label) {
+                        return label;
+                    }
+                },
               },
+              gridLines: {
+                  color: "rgba(255, 255, 255, 0.1)",
+                  zeroLineColor: "rgba(255, 255, 255, 0.1)"
+              }
             },
           ],
           xAxes: [
-            {
-              gridLines: {
-                display: false,
-                drawBorder: false,
-              },
-            },
-          ],
+              {
+                  ticks: {
+                      fontColor: "rgba(255, 255, 255, 0.5)"
+                  },
+                  gridLines: {
+                      display: false
+                  }
+              }
+          ]
         },
       },
     });

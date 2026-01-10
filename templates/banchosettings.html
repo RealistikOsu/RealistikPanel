@@ -1,51 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Bancho Settings</h2>
-  <p class="section-lead">
-    Change the settings of your osu! server. This includes things such as login
-    messeges, menu icons and more!
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Settings</h4>
-    </div>
-    <div class="card-body">
-      <form action="/bancho/settings" method="post">
-        <div class="form-group">
-          <label>Bancho Maintenance Mode</label>
-          <select class="form-control" name="banchoman">
-            {% if preset["BanchoMan"] %}
-              <option selected>On</option>
-              <option>Off</option>
-            {% else %}
-              <option>On</option>
-              <option selected>Off</option>
-            {% endif %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Main Menu Icon</label>
-          <input
-            type="text"
-            class="form-control"
-            name="mainmemuicon"
-            value="{{ preset['MenuIcon'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Login Notification</label>
-          <input
-            type="text"
-            class="form-control"
-            name="loginnotif"
-            value="{{ preset['LoginNotif'] }}"
-          />
-        </div>
-        <button class="btn btn-primary mr-1" type="submit" name="">
-          Submit
-        </button>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Bancho Settings</h2>
+      <p class="text-muted-foreground mt-2">
+        Configure server maintenance mode, menu icons, and login notifications.
+      </p>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
+      <form action="/bancho/settings" method="post" class="space-y-6">
+          <div class="space-y-4">
+              <div class="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 p-4">
+                  <div class="space-y-0.5">
+                      <label class="text-base font-medium text-white">Bancho Maintenance</label>
+                      <p class="text-sm text-muted-foreground">Enable maintenance mode for the game server.</p>
+                  </div>
+                  <div class="flex items-center">
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="banchoman" value="On" class="sr-only peer" {% if bsdata['BanchoMan'] %}checked{% endif %}>
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                  </div>
+              </div>
+
+              <div class="space-y-2">
+                  <label class="text-sm font-medium text-white">Menu Icon (URL)</label>
+                  <input type="text" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="mainmemuicon" value="{{ bsdata['MenuIcon'] }}" placeholder="https://example.com/icon.png">
+                  <p class="text-xs text-muted-foreground">URL to an image displayed on the main menu.</p>
+              </div>
+
+              <div class="space-y-2">
+                  <label class="text-sm font-medium text-white">Login Notification</label>
+                  <textarea class="flex min-h-[100px] w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="loginnotif" placeholder="Welcome to the server!">{{ bsdata['LoginNotif'] }}</textarea>
+                  <p class="text-xs text-muted-foreground">Message displayed to users upon login.</p>
+              </div>
+          </div>
+
+          <div class="pt-4">
+              <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8 py-2 shadow-lg shadow-primary/20">
+                  Save Settings
+              </button>
+          </div>
       </form>
-    </div>
-    <div class="card-footer">RealistikPanel!</div>
   </div>
 {% endblock %}

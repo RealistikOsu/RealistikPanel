@@ -1,248 +1,91 @@
 {% extends "base.html" %}
+{% import "components/pagination.html" as pagination %}
 {% block content %}
-  <div class="card">
-    <div class="card-header">
-      <h4>Quick Actions</h4>
-    </div>
-    <div class="card-body">
-      <div class="buttons">
-        <a
-          href="https://ussr.pl/d/{{ beatdata[0][0]['BeatmapsetId'] }}"
-          class="btn btn-success"
-          >Download</a
-        >
-        <a
-          href="https://osu.ppy.sh/beatmapsets/{{ beatdata[0][0]['BeatmapsetId'] }}"
-          class="btn"
-          style="background-color: #fc4b98; box-shadow: 0 2px 6px #f798c1; border-color: #ff66a8; color: white;"
-          >View On Bancho</a
-        >
-        <!-- PINK FOR BROOM -->
-        <a onclick="Play()" class="btn btn-primary" style="color: white;"
-          >Play</a
-        >
-        <a onclick="Pause()" class="btn btn-primary" style="color: white;"
-          >Pause</a
-        >
-        <audio id="BeatmapAudio">
-          <source
-            src="https://b.ppy.sh/preview/{{ beatdata[0][0]['BeatmapsetId'] }}.mp3"
-            type="audio/mpeg"
-          />
-          <!--RealistikOsu song API :pray:-->
-          Your browser does not support the audio element.
-        </audio>
-      </div>
-      <div class="buttons">
-        <a
-          href="/action/rankset/{{ beatdata[0][0]['BeatmapsetId'] }}"
-          class="btn btn-success"
-          >Rank All</a
-        >
-        <a
-          href="/action/loveset/{{ beatdata[0][0]['BeatmapsetId'] }}"
-          class="btn"
-          style="background-color: #fc4b98; box-shadow: 0 2px 6px #f798c1; border-color: #ff66a8; color: white;"
-          >Love All</a
-        >
-        <a
-          href="/action/unrankset/{{ beatdata[0][0]['BeatmapsetId'] }}"
-          class="btn btn-secondary"
-          >Unrank All</a
-        >
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Rank Beatmap</h2>
+      <p class="text-muted-foreground mt-2">
+        Manage the ranking status of beatmaps on the server.
+      </p>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden">
+    <div class="border-b border-white/10 p-6 bg-black/20">
+      <div class="flex items-center gap-4">
+          <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10">
+               <img class="aspect-square h-full w-full object-cover" src="{{ beatdata[0]['Cover'] }}" alt="Cover">
+          </div>
+          <div>
+              <h4 class="text-xl font-bold text-white">{{ beatdata[0]["SongName"] }}</h4>
+              <div class="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <span>Beatmap Set ID: {{ beatdata[0]["BeatmapsetId"] }}</span>
+              </div>
+          </div>
       </div>
     </div>
-    <div class="card-footer">RealistikPanel</div>
-  </div>
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for beatmap in beatdata[0] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ beatmap['Cover'] }}"
-              style='background-image: url("{{ beatmap['Cover'] }}");'
-            ></div>
-            <div class="article-title">
-              <h2>
-                <a href="{{ config.srv_url }}b/{{ beatmap['BeatmapId'] }}"
-                  >{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a
-                >
-              </h2>
-            </div>
-          </div>
-          <div class="article-details">
-            <p>Change the ranking status for this song!</p>
+    
+    <div class="p-6">
+      <div class="relative w-full overflow-auto rounded-lg border border-white/10">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
+            <tr>
+              <th class="h-12 px-6 align-middle">Difficulty</th>
+              <th class="h-12 px-6 align-middle">Star Rating</th>
+              <th class="h-12 px-6 align-middle">Status</th>
+              <th class="h-12 px-6 align-middle text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
             <form action="/rank/{{ Id }}" method="post">
-              <label>Beatmap ID</label>
-              <input
-                type="text"
-                class="form-control"
-                value="{{ beatmap['BeatmapId'] }}"
-                name="bmapid-{{ beatmap["BmapNumber"] }}"
-                readonly="readonly"
-              />
-              <label>Status</label>
-              <select
-                class="form-control"
-                name="rankstatus-{{ beatmap["BmapNumber"] }}"
-              >
-                {% if beatmap["Ranked"] == 0 %}
-                  <option selected>Unranked</option>
-                {% else %}
-                  <option>Unranked</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 5 %}
-                  <option selected>Loved</option>
-                {% else %}
-                  <option>Loved</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 2 %}
-                  <option selected>Ranked</option>
-                {% else %}
-                  <option>Ranked</option>
-                {% endif %}
-              </select>
-              <input
-                type="hidden"
-                name="beatmapnumber"
-                value="{{ beatmap["BmapNumber"] }}"
-              />
-              <p></p>
-              <!--Seperator-->
-              <div id="pp-{{ beatmap['BmapNumber'] }}" class="pptext">
-                <a
-                  onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')"
-                  class="btn btn-primary"
-                  style="color: white;"
-                  >Calculate PP</a
-                >
-              </div>
-              <div class="article-cta">
-                <button class="btn btn-success" type="submit" name="">
-                  Apply!
-                </button>
-              </div>
+            {% for bmap in beatdata %}
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle font-medium text-white">{{ bmap["DiffName"] }}</td>
+                <td class="p-6 align-middle">
+                    <span class="inline-flex items-center gap-1 text-yellow-500">
+                        <i class="fas fa-star text-xs"></i> {{ bmap["Difficulty"] }}
+                    </span>
+                </td>
+                <td class="p-6 align-middle">
+                    {% if bmap["Ranked"] == 2 %}
+                        <span class="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">Ranked</span>
+                    {% elif bmap["Ranked"] == 5 %}
+                        <span class="inline-flex items-center rounded-md bg-pink-500/10 px-2 py-1 text-xs font-medium text-pink-400 ring-1 ring-inset ring-pink-500/20">Loved</span>
+                    {% elif bmap["Ranked"] == 0 %}
+                        <span class="inline-flex items-center rounded-md bg-gray-500/10 px-2 py-1 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-500/20">Pending</span>
+                    {% else %}
+                        <span class="inline-flex items-center rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-white/20">Unknown</span>
+                    {% endif %}
+                </td>
+                <td class="p-6 align-middle text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <input type="hidden" name="bmapid-{{ bmap['BmapNumber'] }}" value="{{ bmap['BeatmapId'] }}">
+                        <select name="rankstatus-{{ bmap['BmapNumber'] }}" class="h-9 rounded-md border border-white/10 bg-black/20 px-3 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-primary/50 [&>option]:bg-[#1e1e2e] [&>option]:text-white">
+                            <option {% if bmap["Ranked"] == 2 %}selected{% endif %}>Ranked</option>
+                            <option {% if bmap["Ranked"] == 5 %}selected{% endif %}>Loved</option>
+                            <option {% if bmap["Ranked"] == 0 %}selected{% endif %}>Unranked</option>
+                        </select>
+                        <button class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-3" type="submit" name="beatmapnumber" value="{{ bmap['BmapNumber'] }}">
+                            Update
+                        </button>
+                    </div>
+                </td>
+              </tr>
+            {% endfor %}
             </form>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for beatmap in beatdata[1] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ beatmap['Cover'] }}"
-              style='background-image: url("{{ beatmap['Cover'] }}");'
-            ></div>
-            <div class="article-title">
-              <h2>
-                <a href="{{ config.srv_url }}b/{{ beatmap['BeatmapId'] }}"
-                  >{{ beatmap["SongName"] }} {{ beatmap["Difficulty"] }}☆</a
-                >
-              </h2>
-            </div>
-          </div>
-          <div class="article-details">
-            <p>Change the ranking status for this song!</p>
-            <form action="/rank/{{ Id }}" method="post">
-              <label>Beatmap ID</label>
-              <input
-                type="text"
-                class="form-control"
-                value="{{ beatmap['BeatmapId'] }}"
-                name="bmapid-{{ beatmap["BmapNumber"] }}"
-                readonly="readonly"
-              />
-              <label>Status</label>
-              <select
-                class="form-control"
-                name="rankstatus-{{ beatmap["BmapNumber"] }}"
-              >
-                {% if beatmap["Ranked"] == 0 %}
-                  <option selected>Unranked</option>
-                {% else %}
-                  <option>Unranked</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 5 %}
-                  <option selected>Loved</option>
-                {% else %}
-                  <option>Loved</option>
-                {% endif %}
-                {% if beatmap["Ranked"] == 2 %}
-                  <option selected>Ranked</option>
-                {% else %}
-                  <option>Ranked</option>
-                {% endif %}
-              </select>
-              <input
-                type="hidden"
-                name="beatmapnumber"
-                value="{{ beatmap["BmapNumber"] }}"
-              />
-              <p></p>
-              <!--Seperator-->
-              <div id="pp-{{ beatmap['BmapNumber'] }}" class="pptext">
-                <a
-                  onclick="CalcPP({{ beatmap['BmapNumber'] }}, '{{ beatmap['BeatmapId'] }}')"
-                  class="btn btn-primary"
-                  style="color: white;"
-                  >Calculate PP</a
-                >
-              </div>
-              <div class="article-cta">
-                <button class="btn btn-success" type="submit" name="">
-                  Apply!
-                </button>
-              </div>
-            </form>
-          </div>
-        </article>
-      {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/action/rankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2">
+              Rank Set
+          </a>
+          <a href="/action/loveset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-pink-600 text-white hover:bg-pink-700 h-10 px-4 py-2">
+              Love Set
+          </a>
+          <a href="/action/unrankset/{{ beatdata[0]['BeatmapsetId'] }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2">
+              Unrank Set
+          </a>
+      </div>
     </div>
   </div>
-  <script>
-    //for playing and stopping bmap music
-    var audio = document.getElementById("BeatmapAudio");
-    function Play() {
-      audio.play();
-    }
-
-    function Pause() {
-      audio.pause();
-    }
-
-    function CalcPP(BeatmapNr, BeatmapID) {
-      //turn it into a loading thing
-      document.getElementById("pp-" + BeatmapNr).innerHTML =
-        '<a onclick="" class="btn btn-primary btn-progress" style="color: white;">Calculate PP</a>';
-      //json getting from url
-      let url = "https://" + window.location.host + "/js/pp/" + BeatmapID;
-
-      fetch(url)
-        .then((res) => res.json())
-        .then((out) => {
-          // doing things
-          if (out["code"] == 200) {
-            document.getElementById("pp-" + BeatmapNr).innerHTML =
-              "<a class='badge badge-info rightrem' style='color: white;'>No Mod: " +
-              out["pp"] +
-              "pp</a><a class='badge badge-danger leftrem' style='color: white;'>Relax: " +
-              out["rxpp"] +
-              "pp</a><a class='badge badge-dark leftrem' style='color: white;'>Autopilot: " +
-              out["appp"] +
-              "pp</a>";
-          } else {
-            document.getElementById("pp-" + BeatmapNr).innerHTML =
-              "<a class='badge badge-danger' style='color: white;'>Calculation Error!</a>";
-          }
-        })
-        .catch((err) => {
-          throw err;
-        });
-    }
-  </script>
 {% endblock %}

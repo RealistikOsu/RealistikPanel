@@ -7,418 +7,455 @@
     crossorigin="anonymous"
   ></script>
   <link rel="stylesheet" href="/static/css/selectize.bootstrap4.css" />
-
+  <!-- Overwrite Selectize styles to match new theme -->
+  <style>
+      .selectize-input {
+          background: rgba(30, 41, 59, 0.5) !important; /* Slate-800/50 */
+          border: 1px solid #475569 !important; /* Slate-600 */
+          color: white !important;
+          border-radius: 0.5rem !important;
+          padding: 10px 12px !important;
+          box-shadow: none !important;
+      }
+      .selectize-input.focus {
+          border-color: #3B82F6 !important; /* Blue-500 */
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+      }
+      .selectize-dropdown {
+          background: #1E293B !important; /* Slate-800 */
+          border: 1px solid #334155 !important; /* Slate-700 */
+          color: white !important;
+          border-radius: 0.5rem !important;
+          margin-top: 4px !important;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+      }
+      .selectize-dropdown .option {
+          padding: 8px 12px !important;
+      }
+      .selectize-dropdown .option.active {
+          background-color: #334155 !important; /* Slate-700 */
+          color: white !important;
+      }
+      .selectize-input > input {
+          color: white !important;
+      }
+  </style>
 {% endblock %}
 {% block content %}
-  <h2 class="section-title">Edit {{ UserData['Username'] }}</h2>
-
-  <div class="card">
-    <div class="card-header">
-      <img
-        alt="image"
-        src="{{ config.api_avatar_url }}{{ UserData['Id'] }}"
-        class="rounded-circle mr-1"
-        style="width:100%; max-width:30px; max-height:30px;"
-      />
-      <h4><b>{{ UserData['Username'] }}</b> |</h4>
-      {% if UserData["IsOnline"] %}
-        <span style="color: #32a852;">● Online</span>
-      {% else %}
-        <span style="color: #eb4034;">● Offline</span>
-      {% endif %}
-    </div>
-    <div class="card-body">
-      <b>{{ UserData['Username'] }}</b> is a player from
-      {{ UserData["CountryFull"] }}
-      {% if UserData['Country'] == "XX" %}
-        <img
-          src="https://ussr.pl/static/images/new-flags/xx.png"
-          class="nflag"
-        /><br />
-      {% else %}
-        <img
-          src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg"
-          class="nflag"
-        /><br />
-      {% endif %}
-      Their status on {{ config.srv_name }} is
-      {% if UserData["Privileges"] >= 3 %}
-        <b style="color: #4287f5;">{{ UserData["PrivName"] }}</b>
-      {% else %}
-        <b style="color: #eb4034;">{{ UserData["PrivName"] }}</b>
-      {% endif %}
-      {% if UserData["HasSupporter"] %}
-        <br />
-        <span style="color: #e8b923;"
-          >Their Donor rank expires
-          <b>{{ UserData["DonorExpireStr"] }}</b>.</span
-        >
-      {% endif %}
-      {% if UserData["IsSilenced"] %}
-        <br />
-        <span style="color: #eb4034;"
-          >They are currently silenced for the reason:
-          <b>{{ UserData["SilenceReason"] }}</b>. They will be unsilenced
-          {{ UserData["SilenceEndAgo"] }}.</span
-        >
-      {% endif %}
-      {% if UserData["IsBanned"] %}
-        <br />
-        <span style="color: #eb4034;"
-          >They were banned {{ UserData["BanedAgo"] }}</span
-        >
-      {% endif %}
-      {% if UserData["IsFrozen"] %}
-        <br />
-        <span style="color: #eb4034;"
-          >They are currently frozen. They will be autorestricted
-          {{ UserData["FreezeDate"] }}
-          if they do not submit a liveplay.</span
-        >
-      {% endif %}
-      <hr>
-      {% if past_username_history %}
-        They were previously known as:
-        {% for past_name in  past_username_history %}
-          <b>{{ past_name }}</b>
-          {% if not loop.last %}, {% endif %}
-        {% endfor %}
-      {% else %}
-        They have no past username history.
-      {% endif %}
-      {% if UserData["Whitelisted"] %}
-        <br />
-        <span style="color: #3437eb;"
-          >This user is currently whitelisted.</span
-        >
-      {% endif %}
-    </div>
-    <div class="card-footer">RealistikPanel</div>
+  <div class="mb-8">
+      <div class="flex items-center gap-3">
+        <a href="/users/1" class="h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-600 transition-all">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="text-3xl font-display font-bold tracking-tight text-white">Edit User</h2>
+            <p class="text-slate-400 mt-1 font-medium text-sm">
+                Managing details for <span class="text-white">{{ UserData['Username'] }}</span>
+            </p>
+        </div>
+      </div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <h4>Edit</h4>
-    </div>
-    <div class="card-body">
-      <form action="/user/edit/{{ UserData['Id'] }}" method="post">
-        <div class="form-group">
-          <label>User ID</label>
-          <input
-            type="text"
-            class="form-control"
-            name="userid"
-            value="{{ UserData['Id'] }}"
-            readonly
-          />
-        </div>
-        <div class="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            class="form-control"
-            name="username"
-            value="{{ UserData['Username'] }}"
-            readonly
-          />
-        </div>
-        <div class="form-group">
-          <label>Also known as</label>
-          <input
-            type="text"
-            class="form-control"
-            name="aka"
-            value="{{ UserData['Aka'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input
-            type="text"
-            class="form-control"
-            name="email"
-            value="{{ UserData['Email'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Country</label>
-          <select name="country" id="countryselect" class="form-control">
-            {% for country in countries %}
-              <option value="{{ country['code'] }}">{{ country['name'] }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>User Page</label>
-          <textarea type="text" class="form-control" name="userpage" rows="15">{{ UserData['UserpageContent'] }}</textarea>
-        </div>
-        <div class="form-group">
-          <label>Privilege</label>
-          <select name="privilege" class="form-control" id="privselect">
-            {% for priv in Privs %}
-              {% if priv["Priv"] == UserData["Privileges"] %}
-                <option value="{{ priv['Priv'] }}" selected>
-                  {{ priv['Name'] }}
-                  ({{ priv['Priv'] }})
-                </option>
-              {% else %}
-                <option value="{{ priv['Priv'] }}">
-                  {{ priv['Name'] }}
-                  ({{ priv['Priv'] }})
-                </option>
-              {% endif %}
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Badges</label>
-          <select name="Badge1" class="form-control" id="Badge1">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}</select
-          ><br />
-          <select name="Badge2" class="form-control" id="Badge2">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}</select
-          ><br />
-          <select name="Badge3" class="form-control" id="Badge3">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}</select
-          ><br />
-          <select name="Badge4" class="form-control" id="Badge4">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}</select
-          ><br />
-          <select name="Badge5" class="form-control" id="Badge5">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}</select
-          ><br />
-          <select name="Badge6" class="form-control" id="Badge6">
-            <option value="0" selected>(None)</option>
-            {% for badge in badges %}
-              <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Admin Notes</label>
-          <textarea type="text" class="form-control" name="notes" rows="15">{{ UserData['Notes'] }}</textarea>
-        </div>
-        <div class="form-group">
-          <label>HWID Bypass:</label>
-          <select name="hwid_bypass" class="form-control">
-            {% if UserData["BypassHWID"] %}
-              <option value="1" selected>Yes</option>
-              <option value="0">No</option>
-            {% else %}
-              <option value="1">Yes</option>
-              <option value="0" selected>No</option>
-            {% endif %}
-          </select>
-        </div>
-        {% if ShowIPs %}
-          <div class="form-group" id="iptext">
-            <b>IP: </b>{{ UserData['Ip'] }}
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8 overflow-hidden">
+    <div class="border-b border-slate-700/50 p-8 bg-slate-900/30">
+      <div class="flex flex-col md:flex-row md:items-center gap-6">
+          <div class="relative group">
+              <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+              <img
+                alt="image"
+                src="{{ config.api_avatar_url }}{{ UserData['Id'] }}"
+                class="relative h-24 w-24 rounded-xl border-2 border-slate-700 object-cover shadow-2xl"
+              />
+              <div class="absolute -bottom-1 -right-1 h-6 w-6 rounded-lg border-4 border-slate-900 flex items-center justify-center shadow-sm {% if UserData['IsOnline'] %}bg-emerald-500 text-white{% else %}bg-slate-600 text-slate-300{% endif %}" title="{% if UserData['IsOnline'] %}Online{% else %}Offline{% endif %}">
+                  <i class="fas fa-circle text-[8px]"></i>
+              </div>
           </div>
-        {% endif %}
-        <button class="btn btn-success" type="submit" name="">Apply!</button>
-      </form>
+          <div class="space-y-2">
+              <div class="flex items-center gap-3 flex-wrap">
+                  <h4 class="text-3xl font-display font-bold text-white">{{ UserData['Username'] }}</h4>
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700/50 border border-slate-600/50 text-slate-300 flex items-center gap-2">
+                      {% if UserData['Country'] == "XX" %}
+                        <img src="https://ussr.pl/static/images/new-flags/xx.png" class="h-3 w-5 rounded-[2px] opacity-70 grayscale"/>
+                      {% else %}
+                        <img src="https://ussr.pl/static/images/new-flags/flag-{{ UserData['Country'].lower() }}.svg" class="h-3 w-5 rounded-[2px] shadow-sm"/>
+                      {% endif %}
+                      {{ UserData["CountryFull"] }}
+                  </span>
+              </div>
+              <div class="flex items-center gap-4 text-sm font-medium text-slate-400">
+                  <div class="flex items-center gap-1.5">
+                      <i class="fas fa-id-card text-slate-500"></i>
+                      <span>ID: <span class="text-slate-300 font-mono">{{ UserData['Id'] }}</span></span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                      <i class="fas fa-envelope text-slate-500"></i>
+                      <span>{{ UserData['Email'] }}</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+    <div class="p-8 space-y-6 text-sm text-slate-300">
+      <div class="grid md:grid-cols-2 gap-8">
+          <div class="space-y-4">
+              <h5 class="text-xs font-bold uppercase text-slate-500 tracking-widest mb-4">Account Status</h5>
+              
+              <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                  <span class="text-slate-400 font-medium">Rank Group</span>
+                  {% if UserData["Privileges"] >= 3 %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">{{ UserData["PrivName"] }}</span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">{{ UserData["PrivName"] }}</span>
+                  {% endif %}
+              </div>
+              
+              {% if UserData["HasSupporter"] %}
+                <div class="flex items-center justify-between p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+                    <div class="flex items-center gap-3 text-yellow-500">
+                        <div class="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-star"></i></div>
+                        <span class="font-bold">Supporter Active</span>
+                    </div>
+                    <span class="text-xs font-medium text-yellow-200/70">Expires {{ UserData["DonorExpireStr"] }}</span>
+                </div>
+              {% endif %}
+
+              {% if UserData["Whitelisted"] %}
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-400">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="font-bold">Whitelisted User</span>
+                </div>
+              {% endif %}
+          </div>
+
+          <div class="space-y-3">
+              <h5 class="text-xs font-bold uppercase text-slate-500 tracking-widest mb-4">Penalties</h5>
+              
+              {% if UserData["IsSilenced"] %}
+                <div class="rounded-xl bg-red-500/5 border border-red-500/20 p-4 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-microphone-slash text-4xl text-red-500"></i></div>
+                    <div class="font-bold text-red-400 flex items-center gap-2 mb-1"><i class="fas fa-microphone-slash"></i> Silenced</div>
+                    <div class="text-xs text-red-300/70 mb-2">Reason: {{ UserData["SilenceReason"] }}</div>
+                    <div class="inline-flex items-center px-2 py-1 rounded bg-red-500/10 text-[10px] font-bold text-red-400 border border-red-500/20">Ends {{ UserData["SilenceEndAgo"] }}</div>
+                </div>
+              {% endif %}
+              
+              {% if UserData["IsBanned"] %}
+                <div class="rounded-xl bg-red-500/5 border border-red-500/20 p-4 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-gavel text-4xl text-red-500"></i></div>
+                    <div class="font-bold text-red-400 flex items-center gap-2 mb-1"><i class="fas fa-gavel"></i> Banned</div>
+                    <div class="text-xs text-red-300/70">Restricted since {{ UserData["BanedAgo"] }}</div>
+                </div>
+              {% endif %}
+              
+              {% if UserData["IsFrozen"] %}
+                <div class="rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-4 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fas fa-snowflake text-4xl text-cyan-500"></i></div>
+                    <div class="font-bold text-cyan-400 flex items-center gap-2 mb-1"><i class="fas fa-snowflake"></i> Frozen</div>
+                    <div class="text-xs text-cyan-300/70">Auto-restrict: {{ UserData["FreezeDate"] }}</div>
+                </div>
+              {% endif %}
+              
+              {% if not UserData["IsSilenced"] and not UserData["IsBanned"] and not UserData["IsFrozen"] %}
+                <div class="h-full flex items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-slate-500 text-sm italic p-4">
+                    No active penalties
+                </div>
+              {% endif %}
+          </div>
+      </div>
+      
+      <div class="pt-6 border-t border-slate-700/50">
+          <div class="flex items-center gap-2 mb-3">
+              <i class="fas fa-clock-rotate-left text-slate-500"></i>
+              <span class="text-xs font-bold uppercase text-slate-500 tracking-widest">Username History</span>
+          </div>
+          {% if past_username_history %}
+            <div class="flex flex-wrap gap-2">
+                {% for past_name in past_username_history %}
+                  <span class="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-300 shadow-sm">
+                    {{ past_name }}
+                  </span>
+                {% endfor %}
+            </div>
+          {% else %}
+            <span class="text-slate-500 italic text-sm">No changes recorded.</span>
+          {% endif %}
+      </div>
     </div>
   </div>
-  <h2 class="section-title">{{ UserData['Username'] }}'s Ban Logs</h2>
-  {% if ban_logs %}
-    {% for log in ban_logs %}
-      <div class="card">
-        <div class="card-header">
-          <img
-            alt="image"
-            src="https://a.ussr.pl/{{ log["from_id"] }}"
-            class="rounded-circle mr-1"
-            style="width:100%; max-width:30px; max-height:30px;"
-          />
-          <h4>{{ log["from_name"] }}</h4>
-          to
-          <img
-            alt="image"
-            src="https://a.ussr.pl/{{ log["to_id"] }}"
-            class="rounded-circle mr-1"
-            style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;"
-          />
-          <h4>{{ log["to_name"] }}</h4>
-          for {{ log["summary"] }}
-        </div>
-        <div class="card-body">
-          {{ log["detail"] }}
-        </div>
-        <div class="card-footer">Banned {{ log["expity_timeago"] }}</div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <div>{{ UserData['Username'] }} has no ban logs associated with them.</div>
-  {% endif %}
-  <h2 class="section-title">
-    {{ UserData['Username'] }}'s
-    Hardware Information
-  </h2>
-  <div class="card">
-    <div class="card-header">
-      <h4>Hardware Log History</h4>
-    </div>
-    <div class="card-body">
-      {{ UserData['Username'] }}
-      has a total of <b>{{ hwid_count }}</b> HWID logs.
-      <div class="buttons mt-3">
-        <a href="/user/hwid/{{ UserData['Id'] }}/1" class="btn btn-success"
-          >View HWIDs</a
-        >
-      </div>
-    </div>
-  </div>
-  <h2 class="section-title">Admin Centre</h2>
-  <div class="card">
-    <div class="card-header">
-      <h4>Community Management</h4>
-    </div>
-    <div class="card-body">
-      <div class="form-group">
-        <label>Ban Reason</label>
-        <textarea class="form-control" id="ban_reason">{{ UserData["BanReason"] }}</textarea>
-      </div>
-      <div class="buttons">
-        <a
-          href="javascript:restrictUser('{{ UserData['Id'] }}')"
-          class="btn btn-danger"
-          >Restrict/Unrestrict</a
-        >
-        <a
-          href="javascript:banUser('{{ UserData['Id'] }}')"
-          class="btn btn-danger"
-          id="ban"
-          >Ban/Unban</a
-        >
+
+  <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-8">
+          <!-- Edit Form -->
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-8 py-5 bg-slate-900/30">
+              <h3 class="font-display font-bold text-lg text-white">Edit Profile</h3>
+            </div>
+            <div class="p-8">
+              <form action="/user/edit/{{ UserData['Id'] }}" method="post" class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">User ID</label>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm text-slate-500 focus:outline-none cursor-not-allowed" name="userid" value="{{ UserData['Id'] }}" readonly />
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Username</label>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm text-slate-500 focus:outline-none cursor-not-allowed" name="username" value="{{ UserData['Username'] }}" readonly />
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Also known as</label>
+                  <input type="text" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="aka" value="{{ UserData['Aka'] }}" />
+                </div>
+                
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email Address</label>
+                  <div class="relative">
+                      <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 pl-10 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="email" value="{{ UserData['Email'] }}" />
+                  </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Country</label>
+                      <select name="country" id="countryselect" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-slate-800 [&>option]:text-white">
+                        {% for country in countries %}
+                          <option value="{{ country['code'] }}">{{ country['name'] }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Privilege Group</label>
+                      <select name="privilege" id="privselect" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-slate-800 [&>option]:text-white">
+                        {% for priv in Privs %}
+                          {% if priv["Priv"] == UserData["Privileges"] %}
+                            <option value="{{ priv['Priv'] }}" selected>{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
+                          {% else %}
+                            <option value="{{ priv['Priv'] }}">{{ priv['Name'] }} ({{ priv['Priv'] }})</option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">User Page (BBCode)</label>
+                  <textarea class="flex min-h-[120px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900 font-mono text-xs" name="userpage" rows="6">{{ UserData['UserpageContent'] }}</textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Badges</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {% for i in range(1, 7) %}
+                            <select name="Badge{{ i }}" id="Badge{{ i }}" class="flex h-10 w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-slate-800 [&>option]:text-white">
+                                <option value="0" selected>(None)</option>
+                                {% for badge in badges %}
+                                  <option value="{{ badge['Id'] }}">{{ badge["Name"] }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Admin Notes</label>
+                  <textarea class="flex min-h-[100px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900 font-sans" name="notes" rows="4">{{ UserData['Notes'] }}</textarea>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">HWID Bypass</label>
+                  <select name="hwid_bypass" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-slate-800 [&>option]:text-white">
+                    <option value="1" {% if UserData["BypassHWID"] %}selected{% endif %}>Yes - Allow bypass</option>
+                    <option value="0" {% if not UserData["BypassHWID"] %}selected{% endif %}>No - Enforce HWID</option>
+                  </select>
+                </div>
+
+                {% if ShowIPs %}
+                  <div class="rounded-xl bg-blue-500/10 border border-blue-500/20 p-4 flex items-center justify-between" id="iptext">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-network-wired text-blue-400"></i>
+                        <span class="text-sm font-bold text-blue-300">Last Known IP</span>
+                    </div>
+                    <span class="font-mono text-sm text-blue-200">{{ UserData['Ip'] }}</span>
+                  </div>
+                {% endif %}
+                
+                <div class="pt-4 border-t border-slate-700/50">
+                    <button class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-emerald-600 hover:bg-emerald-500 text-white h-11 px-8 shadow-lg shadow-emerald-500/20 w-full md:w-auto hover:-translate-y-0.5" type="submit">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Ban Logs -->
+          <div class="space-y-4">
+              <h3 class="text-lg font-display font-bold text-white px-1">Ban Logs</h3>
+              {% if ban_logs %}
+                {% for log in ban_logs %}
+                  <div class="rounded-xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-md overflow-hidden transition-all hover:bg-slate-800 group">
+                    <div class="flex items-center gap-3 border-b border-slate-700/50 bg-slate-900/30 px-5 py-3">
+                      <div class="flex items-center gap-2 text-sm">
+                          <span class="font-bold text-white">{{ log["from_name"] }}</span>
+                          <span class="text-slate-500"><i class="fas fa-arrow-right text-xs"></i></span>
+                          <span class="font-bold text-white">{{ log["to_name"] }}</span>
+                      </div>
+                      <span class="ml-auto inline-flex items-center rounded-lg bg-red-500/10 px-2.5 py-1 text-xs font-bold text-red-400 border border-red-500/20 uppercase tracking-wider">{{ log["summary"] }}</span>
+                    </div>
+                    <div class="p-5 text-sm text-slate-300 leading-relaxed">
+                      {{ log["detail"] }}
+                    </div>
+                    <div class="px-5 py-2.5 bg-slate-900/20 text-xs text-slate-500 border-t border-slate-700/50 font-medium flex items-center gap-2">
+                        <i class="far fa-clock"></i> {{ log["expity_timeago"] }}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="rounded-xl border border-dashed border-slate-700 bg-slate-800/30 p-8 text-center">
+                    <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 text-slate-500 mb-3">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="text-slate-400 font-medium text-sm">Clean Record</p>
+                    <p class="text-slate-600 text-xs mt-1">No ban logs found for this user.</p>
+                </div>
+              {% endif %}
+          </div>
       </div>
 
-      {% if UserData["IsBanned"] %}
-        <b>Banned Since: </b><span>{{ UserData["BanedAgo"] }}</span>
-      {% endif %}
-    </div>
+      <!-- Right Column: Actions -->
+      <div class="space-y-8">
+          <!-- Hardware Info -->
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-6 py-4 bg-slate-900/30">
+              <h3 class="font-display font-bold text-lg text-white">Hardware</h3>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-6 p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                  <div class="flex items-center gap-3">
+                      <div class="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><i class="fas fa-microchip"></i></div>
+                      <span class="text-sm font-bold text-slate-400">Total Logs</span>
+                  </div>
+                  <span class="text-2xl font-mono font-bold text-white">{{ hwid_count }}</span>
+              </div>
+              <a href="/user/hwid/{{ UserData['Id'] }}/1" class="inline-flex w-full items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-11 px-4 hover:border-blue-500/50 hover:text-blue-400 group">
+                  <span>View HWID History</span>
+                  <i class="fas fa-arrow-right ml-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Admin Centre -->
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-6 py-4 bg-gradient-to-r from-red-500/10 to-transparent">
+              <h3 class="font-display font-bold text-lg text-red-400 flex items-center gap-2">
+                  <i class="fas fa-gavel"></i> Admin Centre
+              </h3>
+            </div>
+            <div class="p-6 space-y-8">
+              
+              <!-- Moderation -->
+              <div class="space-y-3">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Moderation Reason</label>
+                  <textarea class="flex min-h-[80px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all" id="ban_reason" placeholder="Reason for ban/restriction...">{{ UserData["BanReason"] }}</textarea>
+                  <div class="grid grid-cols-2 gap-3">
+                    <a href="javascript:restrictUser('{{ UserData['Id'] }}')" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors focus:outline-none bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/20 h-10 px-3 hover:shadow-lg hover:shadow-amber-900/20">
+                        Restrict
+                    </a>
+                    <a href="javascript:banUser('{{ UserData['Id'] }}')" id="ban" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors focus:outline-none bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-10 px-3 hover:shadow-lg hover:shadow-red-900/20">
+                        Ban
+                    </a>
+                  </div>
+                  {% if UserData["IsBanned"] %}
+                    <div class="text-xs font-bold text-red-400 text-center mt-2 bg-red-500/5 py-2 rounded-lg border border-red-500/10">Banned Since: {{ UserData["BanedAgo"] }}</div>
+                  {% endif %}
+              </div>
+
+              <div class="h-px bg-slate-700/50"></div>
+
+              <!-- Quick Actions -->
+              <div class="space-y-3">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-widest">Quick Actions</label>
+                  <div class="grid grid-cols-1 gap-2.5">
+                    <a href="/user/rename/{{ UserData['Id'] }}" class="inline-flex items-center justify-between rounded-xl text-sm font-medium transition-colors bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 h-10 px-4 hover:border-slate-600 group">
+                        <span>Rename User</span>
+                        <i class="fas fa-tag text-slate-600 group-hover:text-white transition-colors"></i>
+                    </a>
+                    <a href="/changepass/{{ UserData['Id'] }}" class="inline-flex items-center justify-between rounded-xl text-sm font-medium transition-colors bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 h-10 px-4 hover:border-slate-600 group">
+                        <span>Change Password</span>
+                        <i class="fas fa-key text-slate-600 group-hover:text-white transition-colors"></i>
+                    </a>
+                    <a href="/donoraward/{{ UserData['Id'] }}" class="inline-flex items-center justify-between rounded-xl text-sm font-medium transition-colors bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 h-10 px-4 hover:border-slate-600 group">
+                        <span>Award Donor</span>
+                        <i class="fas fa-gift text-slate-600 group-hover:text-yellow-500 transition-colors"></i>
+                    </a>
+                    {% if UserData["HasSupporter"] %}
+                      <a href="/donorremove/{{ UserData['Id'] }}" class="inline-flex items-center justify-between rounded-xl text-sm font-medium transition-colors bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 h-10 px-4 hover:border-slate-600 group">
+                          <span>Remove Donor</span>
+                          <i class="fas fa-trash-can text-slate-600 group-hover:text-red-400 transition-colors"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+              </div>
+
+              <div class="h-px bg-slate-700/50"></div>
+
+              <!-- Danger Zone -->
+              <div class="space-y-3">
+                  <label class="text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-2">
+                      <i class="fas fa-triangle-exclamation"></i> Danger Zone
+                  </label>
+                  <div class="grid grid-cols-1 gap-2.5">
+                    <a href="/actions/comment/profile/{{ UserData['Id'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-10 px-3">
+                        Wipe Profile Comments
+                    </a>
+                    <a href="/actions/freeze/{{ UserData['Id'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400 border border-slate-700/50 hover:border-cyan-500/30 h-10 px-3">
+                        Freeze Account
+                    </a>
+                    <a href="/actions/hwid/{{ UserData['Id'] }}" id="hwid" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 hover:border-slate-600 h-10 px-3">
+                        Clear HWID
+                    </a>
+                    <a href="/actions/kick/{{ UserData['Id'] }}" id="kick" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-orange-500/10 text-slate-400 hover:text-orange-400 border border-slate-700/50 hover:border-orange-500/30 h-10 px-3">
+                        Kick User
+                    </a>
+                    
+                    <div class="grid grid-cols-2 gap-2.5 mt-2">
+                        {% if config.srv_supports_relax or config.srv_supports_autopilot %}
+                          <a href="/actions/wipe/{{ UserData['Id'] }}" id="wipe" class="col-span-2 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-3 shadow-lg shadow-red-900/30 hover:shadow-red-900/50">
+                              FULL WIPE
+                          </a>
+                          <a href="/actions/wipeva/{{ UserData['Id'] }}" id="wipe" class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
+                              Wipe Vanilla
+                          </a>
+                        {% else %}
+                          <a href="/actions/wipe/{{ UserData['Id'] }}" id="wipe" class="col-span-2 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-3 shadow-lg shadow-red-900/30 hover:shadow-red-900/50">
+                              Wipe Account
+                          </a>
+                        {% endif %}
+                        
+                        {% if config.srv_supports_relax %}
+                          <a href="/actions/wiperx/{{ UserData['Id'] }}" id="wipe" class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
+                              Wipe Relax
+                          </a>
+                        {% endif %}
+                        {% if config.srv_supports_autopilot %}
+                          <a href="/actions/wipeap/{{ UserData['Id'] }}" id="wipe" class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
+                              Wipe AP
+                          </a>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="/action/confirm/delete/{{ UserData['Id'] }}" id="delete" class="mt-2 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-950/50 text-red-500 hover:bg-red-900/50 border border-red-900/50 h-10 px-3 hover:text-red-400">
+                        <i class="fas fa-trash-can mr-2"></i> DELETE ACCOUNT
+                    </a>
+                  </div>
+              </div>
+            </div>
+          </div>
+      </div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <h4>Admin Actions</h4>
-    </div>
-    <div class="card-body">
-      This is the <b>danger zone!</b> These actions could mess up someone's
-      profile if done without reason.
-      <p></p>
-      <div class="buttons">
-        <a href="/user/iplookup/{{ UserData['Ip'] }}" class="btn btn-success"
-          >Recent IP Lookup</a
-        >
-        <a href="/user/fulliplookup/{{ UserData['Id'] }}" class="btn btn-success"
-          >Full IP Lookup</a
-        >
-        <a href="/user/rename/{{ UserData['Id'] }}" class="btn btn-warning"
-          >Rename User</a
-        >
-        <a href="/changepass/{{ UserData['Id'] }}" class="btn btn-warning"
-          >Change Password</a
-        >
-        <a href="/donoraward/{{ UserData['Id'] }}" class="btn btn-warning"
-          >Award Donor</a
-        >
-        {% if UserData["HasSupporter"] %}
-          <a href="/donorremove/{{ UserData['Id'] }}" class="btn btn-warning"
-            >Remove Donor</a
-          >
-        {% endif %}
-      </div>
-      <div class="buttons">
-        <a
-          href="/actions/comment/profile/{{ UserData['Id'] }}"
-          class="btn btn-danger"
-          >Delete all comments on this user's profile</a
-        >
-        <a
-          href="/actions/comment/user/{{ UserData['Id'] }}"
-          class="btn btn-danger"
-          >Delete all comments made by this user</a
-        >
-      </div>
-      <div class="buttons">
-        <a href="/actions/freeze/{{ UserData['Id'] }}" class="btn btn-danger"
-          >Freeze/Unfreeze</a
-        >
-        <a
-          href="/actions/hwid/{{ UserData['Id'] }}"
-          class="btn btn-danger"
-          id="hwid"
-          >Clear HWID</a
-        >
-        <a
-          href="/action/confirm/delete/{{ UserData['Id'] }}"
-          class="btn btn-danger"
-          id="delete"
-          >Delete Account</a
-        >
-        <a
-          href="/actions/kick/{{ UserData['Id'] }}"
-          class="btn btn-warning"
-          id="kick"
-          >Kick User</a
-        >
-        {% if config.srv_supports_relax or config.srv_supports_autopilot %}
-          <a
-            href="/actions/wipe/{{ UserData['Id'] }}"
-            class="btn btn-danger"
-            id="wipe"
-            >Full Wipe</a
-          >
-          <a
-            href="/actions/wipeva/{{ UserData['Id'] }}"
-            class="btn btn-danger"
-            id="wipe"
-            >Wipe Vanilla</a
-          >
-        {% else %}
-          <a
-            href="/actions/wipe/{{ UserData['Id'] }}"
-            class="btn btn-danger"
-            id="wipe"
-            >Wipe</a
-          >
-        {% endif %}
-        {% if config.srv_supports_relax %}
-          <a
-            href="/actions/wiperx/{{ UserData['Id'] }}"
-            class="btn btn-danger"
-            id="wipe"
-            >Wipe Relax</a
-          >
-        {% endif %}
-        {% if config.srv_supports_autopilot %}
-          <a
-            href="/actions/wipeap/{{ UserData['Id'] }}"
-            class="btn btn-danger"
-            id="wipe"
-            >Wipe Autopilot</a
-          >
-        {% endif %}
-        <a href="/actions/whitelist/{{ UserData['Id'] }}" class="btn btn-danger"
-          >Whitelist/Unwhitelist</a
-        >
-      </div>
-    </div>
-    <div class="card-footer">RealistikPanel</div>
-  </div>
+
   <script>
     const restrictUser = (id) =>
       window.location.replace(
@@ -441,12 +478,19 @@
     fetch(url)
       .then((res) => res.json())
       .then((out) => {
-        document.getElementById("iptext").innerHTML =
-          "<b>IP:</b> {{ UserData['Ip'] }} (" + out["country"] + ")";
+        document.getElementById("iptext").innerHTML = `
+            <div class="flex items-center gap-3">
+                <i class="fas fa-network-wired text-blue-400"></i>
+                <span class="text-sm font-bold text-blue-300">Last Known IP</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="font-mono text-sm text-blue-200">{{ UserData['Ip'] }}</span>
+                <span class="text-xs text-blue-400/70">(${out["country"]})</span>
+            </div>
+        `;
       })
       .catch((err) => {
-        document.getElementById("iptext").innerHTML =
-          "<b>IP:</b> {{ UserData['Ip'] }} (Unknown)";
+        // Fallback already rendered
       });
 
     //setting default  badges
@@ -475,17 +519,23 @@
     }
 
     var AdminPerms = "{{ session.privileges.value }}";
-    //disabling buttons the person has no perm to use
+    
+    const removeIfExists = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+        document.querySelectorAll(`#${id}`).forEach(e => e.remove());
+    }
+
     if (!(AdminPerms & 128)) {
-      document.getElementById("wipe").remove();
-      document.getElementById("hwid").remove();
-      document.getElementById("delete").remove();
+      removeIfExists("wipe");
+      removeIfExists("hwid");
+      removeIfExists("delete");
     }
     if (!(AdminPerms & 32)) {
-      document.getElementById("ban").remove();
+      removeIfExists("ban");
     }
     if (!(AdminPerms & 524288)) {
-      document.getElementById("kick").remove();
+      removeIfExists("kick");
     }
   </script>
 {% endblock %}

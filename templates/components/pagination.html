@@ -1,88 +1,119 @@
-{%- macro pagination(pagination_url, page, pages) -%}
-  <div style="justify-content: center; display: flex;">
-    <ul class="pagination" style="display: block ruby; white-space: initial;">
-      <li class="page-item" id="first-page">
-        <a class="page-link" href="{{ pagination_url }}/1" aria-label="First">
-          <span aria-hidden="true">««</span>
-          <span class="sr-only">First</span>
-        </a>
-      </li>
-      <li class="page-item" id="page-before">
-        <a
-          class="page-link"
-          href="{{ pagination_url }}/{{ page-1 }}"
-          aria-label="Previous"
-        >
-          <span aria-hidden="true">«</span>
-          <span class="sr-only">Previous</span>
-        </a>
-      </li>
-      <span id="page-items" style="white-space: inherit;"></span>
-      <li class="page-item" id="page-after">
-        <a
-          class="page-link"
-          href="{{ pagination_url }}/{{ page+1 }}"
-          aria-label="Next"
-        >
-          <span aria-hidden="true">»</span>
-          <span class="sr-only">Next</span>
-        </a>
-      </li>
-      <li class="page-item" id="last-page">
-        <a
-          class="page-link"
-          href="{{ pagination_url }}/{{ pages }}"
-          aria-label="Last"
-        >
-          <span aria-hidden="true">»»</span>
-          <span class="sr-only">Last</span>
-        </a>
-      </li>
-    </ul>
+{%- macro pagination(pagination_url, page, pages, search_term=None) -%}
+  {% set query_string = "?user=" ~ search_term if search_term else "" %}
+  <div class="flex items-center justify-center space-x-2 my-4">
+    <nav aria-label="Pagination" class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+      <a 
+        href="{{ pagination_url }}/1{{ query_string }}" 
+        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        id="first-page"
+      >
+        <span class="sr-only">First</span>
+        <i class="fas fa-angle-double-left h-4 w-4"></i>
+      </a>
+      <a 
+        href="{{ pagination_url }}/{{ page-1 }}{{ query_string }}" 
+        class="relative inline-flex items-center px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        id="page-before"
+      >
+        <span class="sr-only">Previous</span>
+        <i class="fas fa-angle-left h-4 w-4"></i>
+      </a>
+      
+      <div id="page-items" class="flex"></div>
+
+      <a 
+        href="{{ pagination_url }}/{{ page+1 }}{{ query_string }}" 
+        class="relative inline-flex items-center px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        id="page-after"
+      >
+        <span class="sr-only">Next</span>
+        <i class="fas fa-angle-right h-4 w-4"></i>
+      </a>
+      <a 
+        href="{{ pagination_url }}/{{ pages }}{{ query_string }}" 
+        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-muted-foreground ring-1 ring-inset ring-border hover:bg-accent hover:text-accent-foreground focus:z-20 focus:outline-offset-0 disabled-link"
+        id="last-page"
+      >
+        <span class="sr-only">Last</span>
+        <i class="fas fa-angle-double-right h-4 w-4"></i>
+      </a>
+    </nav>
   </div>
+
+  <style>
+      .disabled-link.disabled {
+          pointer-events: none;
+          opacity: 0.5;
+      }
+      .page-btn {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          padding-left: 1rem;
+          padding-right: 1rem;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+          font-weight: 600;
+          color: hsl(var(--foreground));
+          box-shadow: 0 0 0 1px hsl(var(--border)) inset;
+      }
+      .page-btn:hover {
+          background-color: hsl(var(--accent));
+          color: hsl(var(--accent-foreground));
+      }
+      .page-btn.active {
+          z-index: 10;
+          background-color: hsl(var(--primary));
+          color: hsl(var(--primary-foreground));
+          box-shadow: none;
+      }
+  </style>
 {%- endmacro -%}
-{%- macro paginationJs(pagination_url, page, pages) -%}
+
+{%- macro paginationJs(pagination_url, page, pages, search_term=None) -%}
   <script>
-    // cap = 10
-    const pageItems = document.querySelectorAll("[id=page-items]");
-    const pageLen = parseInt("{{ pages }}") + 1;
-    const page = parseInt("{{ page }}");
-    const plen = Math.max(page - 5, 1);
-    const plenMobile = Math.max(page - 1, 1);
+    (function() {
+        const pageItems = document.querySelectorAll("[id=page-items]");
+        const pageLen = parseInt("{{ pages }}") + 1;
+        const page = parseInt("{{ page }}");
+        const searchTerm = "{{ search_term if search_term else '' }}";
+        const queryString = searchTerm ? `?user=${encodeURIComponent(searchTerm)}` : "";
+        
+        // Window logic:
+        // Desktop: Current +/- 4 (Total 9)
+        // Mobile: Current +/- 1 (Total 3)
+        const range = 4;
+        const start = Math.max(1, page - range);
+        const end = Math.min(pageLen, page + range + 1);
 
-    for (let i = plen; i < Math.min(plen + 5 * 2, pageLen); i++) {
-      pageItems.forEach((value) => {
-        value.innerHTML += `<li class="page-item ${i == page ? "active" : ""} desktop-view">
-          <a class="page-link" href="{{ pagination_url }}/${i}">${i}</a>
-        </li>
-        `;
-      });
-    }
+        pageItems.forEach((container) => {
+            let html = "";
+            for (let i = start; i < end; i++) {
+                // Determine visibility classes
+                // Always visible if within +/- 1 of current page
+                // Hidden on mobile if further away
+                let visibilityClass = "hidden md:inline-flex";
+                if (i >= page - 1 && i <= page + 1) {
+                    visibilityClass = "inline-flex";
+                }
 
-    for (let i = plenMobile; i < Math.min(plenMobile + 3, pageLen); i++) {
-      pageItems.forEach((value) => {
-        value.innerHTML += `<li class="page-item ${i == page ? "active" : ""} mobile-view">
-          <a class="page-link" href="{{ pagination_url }}/${i}">${i}</a>
-        </li>
-        `;
-      });
-    }
+                html += `<a href="{{ pagination_url }}/${i}${queryString}" class="page-btn ${i == page ? "active" : ""} ${visibilityClass}">
+                  ${i}
+                </a>`;
+            }
+            container.innerHTML = html;
+        });
 
-    if (page <= 1) {
-      document.querySelectorAll("[id=page-before]").forEach((value) => {
-        value.classList.add("disabled");
-      });
-      document.querySelectorAll("[id=first-page]").forEach((value) => {
-        value.classList.add("disabled");
-      });
-    }
-    if (page >= pageLen - 1) {
-      document.querySelectorAll("[id=page-after]").forEach((value) => {
-        value.classList.add("disabled");
-      });
-      document.querySelectorAll("[id=last-page]").forEach((value) => {
-        value.classList.add("disabled");
-      });
-    }
+        if (page <= 1) {
+          document.querySelectorAll("[id=page-before]").forEach(el => el.classList.add("disabled"));
+          document.querySelectorAll("[id=first-page]").forEach(el => el.classList.add("disabled"));
+        }
+        if (page >= pageLen - 1) {
+          document.querySelectorAll("[id=page-after]").forEach(el => el.classList.add("disabled"));
+          document.querySelectorAll("[id=last-page]").forEach(el => el.classList.add("disabled"));
+        }
+    })();
   </script>
 {%- endmacro -%}

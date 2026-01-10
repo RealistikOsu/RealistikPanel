@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flask import redirect
-from flask import render_template
-from flask import request
+from quart import redirect
+from quart import render_template
+from quart import request
 
 from panel import web
 from panel.config import config
@@ -27,7 +27,7 @@ TEMPLATE_GLOBALS = [
 _TEMPLATE_MAP_CACHE = {item.__name__: item for item in TEMPLATE_GLOBALS}
 
 
-def load_panel_template(file: str, title: str, **kwargs) -> str:
+async def load_panel_template(file: str, title: str, **kwargs) -> str:
     """Creates a JINJA template response, forwarding the necessary information into the
     template.
 
@@ -39,20 +39,20 @@ def load_panel_template(file: str, title: str, **kwargs) -> str:
         title (str): The title of the page (as displayed to the user).
     """
 
-    return render_template(
+    return await render_template(
         file,
         title=title,
         session=web.sessions.get(),
-        data=load_dashboard_data(),
+        data=await load_dashboard_data(),
         config=config,
         **kwargs,
         **_TEMPLATE_MAP_CACHE,
     )
 
 
-def no_permission_response(session: Session):
+async def no_permission_response(session: Session):
     """If not logged it, returns redirect to login. Else 403s. This is for convienience when page is reloaded after restart."""
     if session.logged_in:
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     return redirect(f"/login?redirect={request.path}")

@@ -1,42 +1,56 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <h2 class="section-title">Logs</h2>
-  <p class="section-lead">
-    See all the actions moderators have taken! Catch any traitors or abusers.
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Actions Log</h4>
-    </div>
-    <div class="card-body">
-      Here, you can view any administritive actions taken by administrators, as
-      well as any Fokabot errors. This can be used to view any mistakes
-      moderators have taken or catch any misbehaviour within the staff team.
-    </div>
-    <div class="card-footer">RealistikPanel</div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Admin Logs</h2>
+      <p class="text-muted-foreground mt-2">
+        View the history of administrative actions taken on the panel.
+      </p>
   </div>
 
   {{ pagination.pagination('/logs', page, Pages) }}
-  {% for log in Logs %}
-    <div class="card">
-      <div class="card-header">
-        <img
-          alt="image"
-          src="{{ config.api_avatar_url }}{{ log['AccountData']['Id'] }}"
-          class="rounded-circle mr-1"
-          style="width:100%; max-width:30px; max-height:30px;"
-        />
-        <h4>{{ log["AccountData"]["Username"] }}</h4>
-      </div>
-      <div class="card-body">
-        <b>{{ log["AccountData"]["Username"] }}</b> {{ log['Text'] }}
-      </div>
-      <div class="card-footer">At {{ log["Time"] }} via {{ log["Via"] }}</div>
-    </div>
-  {% endfor %}
 
-  <!--The page buttons-->
-  {{ pagination.pagination('/logs', page, Pages) }}
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
+            <tr>
+              <th class="h-12 px-6 align-middle w-24">ID</th>
+              <th class="h-12 px-6 align-middle">User</th>
+              <th class="h-12 px-6 align-middle">Action</th>
+              <th class="h-12 px-6 align-middle">Time</th>
+              <th class="h-12 px-6 align-middle">Platform</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            {% for Log in Logs %}
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle font-mono text-muted-foreground">#{{ Log["LogId"] }}</td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-3">
+                        <img class="h-8 w-8 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ Log['AccountData']['Id'] }}" alt="">
+                        <a href="{{ config.srv_url }}u/{{ Log['AccountData']['Id'] }}" target="_blank" class="font-medium text-white hover:text-primary transition-colors">
+                            {{ Log["AccountData"]["Username"] }}
+                        </a>
+                    </div>
+                </td>
+                <td class="p-6 align-middle text-gray-300">
+                    {{ Log["Text"] }}
+                </td>
+                <td class="p-6 align-middle text-muted-foreground whitespace-nowrap">
+                    {{ Log["Time"] }}
+                </td>
+                <td class="p-6 align-middle">
+                    <span class="inline-flex items-center rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs font-medium text-muted-foreground">
+                        {{ Log["Via"] }}
+                    </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  </div>
+
   {{ pagination.paginationJs('/logs', page, Pages) }}
 {% endblock %}

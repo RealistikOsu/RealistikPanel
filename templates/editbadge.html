@@ -1,53 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Edit Badge</h2>
-  <p class="section-lead">Edit, change or remove the badge!</p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Edit <b>{{ badge['Name'] }}</b></h4>
-    </div>
-    <div class="card-body">
-      <form action="/badge/edit/{{ badge['Id'] }}" method="post">
-        <div class="form-group">
-          <label>Badge ID</label>
-          <input
-            type="text"
-            class="form-control"
-            name="badgeid"
-            value="{{ badge['Id'] }}"
-            readonly
-          />
-        </div>
-        <div class="form-group">
-          <label>Badge Name</label>
-          <input
-            type="text"
-            class="form-control"
-            name="name"
-            value="{{ badge['Name'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Badge Icon</label>
-          <input
-            type="text"
-            class="form-control"
-            name="icon"
-            value="{{ badge['Icon'] }}"
-          />
-        </div>
-        <div class="buttons">
-          <button class="btn btn-primary mr-1" type="submit" name="">
-            Submit
-          </button>
-          <a
-            href="/actions/deletebadge/{{ badge['Id'] }}"
-            class="btn btn-danger"
-            >Delete</a
-          >
-        </div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Edit Badge: {{ badge['Name'] }}</h2>
+      <p class="text-muted-foreground mt-2">
+        Modify the badge name and icon.
+      </p>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6 max-w-2xl">
+      <form action="/badge/edit/{{ badge['Id'] }}" method="post" class="space-y-6">
+          <input type="hidden" name="badgeid" value="{{ badge['Id'] }}">
+          
+          <div class="space-y-4">
+              <div class="space-y-2">
+                  <label class="text-sm font-medium text-white">Badge Name</label>
+                  <input type="text" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="name" value="{{ badge['Name'] }}">
+              </div>
+
+              <div class="space-y-2">
+                  <label class="text-sm font-medium text-white">FontAwesome Icon Class</label>
+                  <div class="flex gap-4">
+                      <input type="text" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="icon" value="{{ badge['Icon'] }}" placeholder="fa fa-star">
+                      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-white/10 bg-black/20">
+                          <i class="{{ badge['Icon'] }} text-primary"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="pt-4 flex items-center justify-between">
+              <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8 py-2 shadow-lg shadow-primary/20">
+                  Save Changes
+              </button>
+              <a href="/badges" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:text-white text-muted-foreground">
+                  Cancel
+              </a>
+          </div>
       </form>
-    </div>
-    <div class="card-footer">RealistikPanel!</div>
   </div>
 {% endblock %}

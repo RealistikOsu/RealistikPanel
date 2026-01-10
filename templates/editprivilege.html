@@ -1,393 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Edit Privilege</h2>
-  <p class="section-lead">Edit, change or remove the privilege!</p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Edit <b>{{ privileges['Name'] }}</b></h4>
-    </div>
-    <div class="card-body">
-      <form action="/privilege/edit/{{ privileges['Id'] }}" method="post">
-        <div class="form-group">
-          <label>Privilege Group ID</label>
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            value="{{ privileges['Id'] }}"
-            readonly
-          />
-        </div>
-        <div class="form-group">
-          <label>Privilege Group Name</label>
-          <input
-            type="text"
-            class="form-control"
-            name="name"
-            value="{{ privileges['Name'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Privileges</label>
-          <br />
-          <div class="form-check">
-            <input
-              name="privileges"
-              value="1"
-              id="1"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-            />
-            UserPublic<br />
-            <input
-              name="privileges"
-              value="2"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="2"
-            />UserNormal<br />
-            <input
-              name="privileges"
-              value="4"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="3"
-            />UserDonor<br />
-            <input
-              name="privileges"
-              value="8"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="4"
-            />AdminAccessRAP<br />
-            <input
-              name="privileges"
-              value="16"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="5"
-            />AdminManageUsers<br />
-            <input
-              name="privileges"
-              value="32"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="6"
-            />AdminBanUsers<br />
-            <input
-              name="privileges"
-              value="64"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="7"
-            />AdminSilenceUsers<br />
-            <input
-              name="privileges"
-              value="128"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="8"
-            />AdminWipeUsers<br />
-            <input
-              name="privileges"
-              value="256"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="9"
-            />AdminManageBeatmaps<br />
-            <input
-              name="privileges"
-              value="512"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="10"
-            />AdminManageServers<br />
-            <input
-              name="privileges"
-              value="1024"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="11"
-            />AdminManageSettings<br />
-            <input
-              name="privileges"
-              value="2048"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="12"
-            />AdminManageBetaKeys<br />
-            <input
-              name="privileges"
-              value="4096"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="13"
-            />AdminManageReports<br />
-            <input
-              name="privileges"
-              value="8192"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="14"
-            />AdminManageDocs<br />
-            <input
-              name="privileges"
-              value="16384"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="15"
-            />AdminManageBadges<br />
-            <input
-              name="privileges"
-              value="32768"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="16"
-            />AdminViewRAPLogs<br />
-            <input
-              name="privileges"
-              value="65536"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="17"
-            />AdminManagePrivileges<br />
-            <input
-              name="privileges"
-              value="131072"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="18"
-            />AdminSendAlerts<br />
-            <input
-              name="privileges"
-              value="262144"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="19"
-            />AdminChatMod<br />
-            <input
-              name="privileges"
-              value="524288"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="20"
-            />AdminKickUsers<br />
-            <input
-              name="privileges"
-              value="1048576"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="21"
-            />UserPendingVerification<br />
-            <input
-              name="privileges"
-              value="2097152"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="22"
-            />UserTournamentStaff<br />
-            <input
-              name="privileges"
-              value="4194304"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="23"
-            />AdminCaker<br />
-            <input
-              name="privileges"
-              value="8388608"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="24"
-            />AdminViewTopScores<br />
-            <!--Placeholder for RealistikPanel specific perms-->
-            <input
-              name="privileges"
-              value="134217728"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="25"
-            />RPErrorLogs<br />
-            <input
-              name="privileges"
-              value="268435456"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="26"
-            />RPManageClans<br />
-            <input
-              name="privileges"
-              value="536870912"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="27"
-            />RPViewIPs<br />
-            <input
-              name="privileges"
-              value="1073741824"
-              type="checkbox"
-              onclick="updatePrivileges();"
-              class="form-check-input"
-              id="28"
-            />RealistikOsuBotUser<br />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Privilege Integer</label>
-          <input
-            type="text"
-            class="form-control"
-            name="privilege"
-            value="{{ privileges['Privileges'] }}"
-            id="privileges-value"
-          />
-        </div>
-        <div class="form-group">
-          <label>Colour</label>
-          <input
-            type="text"
-            class="form-control"
-            name="colour"
-            value="{{ privileges['Colour'] }}"
-          />
-        </div>
-        <div class="buttons">
-          <button class="btn btn-primary mr-1" type="submit" name="">
-            Submit
-          </button>
-          <a
-            href="/actions/deletepriv/{{ privileges['Id'] }}"
-            class="btn btn-danger"
-            >Delete</a
-          >
-        </div>
-      </form>
-    </div>
-    <div class="card-footer">RealistikPanel!</div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Edit Privilege: {{ privileges['Name'] }}</h2>
+      <p class="text-muted-foreground mt-2">
+        Modify the privilege name, colour, and bitwise value.
+      </p>
   </div>
+
+  <div class="grid gap-8 lg:grid-cols-2">
+      <!-- Edit Form -->
+      <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
+          <form action="/privilege/edit/{{ privileges['Id'] }}" method="post" class="space-y-6">
+              <input type="hidden" name="id" value="{{ privileges['Id'] }}">
+              
+              <div class="space-y-4">
+                  <div class="space-y-2">
+                      <label class="text-sm font-medium text-white">Group Name</label>
+                      <input type="text" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="name" value="{{ privileges['Name'] }}">
+                  </div>
+
+                  <div class="space-y-2">
+                      <label class="text-sm font-medium text-white">Privilege Value (Bitwise)</label>
+                      <input type="number" id="privilege-input" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="privilege" value="{{ privileges['Privileges'] }}" oninput="updateCheckboxes()">
+                      <p class="text-xs text-muted-foreground">Calculate using the tool on the right.</p>
+                  </div>
+
+                  <div class="space-y-2">
+                      <label class="text-sm font-medium text-white">Colour Style</label>
+                      <select name="colour" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 [&>option]:bg-[#1e1e2e] [&>option]:text-white">
+                          <option value="danger" {% if privileges['Colour'] == 'danger' %}selected{% endif %}>Red (Danger)</option>
+                          <option value="warning" {% if privileges['Colour'] == 'warning' %}selected{% endif %}>Yellow (Warning)</option>
+                          <option value="success" {% if privileges['Colour'] == 'success' %}selected{% endif %}>Green (Success)</option>
+                          <option value="info" {% if privileges['Colour'] == 'info' %}selected{% endif %}>Blue (Info)</option>
+                          <option value="primary" {% if privileges['Colour'] == 'primary' %}selected{% endif %}>Purple (Primary)</option>
+                      </select>
+                  </div>
+              </div>
+
+              <div class="pt-4 flex items-center justify-between">
+                  <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8 py-2 shadow-lg shadow-primary/20">
+                      Save Changes
+                  </button>
+                  <a href="/privileges" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:text-white text-muted-foreground">
+                      Cancel
+                  </a>
+              </div>
+          </form>
+      </div>
+
+      <!-- Calculator -->
+      <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
+          <h3 class="text-lg font-semibold text-white mb-4">Privilege Calculator</h3>
+          <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2" id="privilege-list">
+              <!-- Checkboxes generated by JS -->
+          </div>
+      </div>
+  </div>
+
   <script>
-    //Snippet taken from Ripple's old-frontend
-    function updatePrivileges() {
-      var result = 0;
-      $("input:checkbox[name=privileges]:checked").each(function () {
-        result = Number(result) + Number($(this).val());
-      });
-      $("#privileges-value").attr("value", result);
-    }
+      // Standard Ripple/Stack Privileges
+      const privilegesList = [
+          { name: "Normal", value: 1 << 0 },
+          { name: "Verified", value: 1 << 1 },
+          { name: "Supporter", value: 1 << 2 },
+          { name: "Nominator", value: 1 << 3 },
+          { name: "Admin", value: 1 << 4 },
+          { name: "Developer", value: 1 << 5 },
+          { name: "Owner", value: 1 << 6 },
+          { name: "RAP Access", value: 1 << 7 },
+          { name: "Manage Users", value: 1 << 8 },
+          { name: "Ban Users", value: 1 << 9 },
+          { name: "Silence Users", value: 1 << 10 },
+          { name: "Wipe Users", value: 1 << 11 },
+          { name: "Manage Beatmaps", value: 1 << 12 },
+          { name: "Manage Servers", value: 1 << 13 },
+          { name: "Manage Settings", value: 1 << 14 },
+          { name: "Manage Beta Keys", value: 1 << 15 },
+          { name: "Manage Reports", value: 1 << 16 },
+          { name: "Manage Docs", value: 1 << 17 },
+          { name: "Manage Badges", value: 1 << 18 },
+          { name: "View RAP Logs", value: 1 << 19 },
+          { name: "Manage Privileges", value: 1 << 20 },
+          { name: "Send Alerts", value: 1 << 21 },
+          { name: "Chat Mod", value: 1 << 22 },
+          { name: "Kick Users", value: 1 << 23 },
+          { name: "Pending Verification", value: 1 << 24 },
+          { name: "Tournament Staff", value: 1 << 25 },
+          { name: "Caker", value: 1 << 26 },
+          { name: "View Top Scores", value: 1 << 27 },
+          { name: "Super Admin", value: 1 << 30 }
+      ];
 
-    //
-    var Privilege = "{{ privileges['Privileges'] }}";
-    var PrivInt = parseInt(Privilege);
+      const privInput = document.getElementById('privilege-input');
+      const listContainer = document.getElementById('privilege-list');
 
-    //porting HasPrivilege to JS
-    //uh oh i dont like this
-    if (PrivInt & 1) {
-      document.getElementById("1").checked = true;
-    }
-    if (PrivInt & 2) {
-      document.getElementById("2").checked = true;
-    }
-    if (PrivInt & 4) {
-      document.getElementById("3").checked = true;
-    }
-    if (PrivInt & 8) {
-      document.getElementById("4").checked = true;
-    }
-    if (PrivInt & 16) {
-      document.getElementById("5").checked = true;
-    }
-    if (PrivInt & 32) {
-      document.getElementById("6").checked = true;
-    }
-    if (PrivInt & 64) {
-      document.getElementById("7").checked = true;
-    }
-    if (PrivInt & 128) {
-      document.getElementById("8").checked = true;
-    }
-    if (PrivInt & 256) {
-      document.getElementById("9").checked = true;
-    }
-    if (PrivInt & 512) {
-      document.getElementById("10").checked = true;
-    }
-    if (PrivInt & 1024) {
-      document.getElementById("11").checked = true;
-    }
-    if (PrivInt & 2048) {
-      document.getElementById("12").checked = true;
-    }
-    if (PrivInt & 4096) {
-      document.getElementById("13").checked = true;
-    }
-    if (PrivInt & 8192) {
-      document.getElementById("14").checked = true;
-    }
-    if (PrivInt & 16384) {
-      document.getElementById("15").checked = true;
-    }
-    if (PrivInt & 32768) {
-      document.getElementById("16").checked = true;
-    }
-    if (PrivInt & 65536) {
-      document.getElementById("17").checked = true;
-    }
-    if (PrivInt & 131072) {
-      document.getElementById("18").checked = true;
-    }
-    if (PrivInt & 262144) {
-      document.getElementById("19").checked = true;
-    }
-    if (PrivInt & 524288) {
-      document.getElementById("20").checked = true;
-    }
-    if (PrivInt & 1048576) {
-      document.getElementById("21").checked = true;
-    }
-    if (PrivInt & 2097152) {
-      document.getElementById("22").checked = true;
-    }
-    if (PrivInt & 4194304) {
-      document.getElementById("23").checked = true;
-    }
-    if (PrivInt & 8388608) {
-      document.getElementById("24").checked = true;
-    }
-    if (PrivInt & 134217728) {
-      document.getElementById("25").checked = true;
-    }
-    if (PrivInt & 268435456) {
-      document.getElementById("26").checked = true;
-    }
-    if (PrivInt & 536870912) {
-      document.getElementById("27").checked = true;
-    }
+      function renderCheckboxes() {
+          let html = '';
+          privilegesList.forEach(priv => {
+              html += `
+                  <label class="flex items-center space-x-3 p-2 rounded hover:bg-white/5 cursor-pointer">
+                      <input type="checkbox" 
+                             class="form-checkbox h-4 w-4 text-primary rounded border-white/10 bg-black/40 focus:ring-primary/50" 
+                             value="${priv.value}" 
+                             onchange="updateValue()">
+                      <span class="text-sm text-gray-300 select-none">${priv.name}</span>
+                      <span class="ml-auto text-xs text-muted-foreground font-mono">(${priv.value})</span>
+                  </label>
+              `;
+          });
+          listContainer.innerHTML = html;
+          updateCheckboxes();
+      }
+
+      function updateValue() {
+          let total = 0;
+          listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+              if (cb.checked) {
+                  total += parseInt(cb.value);
+              }
+          });
+          privInput.value = total;
+      }
+
+      function updateCheckboxes() {
+          const currentVal = parseInt(privInput.value) || 0;
+          listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+              const val = parseInt(cb.value);
+              cb.checked = (currentVal & val) === val;
+          });
+      }
+
+      renderCheckboxes();
   </script>
 {% endblock %}

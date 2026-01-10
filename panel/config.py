@@ -30,6 +30,7 @@ class Config:
     srv_supports_autopilot: bool = True
     srv_donor_badge_id: int = 1002
     api_ussr_url: str = "https://osu.ussr.pl/web"
+    api_performance_url: str = "https://performance.ussr.pl"
     api_avatar_url: str = "https://a.ussr.pl"
     api_bancho_url: str = "https://c.ussr.pl"
     webhook_ranked: str = ""

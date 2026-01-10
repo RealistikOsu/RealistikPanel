@@ -1,38 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Badges</h2>
-  <p class="section-lead">Modify or edit profile badges!</p>
-  <div class="card">
-    <div class="card-header">Badges</div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+  <div class="mb-8 flex items-center justify-between">
+      <div>
+          <h2 class="text-3xl font-bold tracking-tight text-white">Badges</h2>
+          <p class="text-muted-foreground mt-2">
+            Create and manage badges that can be assigned to users.
+          </p>
+      </div>
+      <a href="/actions/createbadge" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 shadow-lg shadow-green-900/20">
+          <i class="fas fa-plus mr-2"></i> Create Badge
+      </a>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Name</th>
-              <th scope="col">Icon</th>
-              <th scope="col">Actions</th>
+              <th class="h-12 px-6 align-middle w-24">ID</th>
+              <th class="h-12 px-6 align-middle">Name</th>
+              <th class="h-12 px-6 align-middle">Icon</th>
+              <th class="h-12 px-6 align-middle text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-white/5">
             {% for badge in badges %}
-              <tr>
-                <td>{{ badge["Id"] }}</td>
-                <td>{{ badge["Name"] }}</td>
-                <td><i class="fa {{ badge['Icon'] }} fa-2x"></i></td>
-                <td>
-                  <div class="buttons">
-                    <a
-                      href="/actions/deletebadge/{{ badge['Id'] }}"
-                      class="btn btn-danger"
-                      >Delete</a
-                    >
-                    <a
-                      href="/badge/edit/{{ badge['Id'] }}"
-                      class="btn btn-primary"
-                      >Edit</a
-                    >
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle font-mono text-muted-foreground">{{ badge["Id"] }}</td>
+                <td class="p-6 align-middle font-medium text-white">{{ badge["Name"] }}</td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 rounded bg-primary/10 flex items-center justify-center border border-primary/20">
+                            <i class="{{ badge['Icon'] if 'fa' in badge['Icon'] else 'fas fa-' ~ badge['Icon'] }} text-primary"></i>
+                        </div>
+                        <span class="text-muted-foreground text-xs font-mono">{{ badge["Icon"] }}</span>
+                    </div>
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border border-yellow-500/20 h-9 px-3" href="/badge/edit/{{ badge['Id'] }}">
+                        Edit
+                    </a>
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-9 px-3" href="/actions/deletebadge/{{ badge['Id'] }}">
+                        Delete
+                    </a>
                   </div>
                 </td>
               </tr>
@@ -40,11 +51,5 @@
           </tbody>
         </table>
       </div>
-    </div>
-    <div class="card-footer">
-      <div class="buttons">
-        <a href="/actions/createbadge" class="btn btn-success">Create Badge</a>
-      </div>
-    </div>
   </div>
 {% endblock %}

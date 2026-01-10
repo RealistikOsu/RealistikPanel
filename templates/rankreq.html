@@ -1,102 +1,67 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <h2 class="section-title">Rank Requests</h2>
-  <p class="section-lead">View all beatmaps that were requested for ranking.</p>
-
-  {{ pagination.pagination('/rankreq', page, pages) }}
-
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Request in RankRequests[0] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ Request['Cover'] }}"
-              style='background-image: url("{{ Request['Cover'] }}");'
-            ></div>
-            <div class="article-badge">
-              <div class="article-badge-item bg-dark">
-                Modes: {{ Request["Modes"] }}
-              </div>
-            </div>
-          </div>
-          <div class="article-details">
-            <div class="article-title">
-              <h5>{{ Request["SongName"] }}</h5>
-            </div>
-            This song has been requested by
-            <b
-              ><a href="{{ config.srv_url }}u/{{ Request['RequestBy'] }}"
-                >{{ Request["RequestUsername"] }}</a
-              ></b
-            ><br />
-            It was requested at <b>{{ Request['TimeFormatted'] }}</b>
-          </div>
-          <div class="article-cta buttons">
-            <center>
-              <a
-                href="/rank/{{ Request['RequestSongID'] }}"
-                class="btn btn-primary"
-                >Manage Beatmap</a
-              >
-              <a
-                href="/action/deleterankreq/{{ Request['RequestID'] }}"
-                class="btn btn-danger"
-                >Mark As Done</a
-              >
-            </center>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Request in RankRequests[1] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ Request['Cover'] }}"
-              style='background-image: url("{{ Request['Cover'] }}");'
-            ></div>
-            <div class="article-badge">
-              <div class="article-badge-item bg-dark">
-                Modes: {{ Request["Modes"] }}
-              </div>
-            </div>
-          </div>
-          <div class="article-details">
-            <div class="article-title">
-              <h5>{{ Request["SongName"] }}</h5>
-            </div>
-            This song has been requested by
-            <b
-              ><a href="{{ config.srv_url }}u/{{ Request['RequestBy'] }}"
-                >{{ Request["RequestUsername"] }}</a
-              ></b
-            ><br />
-            It was requested at <b>{{ Request['TimeFormatted'] }}</b>
-          </div>
-          <div class="article-cta buttons">
-            <center>
-              <a
-                href="/rank/{{ Request['RequestSongID'] }}"
-                class="btn btn-primary"
-                >Manage Beatmap</a
-              >
-              <a
-                href="/action/deleterankreq/{{ Request['RequestID'] }}"
-                class="btn btn-danger"
-                >Mark As Done</a
-              >
-            </center>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Ranking Requests</h2>
+      <p class="text-muted-foreground mt-2">
+        Review beatmap ranking requests submitted by players.
+      </p>
   </div>
-  <!--The page buttons-->
+
   {{ pagination.pagination('/rankreq', page, pages) }}
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
+            <tr>
+              <th class="h-12 px-6 align-middle">Map</th>
+              <th class="h-12 px-6 align-middle">Requester</th>
+              <th class="h-12 px-6 align-middle">Time</th>
+              <th class="h-12 px-6 align-middle text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            {% for Request in RankRequests %}
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-3">
+                        <div class="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                             <img class="aspect-square h-full w-full object-cover" src="{{ Request['Cover'] }}" alt="Cover">
+                        </div>
+                        <div class="flex flex-col">
+                            <a href="/rank/{{ Request['BeatmapSetID'] }}" class="font-semibold text-white hover:text-primary transition-colors text-base">{{ Request["SongName"] }}</a>
+                            <span class="text-xs text-muted-foreground">{{ Request["Modes"] }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-2">
+                        <img class="h-6 w-6 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ Request['RequestBy'] }}" alt="">
+                        <a href="{{ config.srv_url }}u/{{ Request['RequestBy'] }}" target="_blank" class="font-medium text-white hover:text-primary transition-colors">
+                            {{ Request["RequestUsername"] }}
+                        </a>
+                    </div>
+                </td>
+                <td class="p-6 align-middle text-muted-foreground whitespace-nowrap">
+                    {{ Request["TimeFormatted"] }}
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-green-500/10 text-green-500 hover:bg-green-500/20 border border-green-500/20 h-9 px-3" href="/rank/{{ Request['RequestSongID'] }}">
+                        View
+                    </a>
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-9 px-3" href="/action/deleterankreq/{{ Request['RequestID'] }}">
+                        Delete
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  </div>
+
   {{ pagination.paginationJs('/rankreq', page, pages) }}
 {% endblock %}

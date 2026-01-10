@@ -1,36 +1,63 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <h2 class="section-title">Ban Logs</h2>
-  <p class="section-lead">View detailed ban reasons for the entire server!</p>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Ban Logs</h2>
+      <p class="text-muted-foreground mt-2">
+        A record of all bans and restrictions issued by staff members.
+      </p>
+  </div>
 
   {{ pagination.pagination('/ban-logs', page, pages) }}
-  {% for log in ban_logs %}
-    <div class="card">
-      <div class="card-header">
-        <img
-          alt="image"
-          src="https://a.ussr.pl/{{ log["from_id"] }}"
-          class="rounded-circle mr-1"
-          style="width:100%; max-width:30px; max-height:30px;"
-        />
-        <h4>{{ log["from_name"] }}</h4>
-        to
-        <img
-          alt="image"
-          src="https://a.ussr.pl/{{ log["to_id"] }}"
-          class="rounded-circle mr-1"
-          style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;"
-        />
-        <h4>{{ log["to_name"] }}</h4>
-        for {{ log["summary"] }}
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
+            <tr>
+              <th class="h-12 px-6 align-middle">From</th>
+              <th class="h-12 px-6 align-middle">To</th>
+              <th class="h-12 px-6 align-middle">Reason</th>
+              <th class="h-12 px-6 align-middle">Note</th>
+              <th class="h-12 px-6 align-middle">Time</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            {% for log in ban_logs %}
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-2">
+                        <img class="h-6 w-6 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ log['from_id'] }}" alt="">
+                        <a href="{{ config.srv_url }}u/{{ log['from_id'] }}" target="_blank" class="font-medium text-white hover:text-primary transition-colors">
+                            {{ log["from_name"] }}
+                        </a>
+                    </div>
+                </td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-2">
+                        <img class="h-6 w-6 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ log['to_id'] }}" alt="">
+                        <a href="{{ config.srv_url }}u/{{ log['to_id'] }}" target="_blank" class="font-medium text-white hover:text-primary transition-colors">
+                            {{ log["to_name"] }}
+                        </a>
+                    </div>
+                </td>
+                <td class="p-6 align-middle">
+                    <span class="inline-flex items-center rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400">
+                        {{ log["summary"] }}
+                    </span>
+                </td>
+                <td class="p-6 align-middle text-gray-400 max-w-xs truncate" title="{{ log['detail'] }}">
+                    {{ log["detail"] }}
+                </td>
+                <td class="p-6 align-middle text-muted-foreground whitespace-nowrap">
+                    {{ log["expity_timeago"] }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <div class="card-body">
-        {{ log["detail"] }}
-      </div>
-      <div class="card-footer">Banned {{ log["expity_timeago"] }}</div>
-    </div>
-  {% endfor %}
-  {{ pagination.pagination('/ban-logs', page, pages) }}
+  </div>
+
   {{ pagination.paginationJs('/ban-logs', page, pages) }}
 {% endblock %}

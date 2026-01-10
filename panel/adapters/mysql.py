@@ -3,20 +3,19 @@ from __future__ import annotations
 from typing import Any
 from typing import Optional
 
-import mysql.connector.pooling
+import aiomysql
 
 from panel import logger
 
 
 class MySQLPool:
     """
-    Create a pool when connect mysql, which will decrease the time spent in
-    request connection, create connection and close connection.
+    Async MySQL connection pool wrapper using aiomysql.
     """
 
     def __init__(
         self,
-        host: str = "172.0.0.1",
+        host: str = "127.0.0.1",
         port: int = 3306,
         user: str = "root",
         password: str = "123456",
@@ -24,126 +23,91 @@ class MySQLPool:
         pool_name: str = "mypool",
         pool_size: int = 10,
     ) -> None:
-        res = {}
         self._host = host
         self._port = port
         self._user = user
         self._password = password
         self._database = database
+        self._pool_size = pool_size
+        self.pool: Optional[aiomysql.Pool] = None
 
-        res["host"] = self._host
-        res["port"] = self._port
-        res["user"] = self._user
-        res["password"] = self._password
-        res["database"] = self._database
-        self.dbconfig = res
-        self.pool = self.create_pool(pool_name=pool_name, pool_size=pool_size)
-
-    def create_pool(self, pool_name: str = "mypool", pool_size: int = 10):
-        """
-        Create a connection pool, after created, the request of connecting
-        MySQL could get a connection from this pool instead of request to
-        create a connection.
-        :param pool_name: the name of pool, default is "mypool"
-        :param pool_size: the size of pool, default is 3
-        :return: connection pool
-        """
-        pool = mysql.connector.pooling.MySQLConnectionPool(
-            pool_name=pool_name,
-            pool_size=pool_size,
-            pool_reset_session=True,
-            **self.dbconfig,
+    async def connect(self) -> None:
+        """Initializes the connection pool."""
+        self.pool = await aiomysql.create_pool(
+            host=self._host,
+            port=self._port,
+            user=self._user,
+            password=self._password,
+            db=self._database,
+            minsize=1,
+            maxsize=self._pool_size,
+            autocommit=True,
         )
-        return pool
 
-    def close(self, conn, cursor):
+    async def close(self) -> None:
+        """Closes the connection pool."""
+        if self.pool:
+            self.pool.close()
+            await self.pool.wait_closed()
+
+    async def execute(self, query: str, args: tuple = (), commit: bool = True) -> int:
         """
-        A method used to close connection of mysql.
-        :param conn:
-        :param cursor:
-        :return:
+        Execute a sql statement.
         """
-        cursor.close()
-        conn.close()
+        if not self.pool:
+            raise RuntimeError("Database pool not initialized. Call connect() first.")
 
-    def execute(self, query: str, args: tuple = (), commit: bool = True) -> int:
-        """
-        Execute a sql, it could be with args and with out args. The usage is
-        similar with execute() function in module pymysql.
-        :param sql: sql clause
-        :param args: args need by sql clause
-        :param commit: whether to commit
-        :return: last row id
-        """
-        # get connection form connection pool instead of create one.
-        conn = self.pool.get_connection()
-        cursor = conn.cursor()
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(query, args)
+                if commit:
+                    await conn.commit()
+                
+                row_id = cursor.lastrowid
+                logger.debug(f"MySQL: {row_id!r}, {query!r}, {args!r}")
+                return row_id
 
-        cursor.execute(query, args)
-        if commit is True:
-            conn.commit()
-
-        row = cursor.lastrowid
-
-        logger.debug(f"MySQL: {row!r}, {query!r}, {args!r}")
-
-        self.close(conn, cursor)
-        return row
-
-    def fetch_one(self, query: str, args: tuple = ()) -> Optional[tuple]:
+    async def fetch_one(self, query: str, args: tuple = ()) -> Optional[tuple]:
         """
         Fetch one row from database.
-        :param sql: sql clause
-        :param args: args need by sql clause
-        :return: one row
         """
+        if not self.pool:
+            raise RuntimeError("Database pool not initialized. Call connect() first.")
 
-        conn = self.pool.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, args)
-        row = cursor.fetchone()
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(query, args)
+                row = await cursor.fetchone()
+                logger.debug(f"MySQL: {row!r}, {query!r}, {args!r}")
+                return row
 
-        logger.debug(f"MySQL: {row!r}, {query!r}, {args!r}")
-
-        self.close(conn, cursor)
-        return row
-
-    def fetch_all(self, query: str, args: tuple = ()) -> list[tuple]:
+    async def fetch_all(self, query: str, args: tuple = ()) -> list[tuple]:
         """
         Fetch all rows from database.
-        :param sql: sql clause
-        :param args: args need by sql clause
-        :return: all rows
         """
+        if not self.pool:
+            raise RuntimeError("Database pool not initialized. Call connect() first.")
 
-        conn = self.pool.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, args)
-        rows = cursor.fetchall()
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(query, args)
+                rows = await cursor.fetchall()
+                logger.debug(f"MySQL: {rows!r}, {query!r}, {args!r}")
+                return rows
 
-        logger.debug(f"MySQL: {rows!r}, {query!r}, {args!r}")
-
-        self.close(conn, cursor)
-        return rows
-
-    def fetch_val(self, query: str, args: tuple = ()) -> Any:
+    async def fetch_val(self, query: str, args: tuple = ()) -> Any:
         """
         Fetch one value from database.
-        :param sql: sql clause
-        :param args: args need by sql clause
-        :return: one value
         """
+        if not self.pool:
+            raise RuntimeError("Database pool not initialized. Call connect() first.")
 
-        conn = self.pool.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, args)
-
-        val = cursor.fetchone()
-
-        logger.debug(f"MySQL: {val!r}, {query!r}, {args!r}")
-
-        self.close(conn, cursor)
-        if val is None:
-            return None
-
-        return val[0]
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(query, args)
+                val = await cursor.fetchone()
+                logger.debug(f"MySQL: {val!r}, {query!r}, {args!r}")
+                
+                if val is None:
+                    return None
+                return val[0]

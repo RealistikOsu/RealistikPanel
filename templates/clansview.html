@@ -1,40 +1,87 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <h2 class="section-title">Clans</h2>
-  <p class="section-lead">View, edit and manage user-made clans!</p>
+  <div class="mb-8">
+      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Clans</h2>
+      <p class="text-slate-400 mt-2 font-medium">
+        View, edit and manage user-made clans across the server.
+      </p>
+  </div>
 
-  {{ pagination.pagination('/clans', page, Pages) }}
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8">
+    <div class="p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+              <h3 class="font-display font-bold text-lg text-white">Search Clans</h3>
+              <p class="text-sm text-slate-400 font-medium">Find clans by name or tag.</p>
+          </div>
+          <form action="/clans/1" method="get" class="flex w-full md:w-auto max-w-sm items-center gap-2">
+            <div class="relative w-full">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input
+                    type="text"
+                    class="flex h-10 w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 pl-9 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900"
+                    name="search"
+                    placeholder="Clan Name or Tag"
+                    value="{{ search_term if search_term else '' }}"
+                />
+            </div>
+            <button class="inline-flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-primary hover:bg-blue-600 text-white h-10 px-6 py-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5" type="submit">
+                Search
+            </button>
+          </form>
+      </div>
+    </div>
+  </div>
 
-  <div class="card">
-    <div class="card-header">Badges</div>
-    <di class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+  {{ pagination.pagination('/clans', page, Pages, search_term) }}
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Name</th>
-              <th scope="col">Description</th>
-              <th scope="col">Actions</th>
+              <th class="h-12 px-6 align-middle font-bold w-24">ID</th>
+              <th class="h-12 px-6 align-middle font-bold">Clan Name</th>
+              <th class="h-12 px-6 align-middle font-bold">Tag</th>
+              <th class="h-12 px-6 align-middle font-bold">Description</th>
+              <th class="h-12 px-6 align-middle text-right font-bold">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-700/50">
             {% for Clan in Clans %}
-              <tr>
-                <td>{{ Clan["ID"] }}</td>
-                <td><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</td>
-                <td>{{ Clan["Description"] }}</td>
-                <td>
-                  <div class="buttons">
-                    <a class="btn btn-warning" href="/clan/{{ Clan['ID'] }}"
-                      >Edit</a
-                    >
-                    <a
-                      class="btn btn-danger"
-                      href="/clan/confirmdelete/{{ Clan['ID'] }}"
-                      >Disband</a
-                    >
+              <tr class="transition-colors hover:bg-slate-700/30 group">
+                <td class="p-6 align-middle text-slate-500 font-mono text-xs font-bold">
+                    {{ Clan["ID"] }}
+                </td>
+                <td class="p-6 align-middle font-bold text-white text-base">
+                    <div class="flex items-center gap-3">
+                        {% if Clan["Icon"] %}
+                             <img src="{{ Clan['Icon'] }}" class="h-8 w-8 rounded-lg object-cover bg-slate-900 border border-slate-600" alt="Icon">
+                        {% else %}
+                             <div class="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 text-xs border border-blue-500/20">
+                                <i class="fas fa-users"></i>
+                             </div>
+                        {% endif %}
+                        {{ Clan["Name"] }}
+                    </div>
+                </td>
+                <td class="p-6 align-middle">
+                    <span class="inline-flex items-center rounded-lg border border-purple-500/20 bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-400 shadow-sm">
+                        {{ Clan["Tag"] }}
+                    </span>
+                </td>
+                <td class="p-6 align-middle text-slate-400 truncate max-w-xs font-medium" title="{{ Clan['Description'] }}">
+                    {{ Clan["Description"] }}
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-9 px-3 hover:border-amber-500/50 hover:text-amber-400 group shadow-sm" href="/clan/{{ Clan['ID'] }}">
+                        Edit
+                    </a>
+                    <a class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-9 px-3 hover:border-red-500/50 hover:text-red-400 group shadow-sm" href="/clan/confirmdelete/{{ Clan['ID'] }}">
+                        Disband
+                    </a>
                   </div>
                 </td>
               </tr>
@@ -42,11 +89,7 @@
           </tbody>
         </table>
       </div>
-    </div>
-    <div class="card-footer">RealistikPanel</div>
   </div>
 
-  <!--The page buttons-->
-  {{ pagination.pagination('/clans', page, Pages) }}
-  {{ pagination.paginationJs('/clans', page, Pages) }}
+  {{ pagination.paginationJs('/clans', page, Pages, search_term) }}
 {% endblock %}

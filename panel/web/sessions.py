@@ -6,9 +6,10 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Any
 from typing import Callable
+from functools import wraps
 
-from flask import Flask
-from flask import session
+from quart import Quart
+from quart import session
 
 from panel.constants.privileges import Privileges
 from panel.functions import has_privilege_value
@@ -64,7 +65,7 @@ def set(s: Session) -> None:
     session["session"] = s
 
 
-def encrypt(app: Flask) -> None:
+def encrypt(app: Quart) -> None:
     app.secret_key = os.urandom(24)
 
 
@@ -72,16 +73,16 @@ def requires_privilege(privilege: Privileges) -> Callable:
     """Decorator around a web handler which performs a privilege check."""
 
     def wrapper(func: Callable) -> Callable:
-        def new_func(**args):
-            session = get()
-            if (not session.logged_in) or (
-                not has_privilege_value(session.user_id, privilege)
+        @wraps(func)
+        async def new_func(*args, **kwargs):
+            session_obj = get()
+            if (not session_obj.logged_in) or (
+                not await has_privilege_value(session_obj.user_id, privilege)
             ):
-                return no_permission_response(session)
+                return await no_permission_response(session_obj)
 
-            return func(**args)
+            return await func(*args, **kwargs)
 
-        new_func.__name__ = func.__name__  # Flask hack.
         return new_func
 
     return wrapper

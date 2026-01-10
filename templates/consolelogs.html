@@ -1,43 +1,43 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-    <h2 class="section-title">Console</h2>
-    <p class="section-lead">Here you can view RealistikPanel specific logs, such as errors, warnings or notable events.</p>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Console Logs</h2>
+      <p class="text-muted-foreground mt-2">
+        View server errors and tracebacks for debugging purposes.
+      </p>
+  </div>
 
-    {{ pagination.pagination('/console', page, pages) }}
+  {{ pagination.pagination('/console', page, pages) }}
+
+  <div class="space-y-4 mt-6 mb-6">
     {% for log in console_logs %}
-        {% if log["traceback_type"] == 1 %}
-            <div class="card card-primary">
-        {% elif log["traceback_type"] == 2 %}
-            <div class="card card-warning">
-        {% elif log["traceback_type"] == 3 %}
-            <div class="card card-danger">
-        {% endif %}
-            <div class="card-header">
-                {% if log["traceback_type"] == 1 %}
-                    <i class="fas fa-info-circle" style="margin-right: 4px; color: #4287f5;font-size: 20px;"></i><span>Info</span>
-                {% elif log["traceback_type"] == 2 %}
-                    <i class="fas fa-exclamation-triangle" style="margin-right: 4px; color: #fcba03;font-size: 20px;"></i><span>Warning</span>
-                {% elif log["traceback_type"] == 3 %}
-                    <i class="fas fa-times-circle" style="margin-right: 4px; color: #eb4034;font-size: 20px;"></i><span style="margin-right: 4px;">Error</span>
-                {% endif %}
-                caused by
-                <img
-                    alt="image"
-                    src="https://a.ussr.pl/{{ log["user"]["Id"] }}"
-                    class="rounded-circle mr-1"
-                    style="width:100%; max-width:30px; max-height:30px;margin-left: 10px;"
-                />
-                <h4>{{ log["user"]["Username"] }}</h4>
-            </div>
-            <div class="card-body">
-                <code style="white-space: pre;">{{ log["traceback"] }}</code>
-            </div>
-            <div class="card-footer">
-                At {{ log["time"] }}
-            </div>
-        </div>
+      <div class="rounded-xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-md overflow-hidden">
+          <div class="flex items-center justify-between border-b border-white/5 bg-white/5 px-4 py-3">
+              <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-2">
+                      <img class="h-6 w-6 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ log['user']['Id'] }}" alt="">
+                      <a href="{{ config.srv_url }}u/{{ log['user']['Id'] }}" target="_blank" class="text-sm font-medium text-white hover:text-primary transition-colors">
+                          {{ log["user"]["Username"] }}
+                      </a>
+                  </div>
+                  <span class="text-muted-foreground text-xs">•</span>
+                  <span class="text-xs text-muted-foreground">{{ log["time"] }}</span>
+              </div>
+              <div>
+                  {% if log["traceback_type"] == 0 %}
+                      <span class="inline-flex items-center rounded-md bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-500 ring-1 ring-inset ring-yellow-500/20">Warning</span>
+                  {% else %}
+                      <span class="inline-flex items-center rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-500 ring-1 ring-inset ring-red-500/20">Error</span>
+                  {% endif %}
+              </div>
+          </div>
+          <div class="p-4 bg-black/30 overflow-x-auto">
+              <pre class="text-xs font-mono text-gray-300 whitespace-pre-wrap break-all">{{ log["traceback"] }}</pre>
+          </div>
+      </div>
     {% endfor %}
-    {{ pagination.pagination('/console', page, pages) }}
-    {{ pagination.paginationJs('/console', page, pages) }}
+  </div>
+
+  {{ pagination.paginationJs('/console', page, pages) }}
 {% endblock %}
