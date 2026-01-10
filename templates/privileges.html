@@ -27,7 +27,7 @@
           <tbody class="divide-y divide-white/5">
             {% for priv in privileges %}
               <tr class="transition-colors hover:bg-white/5">
-                <td class="p-6 align-middle font-mono text-muted-foreground">#{{ priv["Id"] }}</td>
+                <td class="p-6 align-middle font-mono text-muted-foreground">{{ priv["Id"] }}</td>
                 <td class="p-6 align-middle">
                     {% set color_class = 'bg-gray-500/20 text-gray-300 border-gray-500/30' %}
                     {% if priv['Colour'] == 'danger' %}

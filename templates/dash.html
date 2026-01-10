@@ -1,347 +1,380 @@
 {% extends "base.html" %}
 {% block head %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 {% endblock %}
 {% block content %}
-  <div class="mb-8">
-      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Dashboard</h2>
-      <p class="text-slate-400 mt-2 font-medium">
-        Welcome to the heart of the administration panel. Here's a quick look at your server's health.
+<div class="mb-8">
+  <h2 class="text-3xl font-display font-bold tracking-tight text-white">Dashboard</h2>
+  <p class="text-slate-400 mt-2 font-medium">
+    Welcome to the heart of the administration panel. Here's a quick look at your server's health.
+  </p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mb-8" id="statuses">
+  <div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-blue-500/30 group relative overflow-hidden">
+    <div
+      class="absolute -right-6 -bottom-6 text-blue-500/5 group-hover:text-blue-500/10 transition-colors pointer-events-none">
+      <i class="fas fa-users text-9xl transform -rotate-12"></i>
+    </div>
+    <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-blue-400 transition-colors">
+        Registered Users</h3>
+    </div>
+    <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["RegisteredUsers"] }}</div>
+  </div>
+
+  <div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-green-500/30 group relative overflow-hidden">
+    <div
+      class="absolute -right-6 -bottom-6 text-green-500/5 group-hover:text-green-500/10 transition-colors pointer-events-none">
+      <i class="fas fa-signal text-9xl transform -rotate-12"></i>
+    </div>
+    <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <h3
+        class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-green-400 transition-colors">
+        Online Users</h3>
+    </div>
+    <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["OnlineUsers"] }}</div>
+  </div>
+
+  <div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-yellow-500/30 group relative overflow-hidden">
+    <div
+      class="absolute -right-6 -bottom-6 text-yellow-500/5 group-hover:text-yellow-500/10 transition-colors pointer-events-none">
+      <i class="fas fa-trophy text-9xl transform -rotate-12"></i>
+    </div>
+    <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <h3
+        class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-yellow-400 transition-colors">
+        Total PP</h3>
+    </div>
+    <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPP"] }}</div>
+  </div>
+
+  <div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-cyan-500/30 group relative overflow-hidden">
+    <div
+      class="absolute -right-6 -bottom-6 text-cyan-500/5 group-hover:text-cyan-500/10 transition-colors pointer-events-none">
+      <i class="fas fa-play text-9xl transform -rotate-12"></i>
+    </div>
+    <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-cyan-400 transition-colors">
+        Total Plays</h3>
+    </div>
+    <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPlays"] }}</div>
+  </div>
+
+  <div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-purple-500/30 group relative overflow-hidden">
+    <div
+      class="absolute -right-6 -bottom-6 text-purple-500/5 group-hover:text-purple-500/10 transition-colors pointer-events-none">
+      <i class="fas fa-file-invoice text-9xl transform -rotate-12"></i>
+    </div>
+    <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <h3
+        class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-purple-400 transition-colors">
+        Total Scores</h3>
+    </div>
+    <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalScores"] }}</div>
+  </div>
+</div>
+
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-7 mb-8">
+  <!-- Chart -->
+  <div
+    class="col-span-4 rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-1 overflow-hidden flex flex-col">
+    <div class="p-6 pb-2 flex flex-row items-center justify-between">
+      <div class="space-y-1">
+        <h3 class="font-display font-bold text-lg text-white">Online Traffic</h3>
+        <p class="text-xs text-slate-400 font-medium">Concurrent players over the last interval.</p>
+      </div>
+      <div
+        class="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-500">
+        <i class="fas fa-chart-area"></i>
+      </div>
+    </div>
+    <div class="p-6 pt-4 flex-1">
+      <div class="h-[300px] w-full">
+        <canvas id="PlayerChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Most Played -->
+  <div
+    class="col-span-3 rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden group flex flex-col">
+    <div class="relative h-48 w-full overflow-hidden shrink-0">
+      <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+        style='background-image: url("{{ MostPlayed[' Cover'] }}");'></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+      <div class="absolute bottom-4 left-6 right-4">
+        <div
+          class="inline-flex items-center rounded-lg bg-blue-500/20 border border-blue-500/30 px-2.5 py-1 text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 backdrop-blur-md">
+          <i class="fas fa-fire mr-1.5"></i> Trending
+        </div>
+        <h3 class="text-2xl font-display font-bold text-white truncate shadow-sm leading-tight">{{
+          MostPlayed["SongName"] }}</h3>
+      </div>
+    </div>
+    <div class="p-6 space-y-6 flex-1 flex flex-col justify-center">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-slate-400 font-medium">Total Playcount</span>
+        <span class="text-white font-mono font-bold text-lg">{{ MostPlayed["Playcount"] }}</span>
+      </div>
+      <div class="h-px bg-slate-700/50 w-full"></div>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        This beatmap is currently dominating the charts. Check out the leaderboard and map details.
       </p>
-  </div>
-
-  <!-- Stats Grid -->
-  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5 mb-8" id="statuses">
-    <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-blue-500/30 group relative overflow-hidden">
-      <div class="absolute -right-6 -bottom-6 text-blue-500/5 group-hover:text-blue-500/10 transition-colors pointer-events-none">
-          <i class="fas fa-users text-9xl transform -rotate-12"></i>
-      </div>
-      <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-blue-400 transition-colors">Registered Users</h3>
-      </div>
-      <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["RegisteredUsers"] }}</div>
-    </div>
-    
-    <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-green-500/30 group relative overflow-hidden">
-      <div class="absolute -right-6 -bottom-6 text-green-500/5 group-hover:text-green-500/10 transition-colors pointer-events-none">
-          <i class="fas fa-signal text-9xl transform -rotate-12"></i>
-      </div>
-      <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-green-400 transition-colors">Online Users</h3>
-      </div>
-      <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["OnlineUsers"] }}</div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-yellow-500/30 group relative overflow-hidden">
-      <div class="absolute -right-6 -bottom-6 text-yellow-500/5 group-hover:text-yellow-500/10 transition-colors pointer-events-none">
-          <i class="fas fa-trophy text-9xl transform -rotate-12"></i>
-      </div>
-      <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-yellow-400 transition-colors">Total PP</h3>
-      </div>
-      <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPP"] }}</div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-cyan-500/30 group relative overflow-hidden">
-      <div class="absolute -right-6 -bottom-6 text-cyan-500/5 group-hover:text-cyan-500/10 transition-colors pointer-events-none">
-          <i class="fas fa-play text-9xl transform -rotate-12"></i>
-      </div>
-      <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-cyan-400 transition-colors">Total Plays</h3>
-      </div>
-      <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalPlays"] }}</div>
-    </div>
-
-    <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 hover:border-purple-500/30 group relative overflow-hidden">
-      <div class="absolute -right-6 -bottom-6 text-purple-500/5 group-hover:text-purple-500/10 transition-colors pointer-events-none">
-          <i class="fas fa-file-invoice text-9xl transform -rotate-12"></i>
-      </div>
-      <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-purple-400 transition-colors">Total Scores</h3>
-      </div>
-      <div class="text-3xl font-display font-bold text-white mt-2 relative z-10">{{ data["TotalScores"] }}</div>
+      <a href="{{ config.srv_url }}b/{{ MostPlayed['BeatmapId'] }}" target="_blank"
+        class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 focus:outline-none bg-primary hover:bg-blue-600 text-white h-12 px-6 w-full shadow-lg shadow-blue-500/20 mt-auto hover:shadow-blue-500/40 hover:-translate-y-0.5">
+        <i class="fas fa-external-link-alt mr-2.5"></i> View Beatmap
+      </a>
     </div>
   </div>
+</div>
 
-  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-7 mb-8">
-    <!-- Chart -->
-    <div class="col-span-4 rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-1 overflow-hidden flex flex-col">
-      <div class="p-6 pb-2 flex flex-row items-center justify-between">
-          <div class="space-y-1">
-              <h3 class="font-display font-bold text-lg text-white">Online Traffic</h3>
-              <p class="text-xs text-slate-400 font-medium">Concurrent players over the last interval.</p>
-          </div>
-          <div class="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-500">
-              <i class="fas fa-chart-area"></i>
-          </div>
-      </div>
-      <div class="p-6 pt-4 flex-1">
-        <div class="h-[300px] w-full">
-            <canvas id="PlayerChart"></canvas>
-        </div>
-      </div>
+<div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8 overflow-hidden">
+  <div
+    class="p-6 flex flex-row items-center justify-between space-y-0 pb-2 border-b border-slate-700/50 bg-slate-800/50">
+    <div class="space-y-1">
+      <h3 class="font-display font-bold text-lg text-white">Recent Activity</h3>
+      <p class="text-xs text-slate-400 font-medium">Latest scores submitted to the server.</p>
     </div>
-
-    <!-- Most Played -->
-    <div class="col-span-3 rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden group flex flex-col">
-        <div class="relative h-48 w-full overflow-hidden shrink-0">
-             <div 
-                class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                style='background-image: url("{{ MostPlayed['Cover'] }}");'
-             ></div>
-             <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
-             <div class="absolute bottom-4 left-6 right-4">
-                 <div class="inline-flex items-center rounded-lg bg-blue-500/20 border border-blue-500/30 px-2.5 py-1 text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 backdrop-blur-md">
-                    <i class="fas fa-fire mr-1.5"></i> Trending
-                 </div>
-                 <h3 class="text-2xl font-display font-bold text-white truncate shadow-sm leading-tight">{{ MostPlayed["SongName"] }}</h3>
-             </div>
-        </div>
-        <div class="p-6 space-y-6 flex-1 flex flex-col justify-center">
-            <div class="flex items-center justify-between text-sm">
-                <span class="text-slate-400 font-medium">Total Playcount</span>
-                <span class="text-white font-mono font-bold text-lg">{{ MostPlayed["Playcount"] }}</span>
+    <div
+      class="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-500">
+      <i class="fas fa-clock-rotate-left"></i>
+    </div>
+  </div>
+  <div class="relative w-full overflow-auto">
+    <table class="w-full caption-bottom text-sm text-left">
+      <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
+        <tr>
+          <th class="h-12 px-6 align-middle font-bold">Time</th>
+          <th class="h-12 px-6 align-middle font-bold">Player</th>
+          <th class="h-12 px-6 align-middle font-bold">Song</th>
+          <th class="h-12 px-6 align-middle font-bold">Mode</th>
+          <th class="h-12 px-6 align-middle font-bold">Score</th>
+          <th class="h-12 px-6 align-middle text-right font-bold">PP</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-700/50">
+        {% for play in plays %}
+        <tr class="transition-colors hover:bg-slate-700/30 group">
+          <td class="p-6 align-middle text-slate-400 whitespace-nowrap font-medium">{{ play["Time"] }}</td>
+          <td class="p-6 align-middle">
+            <div class="flex items-center gap-3">
+              <img src="{{ config.api_avatar_url }}{{ play['PlayerId'] }}"
+                class="h-8 w-8 rounded-lg border border-slate-600 shadow-sm" alt="">
+              <a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank"
+                class="font-bold text-white hover:text-blue-400 transition-colors">{{ play["Player"] }}</a>
             </div>
-            <div class="h-px bg-slate-700/50 w-full"></div>
-            <p class="text-sm text-slate-400 leading-relaxed">
-                This beatmap is currently dominating the charts. Check out the leaderboard and map details.
-            </p>
-            <a href="{{ config.srv_url }}b/{{ MostPlayed['BeatmapId'] }}" target="_blank" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 focus:outline-none bg-primary hover:bg-blue-600 text-white h-12 px-6 w-full shadow-lg shadow-blue-500/20 mt-auto hover:shadow-blue-500/40 hover:-translate-y-0.5">
-                <i class="fas fa-external-link-alt mr-2.5"></i> View Beatmap
-            </a>
-        </div>
-    </div>
+          </td>
+          <td class="p-6 align-middle text-slate-300 font-medium min-w-[200px]">{{ play["SongName"] }} <span
+              class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-400 ml-2 font-bold">{{ play["Accuracy"]
+              }}%</span></td>
+          <td class="p-6 align-middle">
+            <span
+              class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-700/50 text-slate-300 border border-slate-600/50">
+              {{ play["Mode"] }}
+            </span>
+          </td>
+          <td class="p-6 align-middle text-slate-400 font-mono text-xs font-bold">{{ play["Score"] }}</td>
+          <td class="p-6 align-middle text-right">
+            <div class="inline-flex items-center bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-lg">
+              <span class="font-bold text-blue-400">{{ play["pp"] }}</span><span
+                class="text-[10px] text-blue-500/70 ml-1 font-bold">pp</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+</div>
 
-  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8 overflow-hidden">
-      <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2 border-b border-slate-700/50 bg-slate-800/50">
-          <div class="space-y-1">
-              <h3 class="font-display font-bold text-lg text-white">Recent Activity</h3>
-              <p class="text-xs text-slate-400 font-medium">Latest scores submitted to the server.</p>
-          </div>
-          <div class="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-500">
-              <i class="fas fa-clock-rotate-left"></i>
-          </div>
-      </div>
-      <div class="relative w-full overflow-auto">
-        <table class="w-full caption-bottom text-sm text-left">
-          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
-            <tr>
-              <th class="h-12 px-6 align-middle font-bold">Time</th>
-              <th class="h-12 px-6 align-middle font-bold">Player</th>
-              <th class="h-12 px-6 align-middle font-bold">Song</th>
-              <th class="h-12 px-6 align-middle font-bold">Mode</th>
-              <th class="h-12 px-6 align-middle font-bold">Score</th>
-              <th class="h-12 px-6 align-middle text-right font-bold">PP</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-700/50">
-            {% for play in plays %}
-              <tr class="transition-colors hover:bg-slate-700/30 group">
-                <td class="p-6 align-middle text-slate-400 whitespace-nowrap font-medium">{{ play["Time"] }}</td>
-                <td class="p-6 align-middle">
-                  <div class="flex items-center gap-3">
-                      <img src="{{ config.api_avatar_url }}{{ play['PlayerId'] }}" class="h-8 w-8 rounded-lg border border-slate-600 shadow-sm" alt="">
-                      <a href="{{ config.srv_url }}u/{{ play['PlayerId'] }}" target="_blank" class="font-bold text-white hover:text-blue-400 transition-colors">{{ play["Player"] }}</a>
-                  </div>
-                </td>
-                <td class="p-6 align-middle text-slate-300 font-medium min-w-[200px]">{{ play["SongName"] }} <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-400 ml-2 font-bold">{{ play["Accuracy"] }}%</span></td>
-                <td class="p-6 align-middle">
-                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-700/50 text-slate-300 border border-slate-600/50">
-                        {{ play["Mode"] }}
-                    </span>
-                </td>
-                <td class="p-6 align-middle text-slate-400 font-mono text-xs font-bold">{{ play["Score"] }}</td>
-                <td class="p-6 align-middle text-right">
-                    <div class="inline-flex items-center bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-lg">
-                        <span class="font-bold text-blue-400">{{ play["pp"] }}</span><span class="text-[10px] text-blue-500/70 ml-1 font-bold">pp</span>
-                    </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-  </div>
-
-  <script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
     //Dash data
-    var labels = {{ Graph["IntervalList"]|safe }};
-    var data = {{ Graph["PlayerCount"]|safe }};
-    var ctx = document.getElementById("PlayerChart").getContext("2d");
-    
-    // Gradient for chart
-    var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+    var labels = {{ Graph["IntervalList"]| safe
+  }};
+  var data = {{ Graph["PlayerCount"]| safe }};
+  var ctx = document.getElementById("PlayerChart").getContext("2d");
 
-    var myChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [
+  // Gradient for chart
+  var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+  gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+  var myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Online Players",
+          data: data,
+          borderWidth: 3,
+          backgroundColor: gradient,
+          borderColor: "#3B82F6",
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: "#1E293B",
+          pointBorderColor: "#3B82F6",
+          pointHoverBackgroundColor: "#3B82F6",
+          pointHoverBorderColor: "#fff",
+          pointHoverRadius: 6,
+          lineTension: 0.4,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      layout: {
+        padding: {
+          left: 0,
+          right: 0,
+          top: 10,
+          bottom: 0,
+        },
+      },
+      legend: {
+        display: false,
+      },
+      tooltips: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFontFamily: 'Poppins',
+        bodyFontFamily: 'Poppins',
+        bodyFontSize: 13,
+        titleFontSize: 13,
+        titleFontColor: '#94a3b8',
+        bodyFontColor: '#fff',
+        borderColor: 'rgba(51, 65, 85, 0.5)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        xPadding: 12,
+        yPadding: 12,
+        displayColors: false,
+      },
+      scales: {
+        yAxes: [
           {
-            label: "Online Players",
-            data: data,
-            borderWidth: 3,
-            backgroundColor: gradient,
-            borderColor: "#3B82F6",
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: "#1E293B",
-            pointBorderColor: "#3B82F6",
-            pointHoverBackgroundColor: "#3B82F6",
-            pointHoverBorderColor: "#fff",
-            pointHoverRadius: 6,
-            lineTension: 0.4,
+            gridLines: {
+              display: true,
+              color: "rgba(51, 65, 85, 0.3)",
+              zeroLineColor: "rgba(51, 65, 85, 0.3)",
+              drawBorder: false,
+              borderDash: [5, 5]
+            },
+            ticks: {
+              beginAtZero: true,
+              fontColor: "#64748b",
+              fontFamily: "Poppins",
+              fontSize: 11,
+              padding: 10,
+              callback: function (label, index, labels) {
+                if (Math.floor(label) === label) {
+                  return label;
+                }
+
+              },
+            },
+          },
+        ],
+        xAxes: [
+          {
+            gridLines: {
+              display: false,
+            },
+            ticks: {
+              fontColor: "#64748b",
+              fontFamily: "Poppins",
+              fontSize: 11,
+              padding: 10
+            }
           },
         ],
       },
-      options: {
-        maintainAspectRatio: false,
-        responsive: true,
-        layout: {
-          padding: {
-            left: 0,
-            right: 0,
-            top: 10,
-            bottom: 0,
-          },
-        },
-        legend: {
-          display: false,
-        },
-        tooltips: {
-            mode: 'index',
-            intersect: false,
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleFontFamily: 'Poppins',
-            bodyFontFamily: 'Poppins',
-            bodyFontSize: 13,
-            titleFontSize: 13,
-            titleFontColor: '#94a3b8',
-            bodyFontColor: '#fff',
-            borderColor: 'rgba(51, 65, 85, 0.5)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            xPadding: 12,
-            yPadding: 12,
-            displayColors: false,
-        },
-        scales: {
-          yAxes: [
-            {
-              gridLines: {
-                display: true,
-                color: "rgba(51, 65, 85, 0.3)",
-                zeroLineColor: "rgba(51, 65, 85, 0.3)",
-                drawBorder: false,
-                borderDash: [5, 5]
-              },
-              ticks: {
-                beginAtZero: true,
-                fontColor: "#64748b",
-                fontFamily: "Poppins",
-                fontSize: 11,
-                padding: 10,
-                callback: function (label, index, labels) {
-									if (Math.floor(label) === label) {
-										return label;
-									}
+    },
+  });
 
-								},
-              },
-            },
-          ],
-          xAxes: [
-            {
-              gridLines: {
-                display: false,
-              },
-              ticks: {
-                  fontColor: "#64748b",
-                  fontFamily: "Poppins",
-                  fontSize: 11,
-                  padding: 10
-              }
-            },
-          ],
-        },
-      },
+  function createStatusCard(title, status, colorClass, textClass, icon) {
+    // Map old color classes to new border classes if needed, or rely on text color
+    let borderColor = "border-l-slate-600";
+    if (colorClass.includes("green")) borderColor = "border-l-emerald-500";
+    if (colorClass.includes("red")) borderColor = "border-l-red-500";
+    if (colorClass.includes("yellow")) borderColor = "border-l-amber-500";
+
+    let iconClass = "fa-server";
+    if (title.includes("API")) iconClass = "fa-code";
+    if (title.includes("Score")) iconClass = "fa-database";
+
+    return `
+            <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${borderColor} group relative overflow-hidden">
+              <div class="absolute -right-6 -bottom-6 text-slate-500/5 group-hover:text-slate-500/10 transition-colors pointer-events-none">
+                  <i class="fas ${iconClass} text-9xl transform -rotate-12"></i>
+              </div>
+              <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
+              </div>
+              <div class="text-xl font-display font-bold ${textClass} mt-1 relative z-10">${status}</div>
+            </div>`;
+  }
+
+  var API_URL = window.location.protocol + "//" + window.location.host + "/js/status/api";
+  var LetsAPI = window.location.protocol + "//" + window.location.host + "/js/status/lets";
+  var BanchoURL = window.location.protocol + "//" + window.location.host + "/js/status/bancho";
+
+  fetch(LetsAPI)
+    .then((res) => res.json())
+    .then((out) => {
+      let status = out["server_status"] == 1 ? "Online" : "Offline";
+      let color = out["server_status"] == 1 ? "border-l-emerald-500" : "border-l-red-500";
+      let text = out["server_status"] == 1 ? "text-emerald-400" : "text-red-400";
+      document.getElementById("statuses").innerHTML += createStatusCard("Score Service", status, color, text);
+    })
+    .catch((err) => {
+      document.getElementById("statuses").innerHTML += createStatusCard("Score Service", "Offline", "border-l-red-500", "text-red-400");
     });
 
-    function createStatusCard(title, status, colorClass, textClass, icon) {
-        // Map old color classes to new border classes if needed, or rely on text color
-        let borderColor = "border-l-slate-600";
-        if (colorClass.includes("green")) borderColor = "border-l-emerald-500";
-        if (colorClass.includes("red")) borderColor = "border-l-red-500";
-        if (colorClass.includes("yellow")) borderColor = "border-l-amber-500";
-        
-        let iconClass = "fa-server";
-        if (title.includes("API")) iconClass = "fa-code";
-        if (title.includes("Score")) iconClass = "fa-database";
+  fetch(BanchoURL)
+    .then((res) => res.json())
+    .then((out) => {
+      let status = "Offline";
+      let color = "border-l-red-500";
+      let text = "text-red-400";
 
-        return `
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${borderColor} group relative overflow-hidden">
-          <div class="absolute -right-6 -bottom-6 text-slate-500/5 group-hover:text-slate-500/10 transition-colors pointer-events-none">
-              <i class="fas ${iconClass} text-9xl transform -rotate-12"></i>
-          </div>
-          <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
-          </div>
-          <div class="text-xl font-display font-bold ${textClass} mt-1 relative z-10">${status}</div>
-        </div>`;
-    }
+      if (out["result"] == 1) {
+        status = "Online";
+        color = "border-l-emerald-500";
+        text = "text-emerald-400";
+      } else if (out["result"] == -1) {
+        status = "Restarting";
+        color = "border-l-amber-500";
+        text = "text-amber-400";
+      }
 
-    var API_URL = "https://" + window.location.host + "/js/status/api";
-    var LetsAPI = "https://" + window.location.host + "/js/status/lets";
-    var BanchoURL = "https://" + window.location.host + "/js/status/bancho";
+      document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", status, color, text);
+    })
+    .catch((err) => {
+      document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", "Offline", "border-l-red-500", "text-red-400");
+    });
 
-    fetch(LetsAPI)
-      .then((res) => res.json())
-      .then((out) => {
-        let status = out["server_status"] == 1 ? "Online" : "Offline";
-        let color = out["server_status"] == 1 ? "border-l-emerald-500" : "border-l-red-500";
-        let text = out["server_status"] == 1 ? "text-emerald-400" : "text-red-400";
-        document.getElementById("statuses").innerHTML += createStatusCard("Score Service", status, color, text);
-      })
-      .catch((err) => {
-         document.getElementById("statuses").innerHTML += createStatusCard("Score Service", "Offline", "border-l-red-500", "text-red-400");
-      });
-
-    fetch(BanchoURL)
-      .then((res) => res.json())
-      .then((out) => {
-        let status = "Offline";
-        let color = "border-l-red-500";
-        let text = "text-red-400";
-        
-        if (out["result"] == 1) {
-            status = "Online";
-            color = "border-l-emerald-500";
-            text = "text-emerald-400";
-        } else if (out["result"] == -1) {
-            status = "Restarting";
-            color = "border-l-amber-500";
-            text = "text-amber-400";
-        }
-        
-        document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", status, color, text);
-      })
-      .catch((err) => {
-        document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", "Offline", "border-l-red-500", "text-red-400");
-      });
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((out) => {
-        let status = out["code"] == 200 ? "Online" : "Offline";
-        let color = out["code"] == 200 ? "border-l-emerald-500" : "border-l-red-500";
-        let text = out["code"] == 200 ? "text-emerald-400" : "text-red-400";
-        document.getElementById("statuses").innerHTML += createStatusCard("API Service", status, color, text);
-      })
-      .catch((err) => {
-        document.getElementById("statuses").innerHTML += createStatusCard("API Service", "Offline", "border-l-red-500", "text-red-400");
-      });
-  </script>
+  fetch(API_URL)
+    .then((res) => res.json())
+    .then((out) => {
+      let status = out["code"] == 200 ? "Online" : "Offline";
+      let color = out["code"] == 200 ? "border-l-emerald-500" : "border-l-red-500";
+      let text = out["code"] == 200 ? "text-emerald-400" : "text-red-400";
+      document.getElementById("statuses").innerHTML += createStatusCard("API Service", status, color, text);
+    })
+    .catch((err) => {
+      document.getElementById("statuses").innerHTML += createStatusCard("API Service", "Offline", "border-l-red-500", "text-red-400");
+    });
+    });
+</script>
 {% endblock %}

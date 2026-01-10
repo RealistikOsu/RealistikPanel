@@ -1,6 +1,7 @@
 # Legacy panel functionality! DO NOT extend.
 from __future__ import annotations
 
+import asyncio
 import datetime
 import hashlib
 import json
@@ -55,7 +56,7 @@ async def fix_bad_user_count() -> None:
 
 
 # public variables
-PlayerCount = []  # list of players
+PlayerCount = [0] * 10  # list of players with baseline
 
 
 class Country(TypedDict):
@@ -1642,19 +1643,20 @@ async def find_all_ips(user_id: int) -> list[dict[str, Any]]:
 
 
 async def PlayerCountCollection() -> None:
-    """Designed to be ran as thread. Grabs player count every set interval and puts in array."""
+    """Designed to be ran as a background task. Grabs player count every set interval and puts in array."""
     while True:
-        CurrentCount = decode_int_or(await state.redis.get("ripple:online_users"), 0)
-        PlayerCount.append(CurrentCount)
-        if len(PlayerCount) >= 100:
-             PlayerCount.pop(0)
+        try:
+            val = await state.redis.get("ripple:online_users")
+            CurrentCount = decode_int_or(val, 0)
+            
+            PlayerCount.append(CurrentCount)
+            if len(PlayerCount) > 100:
+                 PlayerCount.pop(0)
+        except Exception as e:
+            logger.error(f"Failed to collect player count: {e}")
         
         # Async sleep for 300 seconds
-        try:
-             import asyncio
-             await asyncio.sleep(300)
-        except Exception:
-             break
+        await asyncio.sleep(300)
 
 def get_playcount_graph_data() -> dict[str, list[Union[int, str]]]:
     """Returns data for dash graphs."""

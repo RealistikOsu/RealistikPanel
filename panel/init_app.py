@@ -723,7 +723,7 @@ def configure_routes(app: Quart) -> None:
         try:
              async with aiohttp.ClientSession() as session:
                 async with session.get(config.api_bancho_url + "/api/v1/serverStatus", timeout=1) as resp:
-                    return jsonify(await resp.json())
+                    return jsonify(await resp.json(content_type="text/html"))
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting Bancho Service status, error: " + tb)

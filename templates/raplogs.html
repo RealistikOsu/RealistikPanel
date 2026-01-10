@@ -25,7 +25,7 @@
           <tbody class="divide-y divide-white/5">
             {% for Log in Logs %}
               <tr class="transition-colors hover:bg-white/5">
-                <td class="p-6 align-middle font-mono text-muted-foreground">#{{ Log["LogId"] }}</td>
+                <td class="p-6 align-middle font-mono text-muted-foreground">{{ Log["LogId"] }}</td>
                 <td class="p-6 align-middle">
                     <div class="flex items-center gap-3">
                         <img class="h-8 w-8 rounded-full border border-white/10" src="{{ config.api_avatar_url }}{{ Log['AccountData']['Id'] }}" alt="">
