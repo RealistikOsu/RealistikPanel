@@ -1,167 +1,124 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="card">
-    <div class="card-header">
-      {% if Clan["Icon"] %}
-        <img
-          alt="image"
-          src="{{ Clan['Icon'] }}"
-          class="rounded-circle mr-1"
-          style="width:100%; max-width:30px; max-height:30px;"
-        />
-      {% endif %}
-      <h4><b>[{{ Clan["Tag"] }}]</b> {{ Clan["Name"] }}</h4>
-    </div>
-    <div class="card-body">
-      <b>{{ Clan["Description"] }}</b><br />
-      This clan currently has
-      {{ Clan["MemberCount"] }}/{{ Clan["MemberLimit"] }} users.
-    </div>
-    <div class="card-footer">
-      <img
-        alt="image"
-        src="{{ config.api_avatar_url }}{{ ClanOwner['AccountID'] }}"
-        class="rounded-circle mr-1"
-        style="width:100%; max-width:30px; max-height:30px;"
-      />
-      This clan is led by <b>{{ ClanOwner["Username"] }}</b>
-    </div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Edit Clan: {{ Clan['Name'] }}</h2>
+      <p class="text-slate-400 mt-2 font-medium">
+        Manage clan details and view its members.
+      </p>
   </div>
-  <div class="card">
-    <div class="card-header">Clan Options</div>
-    <div class="card-body">
-      <form action="/clan/{{ Clan['ID'] }}" method="post">
-        <div class="form-group">
-          <label>Clan ID</label>
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            value="{{ Clan['ID'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Clan Name</label>
-          <input
-            type="text"
-            class="form-control"
-            name="name"
-            value="{{ Clan['Name'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Clan Tag</label>
-          <input
-            type="text"
-            class="form-control"
-            name="tag"
-            value="{{ Clan['Tag'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Clan Description</label>
-          <input
-            type="text"
-            class="form-control"
-            name="desc"
-            value="{{ Clan['Description'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Clan Icon</label>
-          <input
-            type="text"
-            class="form-control"
-            name="icon"
-            value="{{ Clan['Icon'] }}"
-          />
-        </div>
-        <div class="form-group">
-          <label>Member Limit</label>
-          <input
-            type="number"
-            class="form-control"
-            name="limit"
-            value="{{ Clan['MemberLimit'] }}"
-          />
-        </div>
-        <div class="buttons">
-          <button class="btn btn-success" type="submit" name="">Apply!</button>
-          <a class="btn btn-danger" href="/clan/confirmdelete/{{ Clan['ID'] }}"
-            >Disband</a
-          >
-        </div>
-      </form>
-    </div>
-  </div>
-  <h2 class="section-title">Clan Members</h2>
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Member in Members[0] %}
-        <div class="card">
-          <div class="card-header">
-            <img
-              alt="image"
-              src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}"
-              class="rounded-circle mr-1"
-              style="width:100%; max-width:30px; max-height:30px;"
-            />
-            <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
-          </div>
-          <div class="card-body">
-            They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
-            <div class="buttons" style="margin-top: 20px;">
-              <a
-                class="btn btn-danger"
-                href="/action/kickclan/{{ Member['AccountID'] }}"
-                >Kick from Clan</a
-              >
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Member in Members[1] %}
-        <div class="card">
-          <div class="card-header">
-            <img
-              alt="image"
-              src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}"
-              class="rounded-circle mr-1"
-              style="width:100%; max-width:30px; max-height:30px;"
-            />
-            <b>[{{ Clan['Tag'] }}] {{ Member["Username"] }}</b>
-          </div>
-          <div class="card-body">
-            They registered on {{ config.srv_name }} {{ Member["RegisterAgo"] }}
-            <div class="buttons" style="margin-top: 20px;">
-              <a
-                class="btn btn-danger"
-                href="/action/kickclan/{{ Member['AccountID'] }}"
-                >Kick from Clan</a
-              >
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-  <h2 class="section-title">Clan Invites</h2>
 
-  {% if not clan_invites %}
-    <p>This clan has no active invite links!</p>
-  {% else %}
-    <!-- display all the invites -->
-    {% for invite in clan_invites %}
-      <div class="card">
-        <div class="card-header" style="gap: 5px">
-          Invite Code: <b>{{ invite["invite_code"] }}</b>
-        </div>
-        <div class="card-body">
-          This invite was created on {{ config.srv_name }}
-        </div>
+  <div class="grid gap-8 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-8">
+          <!-- Edit Form -->
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-8 py-5 bg-slate-900/30">
+              <h3 class="font-display font-bold text-lg text-white">Clan Settings</h3>
+            </div>
+            <div class="p-8">
+              <form action="/clan/{{ Clan['ID'] }}" method="post" class="space-y-6">
+                <input type="hidden" name="id" value="{{ Clan['ID'] }}">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Clan Name</label>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="name" value="{{ Clan['Name'] }}" />
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Clan Tag</label>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="tag" value="{{ Clan['Tag'] }}" />
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Description</label>
+                  <textarea class="flex min-h-[100px] w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900 font-sans" name="desc" rows="3">{{ Clan['Description'] }}</textarea>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Icon (URL)</label>
+                      <input type="text" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="icon" value="{{ Clan['Icon'] }}" placeholder="https://example.com/icon.png" />
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Member Limit</label>
+                      <input type="number" class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" name="limit" value="{{ Clan['MemberLimit'] }}" />
+                    </div>
+                </div>
+                
+                <div class="pt-4 flex items-center justify-between border-t border-slate-700/50 mt-4">
+                    <button class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-emerald-600 hover:bg-emerald-500 text-white h-11 px-8 shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5" type="submit">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                    <a href="/clan/confirmdelete/{{ Clan['ID'] }}" class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors focus:outline-none bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 h-11 px-4 hover:shadow-lg hover:shadow-red-900/20">
+                        Disband Clan
+                    </a>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Members -->
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-6 py-4 flex items-center justify-between bg-slate-900/30">
+              <h3 class="font-display font-bold text-lg text-white">Members</h3>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-widest bg-slate-800 px-2 py-1 rounded-md border border-slate-700">{{ Clan['MemberCount'] }} / {{ Clan['MemberLimit'] }}</span>
+            </div>
+            <div class="relative w-full overflow-auto">
+                <table class="w-full caption-bottom text-sm text-left">
+                  <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
+                    <tr>
+                      <th class="h-10 px-6 align-middle font-bold">Name</th>
+                      <th class="h-10 px-6 align-middle font-bold">Joined</th>
+                      <th class="h-10 px-6 align-middle text-right font-bold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-700/50">
+                    {% for Member in Members %}
+                      <tr class="transition-colors hover:bg-slate-700/30 group">
+                        <td class="p-6 align-middle">
+                            <div class="flex items-center gap-3">
+                                <img class="h-8 w-8 rounded-lg border border-slate-600 shadow-sm" src="{{ config.api_avatar_url }}{{ Member['AccountID'] }}" alt="">
+                                <div class="flex flex-col">
+                                    <a href="{{ config.srv_url }}u/{{ Member['AccountID'] }}" target="_blank" class="font-bold text-white hover:text-blue-400 transition-colors">
+                                        {{ Member["Username"] }}
+                                    </a>
+                                    {% if Member['AccountID'] == ClanOwner['AccountID'] %}
+                                        <span class="text-[10px] text-yellow-500 font-bold uppercase tracking-wider mt-0.5">Owner</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-6 align-middle text-slate-400 font-medium">
+                            {{ Member["RegisterAgo"] }}
+                        </td>
+                        <td class="p-6 align-middle text-right">
+                            <a href="/action/kickclan/{{ Member['AccountID'] }}" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase tracking-wider transition-colors hover:underline">Kick</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+          </div>
       </div>
-    {% endfor %}
-  {% endif %}
+
+      <!-- Sidebar Info -->
+      <div class="space-y-8">
+          <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-8 text-center flex flex-col items-center">
+              <div class="h-24 w-24 rounded-2xl bg-slate-900 border-2 border-slate-700 flex items-center justify-center text-blue-500 text-4xl mb-4 overflow-hidden shadow-2xl shadow-black/50">
+                  {% if Clan["Icon"] %}
+                      <img src="{{ Clan['Icon'] }}" class="h-full w-full object-cover" alt="Icon">
+                  {% else %}
+                      <i class="fas fa-users"></i>
+                  {% endif %}
+              </div>
+              <h3 class="text-2xl font-display font-bold text-white">{{ Clan['Name'] }}</h3>
+              <span class="inline-flex items-center rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-400 mt-3 shadow-sm">
+                  [{{ Clan["Tag"] }}]
+              </span>
+              <p class="text-sm text-slate-400 mt-6 leading-relaxed font-medium">
+                  {{ Clan['Description'] }}
+              </p>
+          </div>
+      </div>
+  </div>
 {% endblock %}

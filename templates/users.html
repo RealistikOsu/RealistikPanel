@@ -1,99 +1,121 @@
 {% extends "base.html" %}
 {% import "components/pagination.html" as pagination %}
 {% block content %}
-  <style>
-    /* #page-items li {
-      display: inline-block;
-    }
+  <div class="mb-8">
+      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Users</h2>
+      <p class="text-slate-400 mt-2 font-medium">
+        Manage all registered users, view their details, and perform administrative actions.
+      </p>
+  </div>
 
-    #page-after,
-    #page-before {
-      display: inline-block;
-    } */
-  </style>
-  <h2 class="section-title">Users</h2>
-  <p class="section-lead">
-    This is the users panel. It lists all registered users and provides links to
-    actions that can be quickly done to the users.
-  </p>
-
-  <div class="card">
-    <div class="card-header">Search for users.</div>
-    <div class="card-body">
-      <form action="/users/1" method="post">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="user"
-            placeholder="Username or Email"
-            value="{{ User }}"
-          />
-        </div>
-        <button class="btn btn-success" type="submit" name="">Search</button>
-      </form>
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8">
+    <div class="p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+              <h3 class="font-display font-bold text-lg text-white">Search Users</h3>
+              <p class="text-sm text-slate-400 font-medium">Find users by username or email address.</p>
+          </div>
+          <form action="/users/1" method="get" class="flex w-full md:w-auto max-w-sm items-center gap-2">
+            <div class="relative w-full">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input
+                    type="text"
+                    class="flex h-10 w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 pl-9 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900"
+                    name="user"
+                    placeholder="Username or Email"
+                    value="{{ search_term if search_term else '' }}"
+                />
+            </div>
+            <button class="inline-flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-primary hover:bg-blue-600 text-white h-10 px-6 py-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5" type="submit">
+                Search
+            </button>
+          </form>
+      </div>
     </div>
-    <div class="card-footer">RealistikPanel</div>
-  </div>
-  {{ pagination.pagination('/users', page, pages) }}
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Name</th>
-          <th scope="col">Privilege</th>
-          <th scope="col">Allowed</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in UserData %}
-          <tr>
-            <td>{{ user["Id"] }}</td>
-            <td>
-              <div class="user-info">
-                {% if not user['Country'] == "XX" %}
-                  <img
-                    class="nflag"
-                    src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
-                  />
-                {% else %}
-                  <img
-                    class="nflag"
-                    src="https://ussr.pl/static/images/new-flags/xx.png"
-                  />
-                {% endif %}
-                <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank"
-                  >{{ user["Name"] }}</a
-                >
-              </div>
-            </td>
-            <td>
-              <a
-                class="badge badge-{{ user['Privilege']['Colour'] }}"
-                style="color: white;"
-                >{{ user["Privilege"]["Name"] }}</a
-              >
-            </td>
-            {% if user["Allowed"] %}
-              <td>
-                <a class="badge badge-success" style="color: white;">Yes</a>
-              </td>
-            {% else %}
-              <td><a class="badge badge-danger" style="color: white;">No</a></td>
-            {% endif %}
-            <td>
-              <a class="btn btn-danger" href="/user/edit/{{ user['Id'] }}"
-                >Edit</a
-              >
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
   </div>
 
-  {{ pagination.pagination('/users', page, pages) }}
-  {{ pagination.paginationJs('/users', page, pages) }}
+  {{ pagination.pagination('/users', page, pages, search_term) }}
+  
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
+            <tr>
+              <th class="h-12 px-6 align-middle font-bold">ID</th>
+              <th class="h-12 px-6 align-middle font-bold">Player</th>
+              <th class="h-12 px-6 align-middle font-bold">Privileges</th>
+              <th class="h-12 px-6 align-middle text-center font-bold">Status</th>
+              <th class="h-12 px-6 align-middle text-right font-bold">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/50">
+            {% for user in UserData %}
+              <tr class="transition-colors hover:bg-slate-700/30 group">
+                <td class="p-6 align-middle font-mono text-slate-500 text-xs font-bold">#{{ user["Id"] }}</td>
+                <td class="p-6 align-middle">
+                  <div class="flex items-center gap-3">
+                    <div class="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-slate-600 shadow-sm">
+                         <img class="aspect-square h-full w-full object-cover" src="{{ config.api_avatar_url }}{{ user['Id'] }}" alt="{{ user['Name'] }}">
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            {% if not user['Country'] == "XX" %}
+                              <img
+                                class="h-3.5 w-5 object-cover rounded-[2px] shadow-sm opacity-80"
+                                src="https://ussr.pl/static/images/new-flags/flag-{{ user['Country'].lower() }}.svg"
+                                title="{{ user['Country'] }}"
+                              />
+                            {% else %}
+                              <img
+                                class="h-3.5 w-5 object-cover rounded-[2px] shadow-sm opacity-50 grayscale"
+                                src="https://ussr.pl/static/images/new-flags/xx.png"
+                              />
+                            {% endif %}
+                            <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank" class="font-bold text-white hover:text-blue-400 transition-colors">{{ user["Name"] }}</a>
+                        </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-6 align-middle">
+                    {% set color_class = 'bg-slate-700/50 text-slate-300 border-slate-600' %}
+                    {% if user['Privilege']['Colour'] == 'danger' %}
+                        {% set color_class = 'bg-red-500/10 text-red-400 border-red-500/20' %}
+                    {% elif user['Privilege']['Colour'] == 'warning' %}
+                        {% set color_class = 'bg-amber-500/10 text-amber-400 border-amber-500/20' %}
+                    {% elif user['Privilege']['Colour'] == 'success' %}
+                        {% set color_class = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' %}
+                    {% elif user['Privilege']['Colour'] == 'info' %}
+                        {% set color_class = 'bg-blue-500/10 text-blue-400 border-blue-500/20' %}
+                    {% elif user['Privilege']['Colour'] == 'primary' %}
+                        {% set color_class = 'bg-purple-500/10 text-purple-400 border-purple-500/20' %}
+                    {% endif %}
+                  <span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold transition-colors {{ color_class }}">
+                    {{ user["Privilege"]["Name"] }}
+                  </span>
+                </td>
+                <td class="p-6 align-middle text-center">
+                    {% if user["Allowed"] %}
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-sm" title="Active">
+                            <i class="fas fa-check text-xs"></i>
+                        </div>
+                    {% else %}
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm" title="Restricted/Banned">
+                            <i class="fas fa-xmark text-xs"></i>
+                        </div>
+                    {% endif %}
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <a class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-9 px-4 hover:border-blue-500/50 hover:text-blue-400 group shadow-sm" href="/user/edit/{{ user['Id'] }}">
+                      <span class="mr-2">Edit</span>
+                      <i class="fas fa-pen-to-square text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  </div>
+
+  {{ pagination.paginationJs('/users', page, pages, search_term) }}
 {% endblock %}

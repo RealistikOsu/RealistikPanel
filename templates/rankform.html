@@ -1,95 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Beatmap Ranking</h2>
-  <p class="section-lead">
-    Change the ranking of a beatmap! This can be ranked, loved or qualified.
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Rank a beatmap!</h4>
-    </div>
-    <div class="card-body">
-      <form action="/rank" method="post">
-        <div class="form-group">
-          Make sure all the difficulties have been loaded at least once so they
-          are added to the database!<br />
-          <label>Beatmap ID</label>
-          <input type="text" class="form-control" name="bmapid" />
-        </div>
-        <button class="btn btn-primary mr-1" type="submit" name="">
-          Search
-        </button>
-      </form>
-    </div>
-    <div class="card-footer">RealistikPanel!</div>
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Rank a Beatmap</h2>
+      <p class="text-muted-foreground mt-2">
+        Search for a beatmap by its ID to change its ranking status.
+      </p>
   </div>
 
-  <h2 class="section-title">Suggested Ranking</h2>
-  <p class="section-lead">Here are the most popular unranked beatmaps.</p>
-  <div class="row">
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Beatmap in SuggestedBmaps[0] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ Beatmap['Cover'] }}"
-              style='background-image: url("{{ Beatmap['Cover'] }}");'
-            ></div>
-            <div class="article-badge">
-              <div class="article-badge-item bg-dark">
-                Modes: {{ Beatmap["Modes"] }}
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6 max-w-2xl mx-auto">
+      <form action="/rank" method="post" class="space-y-6">
+          <div class="space-y-2">
+              <label class="text-sm font-medium text-white">Beatmap ID (Set or Map ID)</label>
+              <div class="relative">
+                  <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                  <input type="text" class="flex h-12 w-full rounded-lg border border-white/10 bg-black/20 px-3 pl-10 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="bmapid" placeholder="e.g. 123456" autofocus>
               </div>
-            </div>
+              <p class="text-xs text-muted-foreground">Enter the ID from the osu! website URL.</p>
           </div>
-          <div class="article-details">
-            <div class="article-title">
-              <h5>{{ Beatmap["SongName"] }}</h5>
-            </div>
-            This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
-            this server!
-          </div>
-          <div class="article-cta buttons">
-            <center>
-              <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary"
-                >Manage Beatmap</a
-              >
-            </center>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-    <div class="col-12 col-md-6 col-lg-6">
-      {% for Beatmap in SuggestedBmaps[1] %}
-        <article class="article">
-          <div class="article-header">
-            <div
-              class="article-image"
-              data-background="{{ Beatmap['Cover'] }}"
-              style="background-image: url(`{{ Beatmap['Cover'] }}`);"
-            ></div>
-            <div class="article-badge">
-              <div class="article-badge-item bg-dark">
-                Modes: {{ Beatmap["Modes"] }}
-              </div>
-            </div>
-          </div>
-          <div class="article-details">
-            <div class="article-title">
-              <h5>{{ Beatmap["SongName"] }}</h5>
-            </div>
-            This map has been played <b>{{ Beatmap["Playcount"] }}</b> times on
-            this server!
-          </div>
-          <div class="article-cta buttons">
-            <center>
-              <a href="/rank/{{ Beatmap['BeatmapId'] }}" class="btn btn-primary"
-                >Manage Beatmap</a
-              >
-            </center>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
+
+          <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 py-2 shadow-lg shadow-primary/20">
+              Find Beatmap
+          </button>
+      </form>
   </div>
+
+  {% if SuggestedBmaps %}
+  <div class="mt-12">
+      <h3 class="text-xl font-bold text-white mb-6">Suggested Maps</h3>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {% for bmap in SuggestedBmaps %}
+            <div class="group relative overflow-hidden rounded-xl border border-white/10 bg-card/50 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+                <div class="absolute inset-0 z-0">
+                    <img src="{{ bmap['Cover'] }}" alt="" class="h-full w-full object-cover opacity-40 transition-transform duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
+                </div>
+                <div class="relative z-10 p-5 flex flex-col h-full min-h-[200px]">
+                    <div class="mt-auto">
+                        <h4 class="font-bold text-white text-lg leading-tight mb-1 truncate" title="{{ bmap['SongName'] }}">{{ bmap["SongName"] }}</h4>
+                        <div class="text-xs text-primary font-medium mb-2">[{{ bmap['DiffName'] }}]</div>
+                        <div class="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                            <span><i class="fas fa-play-circle mr-1"></i> {{ bmap["Playcount"] }} plays</span>
+                            <span>•</span>
+                            <span>{{ bmap["Modes"] }}</span>
+                        </div>
+                        <a href="/rank/{{ bmap['BeatmapId'] }}" class="inline-flex w-full items-center justify-center rounded-lg text-xs font-medium transition-colors bg-white/10 hover:bg-white/20 text-white h-8 px-3 backdrop-blur-sm">
+                            Rank This Map
+                        </a>
+                    </div>
+                </div>
+            </div>
+          {% endfor %}
+      </div>
+  </div>
+  {% endif %}
 {% endblock %}

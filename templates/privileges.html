@@ -1,38 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Privileges</h2>
-  <p class="section-lead">Modify or edit privilege groups!</p>
-  <div class="card">
-    <div class="card-header">Privileges</div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+  <div class="mb-8 flex items-center justify-between">
+      <div>
+          <h2 class="text-3xl font-bold tracking-tight text-white">Privileges</h2>
+          <p class="text-muted-foreground mt-2">
+            Manage user roles and permission groups.
+          </p>
+      </div>
+      <a href="/actions/createprivilege" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 shadow-lg shadow-green-900/20">
+          <i class="fas fa-plus mr-2"></i> Create Privilege
+      </a>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-black/20 text-xs uppercase font-medium text-muted-foreground">
             <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Name</th>
-              <th scope="col">Privileges</th>
-              <th scope="col">Actions</th>
+              <th class="h-12 px-6 align-middle w-24">ID</th>
+              <th class="h-12 px-6 align-middle">Name</th>
+              <th class="h-12 px-6 align-middle">Color Code</th>
+              <th class="h-12 px-6 align-middle">Bitwise Value</th>
+              <th class="h-12 px-6 align-middle text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-white/5">
             {% for priv in privileges %}
-              <tr>
-                <td>{{ priv["Id"] }}</td>
-                <td>{{ priv["Name"] }}</td>
-                <td>{{ priv["Priv"] }}</td>
-                <td>
-                  <div class="buttons">
-                    <a
-                      href="/actions/deletepriv/{{ priv['Id'] }}"
-                      class="btn btn-danger"
-                      >Delete</a
-                    >
-                    <a
-                      href="/privilege/edit/{{ priv['Id'] }}"
-                      class="btn btn-primary"
-                      >Edit</a
-                    >
+              <tr class="transition-colors hover:bg-white/5">
+                <td class="p-6 align-middle font-mono text-muted-foreground">#{{ priv["Id"] }}</td>
+                <td class="p-6 align-middle">
+                    {% set color_class = 'bg-gray-500/20 text-gray-300 border-gray-500/30' %}
+                    {% if priv['Colour'] == 'danger' %}
+                        {% set color_class = 'bg-red-500/20 text-red-300 border-red-500/30' %}
+                    {% elif priv['Colour'] == 'warning' %}
+                        {% set color_class = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' %}
+                    {% elif priv['Colour'] == 'success' %}
+                        {% set color_class = 'bg-green-500/20 text-green-300 border-green-500/30' %}
+                    {% elif priv['Colour'] == 'info' %}
+                        {% set color_class = 'bg-blue-500/20 text-blue-300 border-blue-500/30' %}
+                    {% elif priv['Colour'] == 'primary' %}
+                        {% set color_class = 'bg-purple-500/20 text-purple-300 border-purple-500/30' %}
+                    {% endif %}
+                    <span class="inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors {{ color_class }}">
+                        {{ priv["Name"] }}
+                    </span>
+                </td>
+                <td class="p-6 align-middle text-muted-foreground capitalize">{{ priv["Colour"] }}</td>
+                <td class="p-6 align-middle font-mono text-xs text-gray-400">{{ priv["Priv"] }}</td>
+                <td class="p-6 align-middle text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border border-yellow-500/20 h-9 px-3" href="/privilege/edit/{{ priv['Id'] }}">
+                        Edit
+                    </a>
+                    <a class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-9 px-3" href="/actions/deletepriv/{{ priv['Id'] }}">
+                        Delete
+                    </a>
                   </div>
                 </td>
               </tr>
@@ -40,13 +62,5 @@
           </tbody>
         </table>
       </div>
-    </div>
-    <div class="card-footer">
-      <div class="buttons">
-        <a href="/actions/createprivilege" class="btn btn-success"
-          >Create Privilege</a
-        >
-      </div>
-    </div>
   </div>
 {% endblock %}

@@ -4,16 +4,18 @@ from __future__ import annotations
 import traceback
 from copy import copy
 
-from flask import Flask
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import request
-from flask import url_for
-from redis import Redis
+import aiohttp
+from quart import Quart
+from quart import jsonify
+from quart import redirect
+from quart import render_template
+from quart import request
+from quart import url_for
+import redis.asyncio as redis
 
 from panel import logger
 from panel import web
+from panel import state
 from panel.adapters.mysql import MySQLPool
 from panel.adapters.sqlite import Sqlite
 from panel.common.utils import halve_list
@@ -25,9 +27,9 @@ from panel.web.sessions import requires_privilege
 
 
 # TODO: Make better routers.
-def configure_routes(app: Flask) -> None:
+def configure_routes(app: Quart) -> None:
     @app.route("/")
-    def panel_home_redirect():
+    async def panel_home_redirect():
         session = web.sessions.get()
         if session.logged_in:
             return redirect(url_for("panel_dashboard"))
@@ -36,24 +38,24 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/dash/")
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
-    def panel_dashboard():
-        return load_panel_template(
+    async def panel_dashboard():
+        return await load_panel_template(
             title="Dashboard",
             file="dash.html",
             route="/dash",
-            plays=get_recent_plays(),
+            plays=await get_recent_plays(),
             Graph=get_playcount_graph_data(),
-            MostPlayed=GetMostPlayed(),
+            MostPlayed=await GetMostPlayed(),
         )
 
     IP_REDIRS = {}
 
     # TODO: rework
     @app.route("/login", methods=["GET", "POST"])
-    def panel_login():
+    async def panel_login():
         session = web.sessions.get()
 
-        if session.logged_in and has_privilege_value(
+        if session.logged_in and await has_privilege_value(
             session.user_id,
             Privileges.ADMIN_ACCESS_RAP,
         ):
@@ -64,15 +66,16 @@ def configure_routes(app: Flask) -> None:
             if redir:
                 IP_REDIRS[request.headers.get("X-Real-IP")] = redir
 
-            return render_template("login.html", conf=config)
+            return await render_template("login.html", conf=config)
 
         if request.method == "POST":
-            success, data = LoginHandler(
-                request.form["username"],
-                request.form["password"],
+            form = await request.form
+            success, data = await LoginHandler(
+                form["username"],
+                form["password"],
             )
             if not success:
-                return render_template(
+                return await render_template(
                     "login.html",
                     alert=data,
                     conf=config,
@@ -91,10 +94,10 @@ def configure_routes(app: Flask) -> None:
 
             return redirect(url_for("panel_home_redirect"))
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     @app.route("/logout")
-    def panel_session_logout():
+    async def panel_session_logout():
         session = web.sessions.get()
 
         if session.logged_in:
@@ -105,17 +108,18 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/bancho/settings", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_SERVERS)
-    def panel_bancho_settings():
+    async def panel_bancho_settings():
         session = web.sessions.get()
 
         error = None
         success = None
         if request.method == "POST":
+            form = await request.form
             try:
-                handle_bancho_settings_edit(
-                    request.form["banchoman"],
-                    request.form["mainmemuicon"],
-                    request.form["loginnotif"],
+                await handle_bancho_settings_edit(
+                    form["banchoman"],
+                    form["mainmemuicon"],
+                    form["loginnotif"],
                     session.user_id,
                 )
                 success = "Bancho settings were successfully edited!"
@@ -123,31 +127,32 @@ def configure_routes(app: Flask) -> None:
                 error = "Failed to save Bancho settings!"
                 tb = traceback.format_exc()
                 logger.error("Failed to save Bancho settings with error: " + tb)
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-        return load_panel_template(
+        return await load_panel_template(
             "banchosettings.html",
             title="Bancho Settings",
             route="/bancho/settings",
-            bsdata=FetchBSData(),
-            preset=FetchBSData(),
+            bsdata=await FetchBSData(),
+            preset=await FetchBSData(),
             error=error,
             success=success,
         )
 
     @app.route("/rank/<int:beatmap_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_rank_beatmap(beatmap_id: int):
+    async def panel_rank_beatmap(beatmap_id: int):
         session = web.sessions.get()
 
         error = None
         success = None
         if request.method == "POST":
+            form = await request.form
             try:
-                beatmap_index = request.form["beatmapnumber"]
-                RankBeatmap(
-                    int(request.form[f"bmapid-{beatmap_index}"]),
-                    request.form[f"rankstatus-{beatmap_index}"],
+                beatmap_index = form["beatmapnumber"]
+                await RankBeatmap(
+                    int(form[f"bmapid-{beatmap_index}"]),
+                    form[f"rankstatus-{beatmap_index}"],
                     session,
                 )
                 success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
@@ -155,56 +160,67 @@ def configure_routes(app: Flask) -> None:
                 error = f"Failed to rank beatmap {beatmap_id}!"
                 tb = traceback.format_exc()
                 logger.error(f"Failed to rank beatmap {beatmap_id} with error: " + tb)
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-        return load_panel_template(
+        return await load_panel_template(
             "beatrank.html",
             title="Rank Beatmap!",
             route="/rank",
             Id=beatmap_id,
-            beatdata=halve_list(GetBmapInfo(beatmap_id)),
+            beatdata=await GetBmapInfo(beatmap_id),
             success=success,
             error=error,
         )
 
     @app.route("/rank", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_rank_beatmap_search():
+    async def panel_rank_beatmap_search():
         if request.method == "POST":
-            return redirect(f"/rank/{request.form['bmapid']}")
+            form = await request.form
+            return redirect(f"/rank/{form['bmapid']}")
 
-        return load_panel_template(
+        return await load_panel_template(
             "rankform.html",
             route="/rank",
             title="Rank a beatmap!",
-            SuggestedBmaps=halve_list(GetSuggestedRank()),
+            SuggestedBmaps=await GetSuggestedRank(),
         )
 
     @app.route("/users/<int:page>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_search_users(page: int = 1):
+    async def panel_search_users(page: int = 1):
         if page < 1:
             return redirect("/users/1")
 
-        if request.method == "POST":
-            user_data = FindUserByUsername(
-                request.form["user"],
+        search_term = request.args.get("user")
+        if not search_term and request.method == "POST":
+             form = await request.form
+             search_term = form.get("user")
+             if search_term:
+                 return redirect(f"/users/1?user={search_term}")
+
+        if search_term:
+            user_data = await FindUserByUsername(
+                search_term,
                 page,
             )
+            pages = await SearchUserPageCount(search_term)
         else:
-            user_data = FetchUsers(page - 1)
+            user_data = await FetchUsers(page - 1)
+            pages = await UserPageCount()
 
-        return load_panel_template(
+        return await load_panel_template(
             "users.html",
             title="Search Users",
             route="/users",
             UserData=user_data,
             page=page,
-            pages=UserPageCount(),
+            pages=pages,
+            search_term=search_term
         )
 
     @app.route("/index.php")
-    def panel_legacy_index():
+    async def panel_legacy_index():
         """Implements support for Ripple Admin Panel's legacy redirects"""
 
         page = int(request.args["p"])
@@ -221,20 +237,21 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/system/settings", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
-    def panel_system_settings():
+    async def panel_system_settings():
         session = web.sessions.get()
 
         error = None
         success = None
         if request.method == "POST":
+            form = await request.form
             try:
-                ApplySystemSettings(
+                await ApplySystemSettings(
                     [
-                        request.form["webman"],
-                        request.form["gameman"],
-                        request.form["register"],
-                        request.form["globalalert"],
-                        request.form["homealert"],
+                        form["webman"],
+                        form["gameman"],
+                        form["register"],
+                        form["globalalert"],
+                        form["homealert"],
                     ],
                     session.user_id,
                 )
@@ -246,27 +263,28 @@ def configure_routes(app: Flask) -> None:
                     "An internal error has occured while saving system settings, error: "
                     + tb,
                 )
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-        return load_panel_template(
+        return await load_panel_template(
             "syssettings.html",
             title="System Settings",
             route="/system/settings",
-            SysData=SystemSettingsValues(),
+            SysData=await SystemSettingsValues(),
             success=success,
             error=error,
         )
 
     @app.route("/user/edit/<int:user_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_edit_user(user_id: int):
+    async def panel_edit_user(user_id: int):
         session = web.sessions.get()
 
         error = None
         success = None
         if request.method == "POST":
+            form = await request.form
             try:
-                resp = ApplyUserEdit(request.form, session.user_id)
+                resp = await ApplyUserEdit(form, session.user_id)
                 if isinstance(resp, str):
                     error = resp
                 else:
@@ -278,45 +296,45 @@ def configure_routes(app: Flask) -> None:
                     "An internal error has occured while editing the user, error: "
                     + tb,
                 )
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-        return load_panel_template(
+        return await load_panel_template(
             "edituser.html",
             title="Edit User",
             route="/users",
-            UserData=UserData(user_id),
-            Privs=GetPrivileges(),
-            UserBadges=GetUserBadges(user_id),
-            badges=GetBadges(),
-            ShowIPs=has_privilege_value(session.user_id, Privileges.PANEL_VIEW_IPS),
-            ban_logs=fetch_user_banlogs(user_id),
-            hwid_count=get_hwid_count(user_id),
+            UserData=await UserData(user_id),
+            Privs=await GetPrivileges(),
+            UserBadges=await GetUserBadges(user_id),
+            badges=await GetBadges(),
+            ShowIPs=await has_privilege_value(session.user_id, Privileges.PANEL_VIEW_IPS),
+            ban_logs=await fetch_user_banlogs(user_id),
+            hwid_count=await get_hwid_count(user_id),
             countries=get_countries(),
-            past_username_history=get_username_history(user_id),
+            past_username_history=await get_username_history(user_id),
             error=error,
             success=success,
         )
 
     @app.route("/logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
-    def panel_view_logs(page: int):
+    async def panel_view_logs(page: int):
         if page < 1:
             return redirect("/logs/1")
 
-        return load_panel_template(
+        return await load_panel_template(
             "raplogs.html",
             title="Admin Logs",
             route="/logs",
-            Logs=RAPFetch(page),
+            Logs=await RAPFetch(page),
             page=page,
-            Pages=RapLogCount(),
+            Pages=await RapLogCount(),
         )
 
     @app.route("/action/confirm/delete/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_delete_user_confirm(user_id: int):
-        target = GetUser(user_id)
-        return load_panel_template(
+    async def panel_delete_user_confirm(user_id: int):
+        target = await GetUser(user_id)
+        return await load_panel_template(
             "confirm.html",
             title="Confirmation Required",
             route="/users",
@@ -327,10 +345,10 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/user/iplookup/<ip>")
     @requires_privilege(Privileges.PANEL_VIEW_IPS)
-    def panel_view_user_ip(ip: str):
-        IPUserLookup = FindWithIp(ip)
+    async def panel_view_user_ip(ip: str):
+        IPUserLookup = await FindWithIp(ip)
         UserLen = len(IPUserLookup)
-        return load_panel_template(
+        return await load_panel_template(
             "iplookup.html",
             title="Recent IP Lookup",
             route="/users",
@@ -341,9 +359,9 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/user/fulliplookup/<int:user_id>")
     @requires_privilege(Privileges.PANEL_VIEW_IPS)
-    def panel_view_full_user_ip(user_id: int):
-        IPUserLookup = find_all_ips(user_id)
-        return load_panel_template(
+    async def panel_view_full_user_ip(user_id: int):
+        IPUserLookup = await find_all_ips(user_id)
+        return await load_panel_template(
             "fulliplookup.html",
             title="Full IP Lookup",
             route="/users",
@@ -353,47 +371,48 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/ban-logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
-    def panel_view_ban_logs(page: int):
+    async def panel_view_ban_logs(page: int):
         if page < 1:
             return redirect("/ban-logs/1")
 
-        return load_panel_template(
+        return await load_panel_template(
             "ban_logs.html",
             title="Ban Logs",
             route="/ban-logs",
-            ban_logs=fetch_banlogs(page - 1),
+            ban_logs=await fetch_banlogs(page - 1),
             page=page,
-            pages=ban_pages(),
+            pages=await ban_pages(),
         )
 
     @app.route("/badges")
     @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
-    def panel_view_badges():
-        return load_panel_template(
+    async def panel_view_badges():
+        return await load_panel_template(
             "badges.html",
             title="Badges",
             route="/badges",
-            badges=GetBadges(),
+            badges=await GetBadges(),
         )
 
     @app.route("/badge/edit/<int:BadgeID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
-    def panel_edit_badge(BadgeID: int):
+    async def panel_edit_badge(BadgeID: int):
         if request.method == "GET":
-            return load_panel_template(
+            return await load_panel_template(
                 "editbadge.html",
                 route="/badges",
                 title="Edit Badge",
-                badge=GetBadge(BadgeID),
+                badge=await GetBadge(BadgeID),
             )
 
         success = None
         error = None
         if request.method == "POST":
             session = web.sessions.get()
+            form = await request.form
             try:
-                SaveBadge(request.form)
-                RAPLog(
+                await SaveBadge(form)
+                await RAPLog(
                     session.user_id,
                     f"edited the badge with the ID of {BadgeID}",
                 )
@@ -406,64 +425,65 @@ def configure_routes(app: Flask) -> None:
                     f"An internal error has occured while editing the badge {BadgeID}, error: "
                     + tb,
                 )
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-            return load_panel_template(
+            return await load_panel_template(
                 "editbadge.html",
                 route="/badges",
                 title="Edit Badge",
-                badge=GetBadge(BadgeID),
+                badge=await GetBadge(BadgeID),
                 success=success,
                 error=error,
             )
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     @app.route("/privileges")
     @requires_privilege(Privileges.ADMIN_MANAGE_SETTINGS)
-    def panel_view_privileges():
-        return load_panel_template(
+    async def panel_view_privileges():
+        return await load_panel_template(
             "privileges.html",
             route="/privileges",
             title="Privileges",
-            privileges=GetPrivileges(),
+            privileges=await GetPrivileges(),
         )
 
     @app.route("/privilege/edit/<int:Privilege>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
-    def panel_edit_privilege(Privilege: int):
+    async def panel_edit_privilege(Privilege: int):
         if request.method == "GET":
-            return load_panel_template(
+            return await load_panel_template(
                 "editprivilege.html",
                 route="/privileges",
                 title="Privileges",
-                privileges=GetPriv(Privilege),
+                privileges=await GetPriv(Privilege),
             )
 
         success = None
         error = None
         if request.method == "POST":
             session = web.sessions.get()
+            form = await request.form
             try:
-                UpdatePriv(request.form)
-                Priv = GetPriv(Privilege)
-                RAPLog(
+                await UpdatePriv(form)
+                Priv = await GetPriv(Privilege)
+                await RAPLog(
                     session.user_id,
                     f"has edited the privilege group {Priv['Name']} ({Priv['Id']})",
                 )
 
                 success = f"Privilege {Priv['Name']} has been successfully edited!"
             except Exception:
-                Priv = GetPriv(Privilege)
+                Priv = await GetPriv(Privilege)
                 error = "An internal error has occured while editing the privileges!"
                 tb = traceback.format_exc()
                 logger.error(
                     f"An internal error has occured while editing the privilege '{Priv['Name']}' error: "
                     + tb,
                 )
-                log_traceback(tb, session, TracebackType.DANGER)
+                await log_traceback(tb, session, TracebackType.DANGER)
 
-            return load_panel_template(
+            return await load_panel_template(
                 "editprivilege.html",
                 route="/privileges",
                 title="Privileges",
@@ -472,14 +492,14 @@ def configure_routes(app: Flask) -> None:
                 error=error,
             )
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     @app.route("/changepass/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_edit_user_password(AccountID: int):
+    async def panel_edit_user_password(AccountID: int):
         if request.method == "GET":
-            User = GetUser(AccountID)
-            return load_panel_template(
+            User = await GetUser(AccountID)
+            return await load_panel_template(
                 "changepass.html",
                 route="/users",
                 title=f"Change the Password for {User['Username']}",
@@ -488,18 +508,18 @@ def configure_routes(app: Flask) -> None:
 
         if request.method == "POST":
             session = web.sessions.get()
-            ChangePWForm(request.form, session)
-            User = GetUser(AccountID)
+            form = await request.form
+            await ChangePWForm(form, session)
             return redirect(f"/user/edit/{AccountID}")
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     @app.route("/donoraward/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_award_user_donor(AccountID: int):
+    async def panel_award_user_donor(AccountID: int):
         if request.method == "GET":
-            User = GetUser(AccountID)
-            return load_panel_template(
+            User = await GetUser(AccountID)
+            return await load_panel_template(
                 "donoraward.html",
                 route="/users",
                 title=f"Award Donor to {User['Username']}",
@@ -508,99 +528,111 @@ def configure_routes(app: Flask) -> None:
 
         if request.method == "POST":
             session = web.sessions.get()
-            GiveSupporterForm(request.form)
-            User = GetUser(AccountID)
-            RAPLog(
+            form = await request.form
+            await GiveSupporterForm(form)
+            User = await GetUser(AccountID)
+            await RAPLog(
                 session.user_id,
-                f"has awarded {User['Username']} ({AccountID}) {request.form['time']} days of donor.",
+                f"has awarded {User['Username']} ({AccountID}) {form['time']} days of donor.",
             )
             return redirect(f"/user/edit/{AccountID}")
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     @app.route("/donorremove/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_remove_user_donor(AccountID: int):
+    async def panel_remove_user_donor(AccountID: int):
         session = web.sessions.get()
 
-        RemoveSupporter(AccountID, session)
+        await RemoveSupporter(AccountID, session)
         return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/rankreq/<int:Page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_view_rank_requests(Page: int):
+    async def panel_view_rank_requests(Page: int):
         if Page < 1:
             return redirect("/rankreq/1")
 
-        return load_panel_template(
+        return await load_panel_template(
             "rankreq.html",
             title="Ranking Requests",
             route="/rankreq",
-            RankRequests=halve_list(GetRankRequests(Page)),
+            RankRequests=await GetRankRequests(Page),
             page=Page,
-            pages=request_pages(),
+            pages=await request_pages(),
         )
 
     @app.route("/clans/<int:Page>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_view_clans(Page: int):
+    async def panel_view_clans(Page: int):
         if Page < 1:
             return redirect("/clans/1")
 
-        return load_panel_template(
+        search_term = request.args.get("search")
+        
+        if search_term:
+            clans = await SearchClans(search_term, Page)
+            pages = await GetSearchClanPages(search_term)
+        else:
+            clans = await GetClans(Page)
+            pages = await GetClanPages()
+
+        return await load_panel_template(
             "clansview.html",
             title="Clans",
             route="/clans",
             page=Page,
-            Clans=GetClans(Page),
-            Pages=GetClanPages(),
+            Clans=clans,
+            Pages=pages,
+            search_term=search_term,
         )
 
     @app.route("/clan/<int:ClanID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_edit_clan(ClanID: int):
+    async def panel_edit_clan(ClanID: int):
         if request.method == "GET":
-            return load_panel_template(
+            return await load_panel_template(
                 "editclan.html",
                 title="Clans",
                 route="/clans",
-                Clan=GetClan(ClanID),
-                Members=halve_list(GetClanMembers(ClanID)),
-                ClanOwner=GetClanOwner(ClanID),
-                clan_invites=get_clan_invites(ClanID),
+                Clan=await GetClan(ClanID),
+                Members=await GetClanMembers(ClanID),
+                ClanOwner=await GetClanOwner(ClanID),
+                clan_invites=await get_clan_invites(ClanID),
             )
 
         if request.method == "POST":
             session = web.sessions.get()
-            ApplyClanEdit(request.form, session)
-            return load_panel_template(
+            form = await request.form
+            await ApplyClanEdit(form, session)
+            return await load_panel_template(
                 "editclan.html",
                 title="Clans",
                 route="/clans",
-                Clan=GetClan(ClanID),
-                Members=halve_list(GetClanMembers(ClanID)),
-                ClanOwner=GetClanOwner(ClanID),
+                Clan=await GetClan(ClanID),
+                Members=halve_list(await GetClanMembers(ClanID)),
+                ClanOwner=await GetClanOwner(ClanID),
                 success="Clan edited successfully!",
-                clan_invites=get_clan_invites(ClanID),
+                clan_invites=await get_clan_invites(ClanID),
             )
 
-        return render_template("errors/403.html")
+        return await render_template("errors/403.html")
 
     # TODO: probably should be an action
     @app.route("/clan/delete/<int:ClanID>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_delete_clan(ClanID: int):
+    async def panel_delete_clan(ClanID: int):
         session = web.sessions.get()
 
-        NukeClan(ClanID, session)
+        await NukeClan(ClanID, session)
         return redirect("/clans/1")
 
     @app.route("/clan/confirmdelete/<int:clan_id>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_delete_clan_confirm(clan_id: int):
-        clan = GetClan(clan_id)
+    async def panel_delete_clan_confirm(clan_id: int):
+        clan = await GetClan(clan_id)
 
-        return load_panel_template(
+        return await load_panel_template(
             "confirm.html",
             route="/clans",
             title="Confirmation Required",
@@ -611,109 +643,103 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/stats", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
-    def panel_view_server_stats():
-        minimum_pp = int(request.form.get("minpp", "0"))
-        return load_panel_template(
+    async def panel_view_server_stats():
+        form = await request.form
+        minimum_pp = int(form.get("minpp", "0"))
+        return await load_panel_template(
             "stats.html",
             route="/stats",
             title="Server Statistics",
-            StatData=GetStatistics(minimum_pp),
+            StatData=await GetStatistics(minimum_pp),
             MinPP=minimum_pp,
         )
 
     @app.route("/user/hwid/<int:user_id>/<int:page>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def view_user_hwid_route(user_id: int, page: int = 1):
+    async def view_user_hwid_route(user_id: int, page: int = 1):
         if page < 1:
             return redirect(f"/user/hwid/{user_id}/1")
 
-        page_info = get_hwid_page(user_id, page - 1)
+        page_info = await get_hwid_page(user_id, page - 1)
         username = page_info["user"]["Username"]
 
-        return load_panel_template(
+        return await load_panel_template(
             "userhwids.html",
             title=f"{username}'s Hardware Logs",
             route="/users",
             hwid_logs=page_info["results"],
             user=page_info["user"],
             page=page,
-            pages=hwid_pages(user_id),
-            total_hwids=get_hwid_count(user_id),
+            pages=await hwid_pages(user_id),
+            total_hwids=await get_hwid_count(user_id),
         )
 
     # API for js
     @app.route("/js/pp/<int:bmap_id>")
-    def panel_pp_api(bmap_id: int):
+    async def panel_pp_api(bmap_id: int):
         try:
             return jsonify(
                 {
-                    "pp": round(CalcPP(bmap_id), 2),
-                    "rxpp": round(CalcPPRX(bmap_id), 2),
-                    "appp": round(CalcPPAP(bmap_id), 2),
+                    "pp": round(await CalcPP(bmap_id), 2),
+                    "rxpp": round(await CalcPPRX(bmap_id), 2),
+                    "appp": round(await CalcPPAP(bmap_id), 2),
                     "code": 200,
                 },
             )
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting PP calculations, error: " + tb)
-            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
+            await log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"code": 500})
 
     # api mirrors
     @app.route("/js/status/api")
-    def panel_api_status_api():
+    async def panel_api_status_api():
         try:
-            return jsonify(
-                requests.get(
-                    config.srv_url + "api/v1/ping",  # TODO: Make server api url
-                    timeout=1,
-                ).json(),
-            )
+            async with aiohttp.ClientSession() as session:
+                async with session.get(config.srv_url + "api/v1/ping", timeout=1) as resp:
+                    return jsonify(await resp.json())
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting API Service status, error: " + tb)
-            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
+            await log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"code": 503})
 
     @app.route("/js/status/lets")
-    def panel_lets_status_api():
+    async def panel_lets_status_api():
         try:
-            resp = requests.get(config.api_ussr_url)
-            return jsonify(
-                {"server_status": int(resp.status_code == 404)},
-            )  # this url to provide a predictable result
+            async with aiohttp.ClientSession() as session:
+                async with session.get(config.api_ussr_url) as resp:
+                     return jsonify({"server_status": int(resp.status == 404)})
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting Score Service status, error: " + tb)
-            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
+            await log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"server_status": 0})
 
     @app.route("/js/status/bancho")
-    def panel_bancho_status_api():
+    async def panel_bancho_status_api():
         try:
-            return jsonify(
-                requests.get(
-                    config.api_bancho_url + "/api/v1/serverStatus",
-                    timeout=1,
-                ).json(),
-            )  # this url to provide a predictable result
+             async with aiohttp.ClientSession() as session:
+                async with session.get(config.api_bancho_url + "/api/v1/serverStatus", timeout=1) as resp:
+                    return jsonify(await resp.json())
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting Bancho Service status, error: " + tb)
-            log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
+            await log_traceback(tb, web.sessions.get(), TracebackType.DANGER)
             return jsonify({"result": 0})
 
     # actions
     @app.route("/actions/comment/profile/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_delete_profile_comments_action(AccountID: int):
+    async def panel_delete_profile_comments_action(AccountID: int):
         """Wipe all comments made on this user's profile"""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        DeleteProfileComments(AccountID)
+        Account = await GetUser(AccountID)
+        await DeleteProfileComments(AccountID)
 
-        RAPLog(
+        await RAPLog(
             session.user_id,
             f"has removed all comments made on {Account['Username']}'s profile ({AccountID})",
         )
@@ -721,14 +747,14 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/comment/user/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_delete_user_commants_action(AccountID: int):
+    async def panel_delete_user_commants_action(AccountID: int):
         """Wipe all comments made by this user"""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        DeleteUserComments(AccountID)
+        Account = await GetUser(AccountID)
+        await DeleteUserComments(AccountID)
 
-        RAPLog(
+        await RAPLog(
             session.user_id,
             f"has removed all comments made by {Account['Username']} ({AccountID})",
         )
@@ -736,13 +762,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/wipe/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_wipe_user_action(AccountID: int):
+    async def panel_wipe_user_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        WipeAccount(AccountID)
-        RAPLog(
+        Account = await GetUser(AccountID)
+        await WipeAccount(AccountID)
+        await RAPLog(
             session.user_id,
             f"has wiped the account {Account['Username']} ({AccountID})",
         )
@@ -750,13 +776,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/wipeap/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_wipe_user_ap_action(AccountID: int):
+    async def panel_wipe_user_ap_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        WipeAutopilot(AccountID)
-        RAPLog(
+        Account = await GetUser(AccountID)
+        await WipeAutopilot(AccountID)
+        await RAPLog(
             session.user_id,
             f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
         )
@@ -764,13 +790,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/wiperx/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_wipe_user_rx_action(AccountID: int):
+    async def panel_wipe_user_rx_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        WipeRelax(AccountID)
-        RAPLog(
+        Account = await GetUser(AccountID)
+        await WipeRelax(AccountID)
+        await RAPLog(
             session.user_id,
             f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
         )
@@ -778,13 +804,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/wipeva/<int:AccountID>")
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
-    def panel_wipe_user_va_action(AccountID: int):
+    async def panel_wipe_user_va_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
-        Account = GetUser(AccountID)
-        WipeVanilla(AccountID)
-        RAPLog(
+        Account = await GetUser(AccountID)
+        await WipeVanilla(AccountID)
+        await RAPLog(
             session.user_id,
             f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
         )
@@ -792,21 +818,21 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/restrict/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_restict_user_action(user_id: int):
+    async def panel_restict_user_action(user_id: int):
         session = web.sessions.get()
 
-        Account = GetUser(user_id)
-        if ResUnTrict(
+        Account = await GetUser(user_id)
+        if await ResUnTrict(
             user_id,
             request.args.get("note", ""),
             request.args.get("reason", ""),
         ):
-            RAPLog(
+            await RAPLog(
                 session.user_id,
                 f"has restricted the account {Account['Username']} ({user_id})",
             )
         else:
-            RAPLog(
+            await RAPLog(
                 session.user_id,
                 f"has unrestricted the account {Account['Username']} ({user_id})",
             )
@@ -814,12 +840,12 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/freeze/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_freeze_user_action(user_id: int):
+    async def panel_freeze_user_action(user_id: int):
         session = web.sessions.get()
 
-        Account = GetUser(user_id)
-        FreezeHandler(user_id)
-        RAPLog(
+        Account = await GetUser(user_id)
+        await FreezeHandler(user_id)
+        await RAPLog(
             session.user_id,
             f"has frozen the account {Account['Username']} ({user_id})",
         )
@@ -827,18 +853,18 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/ban/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_BAN_USERS)
-    def panel_ban_user_action(user_id: int):
+    async def panel_ban_user_action(user_id: int):
         """Do the FBI to the person."""
         session = web.sessions.get()
 
-        Account = GetUser(user_id)
-        if BanUser(user_id, request.args.get("reason", "")):
-            RAPLog(
+        Account = await GetUser(user_id)
+        if await BanUser(user_id, request.args.get("reason", "")):
+            await RAPLog(
                 session.user_id,
                 f"has banned the account {Account['Username']} ({user_id})",
             )
         else:
-            RAPLog(
+            await RAPLog(
                 session.user_id,
                 f"has unbanned the account {Account['Username']} ({user_id})",
             )
@@ -846,13 +872,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/hwid/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_wipe_user_hwid_action(user_id: int):
+    async def panel_wipe_user_hwid_action(user_id: int):
         """Clear HWID matches."""
         session = web.sessions.get()
 
-        Account = GetUser(user_id)
-        ClearHWID(user_id)
-        RAPLog(
+        Account = await GetUser(user_id)
+        await ClearHWID(user_id)
+        await RAPLog(
             session.user_id,
             f"has cleared the HWID matches for the account {Account['Username']} ({user_id})",
         )
@@ -860,13 +886,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/delete/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_delete_user_action(user_id: int):
+    async def panel_delete_user_action(user_id: int):
         """Account goes bye bye forever."""
         session = web.sessions.get()
 
-        AccountToBeDeleted = GetUser(user_id)
-        DeleteAccount(user_id)
-        RAPLog(
+        AccountToBeDeleted = await GetUser(user_id)
+        await DeleteAccount(user_id)
+        await RAPLog(
             session.user_id,
             f"has deleted the account {AccountToBeDeleted['Username']} ({user_id})",
         )
@@ -874,13 +900,13 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/kick/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_KICK_USERS)
-    def panel_kick_user_action(user_id: int):
+    async def panel_kick_user_action(user_id: int):
         """Kick from bancho"""
         session = web.sessions.get()
 
-        Account = GetUser(user_id)
-        BanchoKick(user_id, "You have been kicked by an admin!")
-        RAPLog(
+        Account = await GetUser(user_id)
+        await BanchoKick(user_id, "You have been kicked by an admin!")
+        await RAPLog(
             session.user_id,
             f"has kicked the account {Account['Username']} ({user_id})",
         )
@@ -888,29 +914,29 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/deletebadge/<int:badge_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
-    def panel_delete_badge_action(badge_id: int):
+    async def panel_delete_badge_action(badge_id: int):
         session = web.sessions.get()
 
-        DeleteBadge(badge_id)
-        RAPLog(session.user_id, f"deleted the badge with the ID of {badge_id}")
+        await DeleteBadge(badge_id)
+        await RAPLog(session.user_id, f"deleted the badge with the ID of {badge_id}")
         return redirect(url_for("panel_view_badges"))
 
     @app.route("/actions/createbadge")
     @requires_privilege(Privileges.ADMIN_MANAGE_BADGES)
-    def panel_create_badge_action():
+    async def panel_create_badge_action():
         session = web.sessions.get()
 
-        Badge = CreateBadge()
-        RAPLog(session.user_id, f"Created a badge with the ID of {Badge}")
+        Badge = await CreateBadge()
+        await RAPLog(session.user_id, f"Created a badge with the ID of {Badge}")
         return redirect(f"/badge/edit/{Badge}")
 
     @app.route("/actions/createprivilege")
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
-    def panel_create_privilege_action():
+    async def panel_create_privilege_action():
         session = web.sessions.get()
 
-        PrivID = CreatePrivilege()
-        RAPLog(
+        PrivID = await CreatePrivilege()
+        await RAPLog(
             session.user_id,
             f"Created a new privilege group with the ID of {PrivID}",
         )
@@ -918,12 +944,12 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/actions/deletepriv/<int:PrivID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_PRIVILEGES)
-    def panel_delete_privilege_action(PrivID: int):
+    async def panel_delete_privilege_action(PrivID: int):
         session = web.sessions.get()
 
-        PrivData = GetPriv(PrivID)
-        DelPriv(PrivID)
-        RAPLog(
+        PrivData = await GetPriv(PrivID)
+        await DelPriv(PrivID)
+        await RAPLog(
             session.user_id,
             f"deleted the privilege {PrivData['Name']} ({PrivData['Id']})",
         )
@@ -931,70 +957,70 @@ def configure_routes(app: Flask) -> None:
 
     @app.route("/action/rankset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_rank_set_action(BeatmapSet: int):
+    async def panel_rank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        SetBMAPSetStatus(BeatmapSet, 2, session)
-        RAPLog(session.user_id, f"ranked the beatmap set {BeatmapSet}")
+        await SetBMAPSetStatus(BeatmapSet, 2, session)
+        await RAPLog(session.user_id, f"ranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/loveset/<BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_love_set_action(BeatmapSet: int):
+    async def panel_love_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        SetBMAPSetStatus(BeatmapSet, 5, session)
-        RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
+        await SetBMAPSetStatus(BeatmapSet, 5, session)
+        await RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/unrankset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_unrank_set_action(BeatmapSet: int):
+    async def panel_unrank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        SetBMAPSetStatus(BeatmapSet, 0, session)
-        RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
+        await SetBMAPSetStatus(BeatmapSet, 0, session)
+        await RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
         return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/deleterankreq/<int:ReqID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
-    def panel_complete_rank_request_action(ReqID: int):
-        DeleteBmapReq(ReqID)
+    async def panel_complete_rank_request_action(ReqID: int):
+        await DeleteBmapReq(ReqID)
         return redirect("/rankreq/1")
 
     @app.route("/action/kickclan/<int:AccountID>")
     @requires_privilege(Privileges.PANEL_MANAGE_CLANS)
-    def panel_kick_user_from_clan_action(AccountID: int):
-        KickFromClan(AccountID)
+    async def panel_kick_user_from_clan_action(AccountID: int):
+        await KickFromClan(AccountID)
         return redirect("/clans/1")
 
     @app.route("/actions/whitelist/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def panel_whitelist_user_action(user_id: int):
+    async def panel_whitelist_user_action(user_id: int):
         session = web.sessions.get()
 
-        apply_whitelist_change(user_id, session.user_id)
+        await apply_whitelist_change(user_id, session.user_id)
         return redirect(f"/user/edit/{user_id}")
 
     @app.route("/console/<int:page>")
     @requires_privilege(Privileges.PANEL_ERROR_LOGS)
-    def console(page: int):
+    async def console(page: int):
         if page < 1:
             return redirect("/console/1")
 
-        return load_panel_template(
+        return await load_panel_template(
             "consolelogs.html",
             title="Console Logs",
             route="/console",
             page=page,
-            pages=traceback_pages(),
-            console_logs=get_tracebacks(page - 1),
+            pages=await traceback_pages(),
+            console_logs=await get_tracebacks(page - 1),
         )
 
     @app.route("/user/rename/<int:user_id>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
-    def rename_user(user_id: int):
-        user = GetUser(user_id)
+    async def rename_user(user_id: int):
+        user = await GetUser(user_id)
 
         if user["Id"] == 0:
             return redirect("/users/1")
@@ -1002,10 +1028,11 @@ def configure_routes(app: Flask) -> None:
         error = None
 
         if request.method == "POST":
-            ignore_name_history = request.form.get("no_name_history") == "on"
-            error = apply_username_change(
+            form = await request.form
+            ignore_name_history = form.get("no_name_history") == "on"
+            error = await apply_username_change(
                 user_id,
-                request.form["username"],
+                form["username"],
                 web.sessions.get().user_id,
                 ignore_name_history,
             )
@@ -1013,7 +1040,7 @@ def configure_routes(app: Flask) -> None:
             if error is None:
                 return redirect(f"/user/edit/{user_id}")
 
-        return load_panel_template(
+        return await load_panel_template(
             "user_rename.html",
             title=f"Rename {user['Username']}",
             user=user,
@@ -1021,27 +1048,26 @@ def configure_routes(app: Flask) -> None:
         )
 
 
-def configure_error_handlers(app: Flask) -> None:
+def configure_error_handlers(app: Quart) -> None:
     # error handlers
     @app.errorhandler(404)
-    def not_found_error_handler(_):
-        return render_template("errors/404.html")
+    async def not_found_error_handler(_):
+        return await render_template("errors/404.html")
 
     @app.errorhandler(500)
-    def code_error_handler(_):
+    async def code_error_handler(_):
         tb = traceback.format_exc()
         session = web.sessions.get()
 
-        log_traceback(tb, session, TracebackType.DANGER)
-        return render_template("errors/500.html")
+        await log_traceback(tb, session, TracebackType.DANGER)
+        return await render_template("errors/500.html")
 
     # we make sure session exists
     @app.before_request
-    def pre_request():
+    async def pre_request():
         web.sessions.ensure()
 
-
-def initialise_connectors(app: Flask) -> None:
+async def init_db():
     state.database = MySQLPool(
         host=config.sql_host,
         user=config.sql_user,
@@ -1049,8 +1075,9 @@ def initialise_connectors(app: Flask) -> None:
         database=config.sql_database,
         port=config.sql_port,
     )
+    await state.database.connect()
 
-    state.redis = Redis(
+    state.redis = redis.Redis(
         host=config.redis_host,
         port=config.redis_port,
         password=config.redis_password,
@@ -1058,7 +1085,8 @@ def initialise_connectors(app: Flask) -> None:
     )
 
     state.sqlite = Sqlite("panel.db")
-    state.sqlite.execute(
+    await state.sqlite.connect()
+    await state.sqlite.execute(
         """
         CREATE TABLE IF NOT EXISTS `tracebacks` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1069,20 +1097,35 @@ def initialise_connectors(app: Flask) -> None:
         );
         """,
     )
+    await fix_bad_user_count()
 
+async def close_db():
+    if state.database:
+        await state.database.close()
+    if state.sqlite:
+        await state.sqlite.close()
+    if state.redis:
+        await state.redis.close()
 
-def init_app() -> Flask:
-    app = Flask(
+def init_app() -> Quart:
+    app = Quart(
         __name__,
         static_folder="../static",
         template_folder="../templates",
     )
-    initialise_connectors(app)
+    
+    app.before_serving(init_db)
+    app.after_serving(close_db)
+    
+    # Initialize background task for player count
+    @app.before_serving
+    async def start_player_count():
+         app.add_background_task(PlayerCountCollection)
+         
     configure_routes(app)
     configure_error_handlers(app)
-    fix_bad_user_count()
     web.sessions.encrypt(app)
     return app
 
 
-wsgi_app = init_app()
+app = init_app()
