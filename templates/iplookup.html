@@ -1,53 +1,58 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Recent IP Lookup</h2>
-  <p class="section-lead">
-    Spot possible multiaccounters by searching users who have the same IP.
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Search Results for IP: <b>{{ ip }}</b></h4>
+  <div class="mb-8">
+      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Recent IP Lookup</h2>
+      <p class="text-slate-400 mt-2 font-medium">
+        Identify potential multi-accounts by finding users linked to the same IP address.
+      </p>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden">
+    <div class="border-b border-slate-700/50 p-6 bg-slate-900/30 flex items-center justify-between">
+      <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+          <i class="fas fa-network-wired text-slate-500"></i> Results for: <span class="font-mono text-blue-400">{{ ip }}</span>
+      </h3>
+      {% if IPLen == 0 %}
+        <span class="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-widest">No Matches</span>
+      {% elif IPLen == 1 %}
+        <span class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-widest">Clean</span>
+      {% elif IPLen > 1 %}
+        <span class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-bold uppercase tracking-widest animate-pulse">Possible Multi-account</span>
+      {% endif %}
     </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+    <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
             <tr>
-              <th scope="col">User ID</th>
-              <th scope="col">Username</th>
-              <th scope="col">IP</th>
-              <th scope="col">Occurrences</th>
-              <th scope="col">Edit</th>
+              <th class="h-12 px-6 align-middle font-bold">User ID</th>
+              <th class="h-12 px-6 align-middle font-bold">Username</th>
+              <th class="h-12 px-6 align-middle font-bold text-center">Occurrences</th>
+              <th class="h-12 px-6 align-middle text-right font-bold">Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-700/50">
             {% for user in ipusers %}
-              <tr>
-                <td>{{ user["Id"] }}</td>
-                <td>{{ user["Username"] }}</td>
-                <td>{{ user["Ip"] }}</td>
-                <td>{{ user["Occurencies"] }}</td>
-                <td>
-                  <a href="/user/edit/{{ user['Id'] }}" class="btn btn-danger"
-                    >Edit</a
-                  >
+              <tr class="transition-colors hover:bg-slate-700/30 group">
+                <td class="p-6 align-middle font-mono text-slate-500 text-xs font-bold">#{{ user["Id"] }}</td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ config.api_avatar_url }}{{ user['Id'] }}" class="h-8 w-8 rounded-lg border border-slate-600 shadow-sm" alt="">
+                        <a href="{{ config.srv_url }}u/{{ user['Id'] }}" target="_blank" class="font-bold text-white hover:text-blue-400 transition-colors">{{ user["Username"] }}</a>
+                    </div>
+                </td>
+                <td class="p-6 align-middle text-center font-bold text-slate-300">
+                    {{ user["Occurencies"] }}
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <a class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-9 px-4 hover:border-blue-500/50 hover:text-blue-400 group shadow-sm" href="/user/edit/{{ user['Id'] }}">
+                      <span class="mr-2">Edit</span>
+                      <i class="fas fa-pen-to-square text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors"></i>
+                  </a>
                 </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
-      </div>
-      <p></p>
-      <h2>
-        {% if IPLen == 0 %}
-          <span style="color: #4287f5;">Nothing Found!</span>
-        {% elif IPLen == 1 %}
-          <span style="color: #32a852;">All Good!</span>
-        {% elif IPLen > 1 %}
-          <span style="color: #eb4034;">Possible Multiaccount!</span>
-        {% endif %}
-      </h2>
     </div>
-    <div class="card-footer">RealistikPanel!</div>
   </div>
 {% endblock %}

@@ -1,57 +1,82 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Full IP Lookup</h2>
-  <p class="section-lead">
-    Spot possible multiaccounters by searching users who have the same IPs.
-  </p>
-  <div class="card">
-    <div class="card-header">
-      <h4>Search Results for the same IPs</h4>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
+  <div class="mb-8">
+      <h2 class="text-3xl font-display font-bold tracking-tight text-white">Full IP Lookup</h2>
+      <p class="text-slate-400 mt-2 font-medium">
+        Trace all IP addresses used by this account and find other users sharing those same addresses.
+      </p>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mt-6 mb-6 overflow-hidden">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm text-left">
+          <thead class="bg-slate-900/50 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
             <tr>
-              <th scope="col">IP</th>
-              <th scope="col">User</th>
-              <th scope="col">Privileges</th>
-              <th scope="col">Privileges Status</th>
-              <th scope="col">Occurrences</th>
-              <th scope="col">Edit</th>
+              <th class="h-12 px-6 align-middle font-bold">IP Address</th>
+              <th class="h-12 px-6 align-middle font-bold">User</th>
+              <th class="h-12 px-6 align-middle font-bold">Group</th>
+              <th class="h-12 px-6 align-middle font-bold">Status</th>
+              <th class="h-12 px-6 align-middle font-bold text-center">Occur.</th>
+              <th class="h-12 px-6 align-middle text-right font-bold">Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-slate-700/50">
             {% for user in ipusers %}
-              {% if user["user_id"] == user_id %}
-                <tr>
-              {% else %}
-                <tr class="bg-danger text-white">
-              {% endif %}
-                <td>{{ user["ip"] }}</td>
-                <td>{{ user["username"] }} ({{ user["user_id"]}})</td>
-                <td><a
-                  class="badge badge-{{ user['privileges']['Colour'] }}"
-                  style="color: white;"
-                  >{{ user["privileges"]["Name"] }}</a
-                ></td>
-                <td><a
-                  class="badge badge-{{ user['priv_status']['colour'] }}"
-                  style="color: white;"
-                  >{{ user["priv_status"]["text"] }}</a
-                ></td>
-                <td>{{ user["occurencies"] }}</td>
-                <td>
-                  <a href="/user/edit/{{ user['user_id'] }}" class="btn btn-danger"
-                    >Edit</a
-                  >
+              {% set is_target = user["user_id"] == user_id %}
+              <tr class="transition-colors {% if is_target %}bg-blue-500/5 hover:bg-blue-500/10{% else %}bg-red-500/5 hover:bg-red-500/10 group animate-pulse{% endif %}">
+                <td class="p-6 align-middle font-mono text-xs {% if is_target %}text-blue-400{% else %}text-red-400{% endif %} font-bold">
+                    {{ user["ip"] }}
+                </td>
+                <td class="p-6 align-middle">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ config.api_avatar_url }}{{ user['user_id'] }}" class="h-8 w-8 rounded-lg border border-slate-600 shadow-sm" alt="">
+                        <div class="flex flex-col">
+                            <a href="{{ config.srv_url }}u/{{ user['user_id'] }}" target="_blank" class="font-bold text-white hover:text-blue-400 transition-colors">{{ user["username"] }}</a>
+                            <span class="text-[10px] font-mono text-slate-500">#{{ user["user_id"] }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-6 align-middle">
+                    {% set color_class = 'bg-slate-700/50 text-slate-300 border-slate-600' %}
+                    {% if user['privileges']['Colour'] == 'danger' %}
+                        {% set color_class = 'bg-red-500/10 text-red-400 border-red-500/20' %}
+                    {% elif user['privileges']['Colour'] == 'warning' %}
+                        {% set color_class = 'bg-amber-500/10 text-amber-400 border-amber-500/20' %}
+                    {% elif user['privileges']['Colour'] == 'success' %}
+                        {% set color_class = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' %}
+                    {% elif user['privileges']['Colour'] == 'info' %}
+                        {% set color_class = 'bg-blue-500/10 text-blue-400 border-blue-500/20' %}
+                    {% elif user['privileges']['Colour'] == 'primary' %}
+                        {% set color_class = 'bg-purple-500/10 text-purple-400 border-purple-500/20' %}
+                    {% endif %}
+                  <span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold transition-colors {{ color_class }}">
+                    {{ user["privileges"]["Name"] }}
+                  </span>
+                </td>
+                <td class="p-6 align-middle">
+                    {% if user["priv_status"]["colour"] == "success" %}
+                        <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                            <i class="fas fa-check-circle text-[10px]"></i> {{ user["priv_status"]["text"] }}
+                        </span>
+                    {% else %}
+                        <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                            <i class="fas fa-circle-exclamation text-[10px]"></i> {{ user["priv_status"]["text"] }}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="p-6 align-middle text-center font-bold text-slate-300">
+                    {{ user["occurencies"] }}
+                </td>
+                <td class="p-6 align-middle text-right">
+                  <a class="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-200 border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-white h-9 px-4 hover:border-blue-500/50 hover:text-blue-400 group shadow-sm" href="/user/edit/{{ user['user_id'] }}">
+                      <span class="mr-2">Edit</span>
+                      <i class="fas fa-pen-to-square text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors"></i>
+                  </a>
                 </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-    </div>
-    <div class="card-footer">RealistikPanel!</div>
   </div>
 {% endblock %}
