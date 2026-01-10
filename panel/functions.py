@@ -3211,7 +3211,7 @@ async def is_whitelisted(user_id: int) -> bool:
 
 
 async def apply_whitelist_change(user_id: int, changed_by_id: int) -> None:
-    user = await GetUser(user_id)
+    await GetUser(user_id)
 
     if await is_whitelisted(user_id):
         await remove_from_whitelist(user_id)
