@@ -1,43 +1,78 @@
 <!DOCTYPE html>
+<html lang="en" class="dark">
+
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RealistikPanel! - Bad Code!</title>
-  <!-- General CSS Files -->
+  <title>Server Error | RealistikPanel</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    crossorigin="anonymous"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
-    integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
-  <link rel="stylesheet" href="/static/css/realistik.css" />
-  <link rel="stylesheet" href="/static/css/errors.css" />
+    href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Comfortaa', 'cursive'],
+          },
+          colors: {
+            background: "#0F172A",
+            primary: "#3B82F6",
+          },
+          backgroundImage: {
+            'page-gradient': 'radial-gradient(circle at top right, #1E293B, #0F172A)',
+          }
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0F172A;
+      color: #FFFFFF;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="icon" type="image/x-icon" href="/static/img/logo.ico" />
 </head>
 
-<body>
-  <div id="app">
-    <section class="section">
-      <div class="container mt-5">
-        <div class="page-error">
-          <div class="page-inner">
-            <h1>500</h1>
-            <div class="page-description">
-              Uh oh... The code broke. That shouldn't have happened.
-            </div>
-          </div>
-        </div>
-        <div class="simple-footer mt-5">RealistikPanel!</div>
-      </div>
-    </section>
+<body
+  class="bg-background text-white antialiased min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-sans">
+
+  <!-- Background Image with Overlay -->
+  <div class="fixed inset-0 z-[-1]">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-10"></div>
+    <img src="/static/img/login-bg.jpeg" alt="Background" class="w-full h-full object-cover">
+  </div>
+
+  <div
+    class="w-full max-w-lg p-10 space-y-8 bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl relative z-20 text-center transform transition-all hover:scale-[1.01]">
+
+    <div class="flex flex-col items-center">
+      <h1 class="text-3xl font-display font-bold tracking-tight text-white mb-3">500 Internal Server Error</h1>
+      <p class="text-slate-400 text-lg leading-relaxed max-w-sm mx-auto">
+        Blame Tusk on this one. Or us. Preferably Tusk.
+      </p>
+    </div>
+
+    <div class="pt-4">
+      <a href=""
+        class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 bg-primary hover:bg-blue-600 text-white h-12 px-8 w-full shadow-lg shadow-blue-500/25 hover:-translate-y-0.5 group">
+        <i class="fas fa-redo mr-3 transition-transform group-hover:rotate-180"></i>
+        Try Again
+      </a>
+    </div>
   </div>
 </body>
+
+</html>
