@@ -107,7 +107,7 @@
     class="col-span-3 rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl overflow-hidden group flex flex-col">
     <div class="relative h-48 w-full overflow-hidden shrink-0">
       <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-        style='background-image: url("{{ MostPlayed[' Cover'] }}");'></div>
+        style='background-image: url("{{ MostPlayed['Cover'] }}");'></div>
       <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
       <div class="absolute bottom-4 left-6 right-4">
         <div
@@ -302,29 +302,22 @@
     },
   });
 
-  function createStatusCard(title, status, colorClass, textClass, icon) {
-    // Map old color classes to new border classes if needed, or rely on text color
-    let borderColor = "border-l-slate-600";
-    if (colorClass.includes("green")) borderColor = "border-l-emerald-500";
-    if (colorClass.includes("red")) borderColor = "border-l-red-500";
-    if (colorClass.includes("yellow")) borderColor = "border-l-amber-500";
-
-    let iconClass = "fa-server";
-    if (title.includes("API")) iconClass = "fa-code";
-    if (title.includes("Score")) iconClass = "fa-database";
-
-    return `
-            <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${borderColor} group relative overflow-hidden">
-              <div class="absolute -right-6 -bottom-6 text-slate-500/5 group-hover:text-slate-500/10 transition-colors pointer-events-none">
-                  <i class="fas ${iconClass} text-9xl transform -rotate-12"></i>
-              </div>
-              <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
-              </div>
-              <div class="text-xl font-display font-bold ${textClass} mt-1 relative z-10">${status}</div>
-            </div>`;
-  }
-
+          function createStatusCard(title, status, colourClass, textClass, icon) {
+              let iconClass = "fa-server";
+              if (title.includes("API")) iconClass = "fa-code";
+              if (title.includes("Score")) iconClass = "fa-database";
+      
+              return `
+              <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl p-6 transition-all hover:bg-slate-800 border-l-4 ${colourClass} group relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-slate-500/5 group-hover:text-slate-500/10 transition-colors pointer-events-none">
+                    <i class="fas ${iconClass} text-9xl transform -rotate-12"></i>
+                </div>
+                <div class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <h3 class="tracking-tight text-xs font-bold uppercase text-slate-400 group-hover:text-white transition-colors">${title}</h3>
+                </div>
+                <div class="text-xl font-display font-bold ${textClass} mt-1 relative z-10">${status}</div>
+              </div>`;
+          }
   var API_URL = window.location.protocol + "//" + window.location.host + "/js/status/api";
   var LetsAPI = window.location.protocol + "//" + window.location.host + "/js/status/lets";
   var BanchoURL = window.location.protocol + "//" + window.location.host + "/js/status/bancho";
@@ -333,9 +326,9 @@
     .then((res) => res.json())
     .then((out) => {
       let status = out["server_status"] == 1 ? "Online" : "Offline";
-      let color = out["server_status"] == 1 ? "border-l-emerald-500" : "border-l-red-500";
+      let colour = out["server_status"] == 1 ? "border-l-emerald-500" : "border-l-red-500";
       let text = out["server_status"] == 1 ? "text-emerald-400" : "text-red-400";
-      document.getElementById("statuses").innerHTML += createStatusCard("Score Service", status, color, text);
+      document.getElementById("statuses").innerHTML += createStatusCard("Score Service", status, colour, text);
     })
     .catch((err) => {
       document.getElementById("statuses").innerHTML += createStatusCard("Score Service", "Offline", "border-l-red-500", "text-red-400");
@@ -345,20 +338,20 @@
     .then((res) => res.json())
     .then((out) => {
       let status = "Offline";
-      let color = "border-l-red-500";
+      let colour = "border-l-red-500";
       let text = "text-red-400";
 
       if (out["result"] == 1) {
         status = "Online";
-        color = "border-l-emerald-500";
+        colour = "border-l-emerald-500";
         text = "text-emerald-400";
       } else if (out["result"] == -1) {
         status = "Restarting";
-        color = "border-l-amber-500";
+        colour = "border-l-amber-500";
         text = "text-amber-400";
       }
 
-      document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", status, color, text);
+      document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", status, colour, text);
     })
     .catch((err) => {
       document.getElementById("statuses").innerHTML += createStatusCard("Bancho Service", "Offline", "border-l-red-500", "text-red-400");
@@ -368,9 +361,9 @@
     .then((res) => res.json())
     .then((out) => {
       let status = out["code"] == 200 ? "Online" : "Offline";
-      let color = out["code"] == 200 ? "border-l-emerald-500" : "border-l-red-500";
+      let colour = out["code"] == 200 ? "border-l-emerald-500" : "border-l-red-500";
       let text = out["code"] == 200 ? "text-emerald-400" : "text-red-400";
-      document.getElementById("statuses").innerHTML += createStatusCard("API Service", status, color, text);
+      document.getElementById("statuses").innerHTML += createStatusCard("API Service", status, colour, text);
     })
     .catch((err) => {
       document.getElementById("statuses").innerHTML += createStatusCard("API Service", "Offline", "border-l-red-500", "text-red-400");

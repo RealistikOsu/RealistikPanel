@@ -19,7 +19,7 @@
             <tr>
               <th class="h-12 px-6 align-middle w-24">ID</th>
               <th class="h-12 px-6 align-middle">Name</th>
-              <th class="h-12 px-6 align-middle">Color Code</th>
+              <th class="h-12 px-6 align-middle">Colour Code</th>
               <th class="h-12 px-6 align-middle">Bitwise Value</th>
               <th class="h-12 px-6 align-middle text-right">Actions</th>
             </tr>
@@ -29,19 +29,19 @@
               <tr class="transition-colors hover:bg-white/5">
                 <td class="p-6 align-middle font-mono text-muted-foreground">{{ priv["Id"] }}</td>
                 <td class="p-6 align-middle">
-                    {% set color_class = 'bg-gray-500/20 text-gray-300 border-gray-500/30' %}
+                    {% set colour_class = 'bg-gray-500/20 text-gray-300 border-gray-500/30' %}
                     {% if priv['Colour'] == 'danger' %}
-                        {% set color_class = 'bg-red-500/20 text-red-300 border-red-500/30' %}
+                        {% set colour_class = 'bg-red-500/20 text-red-300 border-red-500/30' %}
                     {% elif priv['Colour'] == 'warning' %}
-                        {% set color_class = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' %}
+                        {% set colour_class = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/20' %}
                     {% elif priv['Colour'] == 'success' %}
-                        {% set color_class = 'bg-green-500/20 text-green-300 border-green-500/30' %}
+                        {% set colour_class = 'bg-green-500/20 text-green-300 border-green-500/20' %}
                     {% elif priv['Colour'] == 'info' %}
-                        {% set color_class = 'bg-blue-500/20 text-blue-300 border-blue-500/30' %}
+                        {% set colour_class = 'bg-blue-500/20 text-blue-300 border-blue-500/20' %}
                     {% elif priv['Colour'] == 'primary' %}
-                        {% set color_class = 'bg-purple-500/20 text-purple-300 border-purple-500/30' %}
+                        {% set colour_class = 'bg-purple-500/20 text-purple-300 border-purple-500/30' %}
                     {% endif %}
-                    <span class="inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors {{ color_class }}">
+                    <span class="inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-colors {{ colour_class }}">
                         {{ priv["Name"] }}
                     </span>
                 </td>

@@ -37,19 +37,19 @@
                     </div>
                 </td>
                 <td class="p-6 align-middle">
-                    {% set color_class = 'bg-slate-700/50 text-slate-300 border-slate-600' %}
+                    {% set colour_class = 'bg-slate-700/50 text-slate-300 border-slate-600' %}
                     {% if user['privileges']['Colour'] == 'danger' %}
-                        {% set color_class = 'bg-red-500/10 text-red-400 border-red-500/20' %}
+                        {% set colour_class = 'bg-red-500/10 text-red-400 border-red-500/20' %}
                     {% elif user['privileges']['Colour'] == 'warning' %}
-                        {% set color_class = 'bg-amber-500/10 text-amber-400 border-amber-500/20' %}
+                        {% set colour_class = 'bg-amber-500/10 text-amber-400 border-amber-500/20' %}
                     {% elif user['privileges']['Colour'] == 'success' %}
-                        {% set color_class = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' %}
+                        {% set colour_class = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' %}
                     {% elif user['privileges']['Colour'] == 'info' %}
-                        {% set color_class = 'bg-blue-500/10 text-blue-400 border-blue-500/20' %}
+                        {% set colour_class = 'bg-blue-500/10 text-blue-400 border-blue-500/20' %}
                     {% elif user['privileges']['Colour'] == 'primary' %}
-                        {% set color_class = 'bg-purple-500/10 text-purple-400 border-purple-500/20' %}
+                        {% set colour_class = 'bg-purple-500/10 text-purple-400 border-purple-500/20' %}
                     {% endif %}
-                  <span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold transition-colors {{ color_class }}">
+                  <span class="inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold transition-colors {{ colour_class }}">
                     {{ user["privileges"]["Name"] }}
                   </span>
                 </td>
