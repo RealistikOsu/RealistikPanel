@@ -68,7 +68,7 @@
 <div class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl mb-8 overflow-hidden">
   <div class="border-b border-slate-700/50 p-8 bg-slate-900/30">
     <div class="flex flex-col md:flex-row md:items-center gap-6">
-      <div class="relative group">
+      <div class="relative group w-fit">
         <div
           class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500">
         </div>
@@ -480,6 +480,14 @@
           <label class="text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-2">
             <i class="fas fa-triangle-exclamation"></i> Danger Zone
           </label>
+
+          <!-- Rollback -->
+          <div class="mb-2.5">
+            <a href="/actions/configure/rollback/{{ UserData['Id'] }}"
+              class="flex w-full items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-10 px-3">
+              <i class="fas fa-history mr-2"></i> Rollback User
+            </a>
+          </div>
           <div class="grid grid-cols-1 gap-2.5">
             <a href="/actions/comment/profile/{{ UserData['Id'] }}"
               class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-10 px-3">
@@ -497,36 +505,17 @@
               class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-orange-500/10 text-slate-400 hover:text-orange-400 border border-slate-700/50 hover:border-orange-500/30 h-10 px-3">
               Kick User
             </a>
+            <a href="/user/reset_avatar/{{ UserData['Id'] }}"
+              class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-orange-500/10 text-slate-400 hover:text-orange-400 border border-slate-700/50 hover:border-orange-500/30 h-10 px-3"
+              onclick="return confirm('Are you sure you want to reset this user\'s avatar?')">
+              Reset Avatar
+            </a>
 
-            <div class="grid grid-cols-2 gap-2.5 mt-2">
-              {% if config.srv_supports_relax or config.srv_supports_autopilot %}
-              <a href="/actions/wipe/{{ UserData['Id'] }}" id="wipe"
-                class="col-span-2 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-3 shadow-lg shadow-red-900/30 hover:shadow-red-900/50">
-                FULL WIPE
-              </a>
-              <a href="/actions/wipeva/{{ UserData['Id'] }}" id="wipe"
-                class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
-                Wipe Vanilla
-              </a>
-              {% else %}
-              <a href="/actions/wipe/{{ UserData['Id'] }}" id="wipe"
-                class="col-span-2 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-3 shadow-lg shadow-red-900/30 hover:shadow-red-900/50">
+            <div class="mt-2">
+              <a href="/actions/configure/wipe/{{ UserData['Id'] }}" id="wipe"
+                class="flex w-full items-center justify-center rounded-xl text-sm font-bold transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-3 shadow-lg shadow-red-900/30 hover:shadow-red-900/50">
                 Wipe Account
               </a>
-              {% endif %}
-
-              {% if config.srv_supports_relax %}
-              <a href="/actions/wiperx/{{ UserData['Id'] }}" id="wipe"
-                class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
-                Wipe Relax
-              </a>
-              {% endif %}
-              {% if config.srv_supports_autopilot %}
-              <a href="/actions/wipeap/{{ UserData['Id'] }}" id="wipe"
-                class="inline-flex items-center justify-center rounded-xl text-xs font-bold transition-colors bg-slate-800 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 hover:border-red-500/30 h-9 px-2">
-                Wipe AP
-              </a>
-              {% endif %}
             </div>
 
             <a href="/action/confirm/delete/{{ UserData['Id'] }}" id="delete"

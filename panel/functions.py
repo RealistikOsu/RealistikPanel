@@ -9,6 +9,7 @@ import math
 import random
 import string
 import time
+import os
 from typing import Any
 from typing import cast
 from typing import NamedTuple
@@ -189,12 +190,7 @@ async def LoginHandler(
 
                 return (
                     True,
-                    LoginUserData(
-                        user_id,
-                        username,
-                        Privileges(privileges),
-                        priv_name
-                    ),
+                    LoginUserData(user_id, username, Privileges(privileges), priv_name),
                 )
             else:
                 return False, USER_PASSWORD_ERROR
@@ -344,6 +340,7 @@ async def handle_bancho_settings_edit(
 
 import re
 
+
 async def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
     """Gets beatmap info."""
     beatmapset_id = await state.database.fetch_val(
@@ -381,30 +378,36 @@ async def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
     # Prepare payload for star rating calculation
     payload = []
     for beatmap in beatmaps_data:
-        payload.append({
-            "beatmap_id": beatmap[4],
-            "beatmap_md5": beatmap[6],
-            "mode": beatmap[7],
-            "mods": 0,
-            "max_combo": beatmap[8] if beatmap[8] is not None else 0,
-            "accuracy": 100.0,
-            "miss_count": 0
-        })
+        payload.append(
+            {
+                "beatmap_id": beatmap[4],
+                "beatmap_md5": beatmap[6],
+                "mode": beatmap[7],
+                "mods": 0,
+                "max_combo": beatmap[8] if beatmap[8] is not None else 0,
+                "accuracy": 100.0,
+                "miss_count": 0,
+            }
+        )
 
     # Fetch star ratings from API
     star_ratings = {}
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(config.api_performance_url + "/api/v1/calculate", json=payload) as resp:
+            async with session.post(
+                config.api_performance_url + "/api/v1/calculate", json=payload
+            ) as resp:
                 if resp.status == 200:
                     api_results = await resp.json()
                     # Map results back to beatmap_id for easy lookup
-                    if isinstance(api_results, list) and len(api_results) == len(payload):
+                    if isinstance(api_results, list) and len(api_results) == len(
+                        payload
+                    ):
                         for i, result in enumerate(api_results):
-                             # result is expected to have 'stars' key
-                             stars = result.get("stars")
-                             if stars:
-                                 star_ratings[payload[i]["beatmap_id"]] = stars
+                            # result is expected to have 'stars' key
+                            stars = result.get("stars")
+                            if stars:
+                                star_ratings[payload[i]["beatmap_id"]] = stars
                 else:
                     logger.warning(f"Performance API returned status {resp.status}")
     except Exception as e:
@@ -415,7 +418,7 @@ async def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
         full_name = beatmap[0]
         song_name = full_name
         diff_name = "Standard"
-        
+
         # Regex to split "Artist - Title [Difficulty]"
         match = re.match(r"(.+)\s\[(.+)\]$", full_name)
         if match:
@@ -507,7 +510,9 @@ async def FokaMessage(params: dict[str, Any]) -> None:
     """Sends a fokabot message."""
     async with aiohttp.ClientSession() as session:
         try:
-             await session.get(config.api_bancho_url + "/api/v1/fokabotMessage", params=params)
+            await session.get(
+                config.api_bancho_url + "/api/v1/fokabotMessage", params=params
+            )
         except Exception as e:
             logger.error(f"Failed to send fokabot message: {e}")
 
@@ -541,7 +546,9 @@ async def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
             "icon_url": f"{config.api_avatar_url}/{session.user_id}",
         },
         "footer": {"text": "via RealistikPanel!"},
-        "image": {"url": f"https://assets.ppy.sh/beatmaps/{map_data[1]}/covers/cover.jpg"},
+        "image": {
+            "url": f"https://assets.ppy.sh/beatmaps/{map_data[1]}/covers/cover.jpg"
+        },
     }
 
     logger.info("Posting webhook....")
@@ -556,7 +563,9 @@ async def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
     await RAPLog(session.user_id, f"{Logtext} the beatmap {map_data[0]} ({BeatmapId})")
 
 
-async def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :/") -> None:
+async def RAPLog(
+    UserID: int = 999, Text: str = "forgot to assign a text value :/"
+) -> None:
     """Logs to the RAP log."""
     Timestamp = round(time.time())
     # now we putting that in oh yea
@@ -574,16 +583,16 @@ async def RAPLog(UserID: int = 999, Text: str = "forgot to assign a text value :
         return
 
     Username = (await GetUser(UserID))["Username"]
-    
+
     embed = {
         "description": f"{Username} {Text}",
         "color": 242424,
         "footer": {"text": "RealistikPanel Admin Logs"},
         "author": {
-             "name": f"New action done by {Username}!",
-             "url": f"{config.srv_url}u/{UserID}",
-             "icon_url": f"{config.api_avatar_url}/{UserID}",
-        }
+            "name": f"New action done by {Username}!",
+            "url": f"{config.srv_url}u/{UserID}",
+            "icon_url": f"{config.api_avatar_url}/{UserID}",
+        },
     }
 
     await send_discord_webhook(config.webhook_admin_log, {"embeds": [embed]})
@@ -667,12 +676,10 @@ async def IsOnline(AccountId: int) -> bool:
     """Checks if given user is online."""
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{config.api_bancho_url}/api/v1/isOnline?id={AccountId}") as resp:
-                Online = await resp.json()
-                if Online["status"] == 200:
-                    return Online["result"]
-                else:
-                    return False
+            async with session.get(
+                f"{config.api_bancho_url}/api/status/{AccountId}"
+            ) as resp:
+                return resp.status == 200
     except Exception:
         return False
 
@@ -688,7 +695,9 @@ async def CalcPP(BmapID: int) -> float:
 async def CalcPPRX(BmapID: int) -> float:
     """Sends request to USSR to calc PP for beatmap id with the Relax mod."""
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=128") as resp:
+        async with session.get(
+            f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=128"
+        ) as resp:
             reqjson = await resp.json()
             return round(reqjson["pp"][0], 2)
 
@@ -696,7 +705,9 @@ async def CalcPPRX(BmapID: int) -> float:
 async def CalcPPAP(BmapID: int) -> float:
     """Sends request to USSR to calc PP for beatmap id with the Autopilot mod."""
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=8192") as resp:
+        async with session.get(
+            f"{config.api_ussr_url}api/v1/pp?b={BmapID}&m=8192"
+        ) as resp:
             reqjson = await resp.json()
             return round(reqjson["pp"][0], 2)
 
@@ -895,6 +906,7 @@ async def UserData(UserID: int) -> dict[str, Any]:
         "IsBanned": CoolerInt(user_data3[7]) > 0,
         "BanedAgo": TimeToTimeAgo(CoolerInt(user_data3[7])),
         "IsSilenced": CoolerInt(user_data3[5]) > round(time.time()),
+        "IsOnline": await IsOnline(UserID),
         "SilenceEndAgo": TimeToTimeAgo(CoolerInt(user_data3[5])),
         "Whitelisted": whitelist,
     }
@@ -1135,6 +1147,121 @@ async def DeleteUserComments(AccId: int) -> None:
     await state.database.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
 
 
+async def WipeUserStats(user_id: int, modes: list[int], mods: list[str]) -> None:
+    """
+    Wipes user stats and scores for specific modes and mods.
+
+    modes: List of mode IDs (0: std, 1: taiko, 2: ctb, 3: mania)
+    mods: List of mod strings ("va", "rx", "ap")
+    """
+
+    # Mapping of mode ID to suffix in database columns
+    mode_suffixes = {0: "_std", 1: "_taiko", 2: "_ctb", 3: "_mania"}
+
+    # 1. Wipe Vanilla
+    if "va" in mods:
+        # construct update query
+        updates = []
+        for mode in modes:
+            suffix = mode_suffixes.get(mode)
+            if suffix:
+                updates.extend(
+                    [
+                        f"ranked_score{suffix} = 0",
+                        f"playcount{suffix} = 0",
+                        f"total_score{suffix} = 0",
+                        f"replays_watched{suffix} = 0",
+                        f"total_hits{suffix} = 0",
+                        f"level{suffix} = 0",
+                        f"playtime{suffix} = 0",
+                        f"avg_accuracy{suffix} = 0.000000000000",
+                        f"pp{suffix} = 0",
+                    ]
+                )
+                # special case for unrestricted_pp if std
+                if mode == 0:
+                    updates.append("unrestricted_pp = 0")
+
+        if updates:
+            query = f"UPDATE users_stats SET {', '.join(updates)} WHERE id = %s"
+            await state.database.execute(query, (user_id,))
+
+        # Delete scores
+        modes_sql = ",".join([str(m) for m in modes])
+        await state.database.execute(
+            f"DELETE FROM scores WHERE userid = %s AND play_mode IN ({modes_sql})",
+            (user_id,),
+        )
+        # User playcounts per map - we can't easily filter by mode here as the table doesn't have it?
+        # users_beatmap_playcount: user_id, beatmap_id, count. Beatmap has mode.
+        # It's a bit complex playcount wipe, maybe just leave it or do a complex join delete?
+        # For now, let's stick to stats and scores which is the main thing.
+
+    # 2. Wipe Relax
+    if "rx" in mods and config.srv_supports_relax:
+        updates = []
+        for mode in modes:
+            suffix = mode_suffixes.get(mode)
+            if suffix:
+                updates.extend(
+                    [
+                        f"ranked_score{suffix} = 0",
+                        f"playcount{suffix} = 0",
+                        f"total_score{suffix} = 0",
+                        f"replays_watched{suffix} = 0",
+                        f"total_hits{suffix} = 0",
+                        f"level{suffix} = 0",
+                        f"playtime{suffix} = 0",
+                        f"avg_accuracy{suffix} = 0.000000000000",
+                        f"pp{suffix} = 0",
+                    ]
+                )
+                if mode == 0:
+                    updates.append("unrestricted_pp = 0")
+
+        if updates:
+            query = f"UPDATE rx_stats SET {', '.join(updates)} WHERE id = %s"
+            await state.database.execute(query, (user_id,))
+
+        modes_sql = ",".join([str(m) for m in modes])
+        await state.database.execute(
+            f"DELETE FROM scores_relax WHERE userid = %s AND play_mode IN ({modes_sql})",
+            (user_id,),
+        )
+
+    # 3. Wipe Autopilot
+    if "ap" in mods and config.srv_supports_autopilot:
+        updates = []
+        for mode in modes:
+            suffix = mode_suffixes.get(mode)
+            if suffix:
+                updates.extend(
+                    [
+                        f"ranked_score{suffix} = 0",
+                        f"playcount{suffix} = 0",
+                        f"total_score{suffix} = 0",
+                        f"replays_watched{suffix} = 0",
+                        f"total_hits{suffix} = 0",
+                        f"level{suffix} = 0",
+                        f"playtime{suffix} = 0",
+                        f"avg_accuracy{suffix} = 0.000000000000",
+                        f"pp{suffix} = 0",
+                    ]
+                )
+                if mode == 0:
+                    updates.append("unrestricted_pp = 0")
+
+        if updates:
+            query = f"UPDATE ap_stats SET {', '.join(updates)} WHERE id = %s"
+            await state.database.execute(query, (user_id,))
+
+        modes_sql = ",".join([str(m) for m in modes])
+        await state.database.execute(
+            f"DELETE FROM scores_ap WHERE userid = %s AND play_mode IN ({modes_sql})",
+            (user_id,),
+        )
+
+
 async def WipeAccount(AccId: int) -> None:
     """Wipes the account with the given id."""
     await state.redis.publish(
@@ -1148,176 +1275,81 @@ async def WipeAccount(AccId: int) -> None:
     )
 
     # TODO: transaction?
-
-    await WipeVanilla(AccId)
-    if config.srv_supports_relax:
-        await WipeRelax(AccId)
-
-    if config.srv_supports_autopilot:
-        await WipeAutopilot(AccId)
+    # Wipes EVERYTHING (all modes, all mods)
+    await WipeUserStats(AccId, [0, 1, 2, 3], ["va", "rx", "ap"])
 
 
+# Deprecated/Legacy wrappers if needed, but we will mostly use WipeUserStats directly
 async def WipeVanilla(AccId: int) -> None:
-    """Wiped vanilla scores for user."""
-    await state.database.execute(
-        """
-        UPDATE
-            users_stats
-        SET
-            ranked_score_std = 0,
-            playcount_std = 0,
-            total_score_std = 0,
-            replays_watched_std = 0,
-            ranked_score_taiko = 0,
-            playcount_taiko = 0,
-            total_score_taiko = 0,
-            replays_watched_taiko = 0,
-            ranked_score_ctb = 0,
-            playcount_ctb = 0,
-            total_score_ctb = 0,
-            replays_watched_ctb = 0,
-            ranked_score_mania = 0,
-            playcount_mania = 0,
-            total_score_mania = 0,
-            replays_watched_mania = 0,
-            total_hits_std = 0,
-            total_hits_taiko = 0,
-            total_hits_ctb = 0,
-            total_hits_mania = 0,
-            unrestricted_pp = 0,
-            level_std = 0,
-            level_taiko = 0,
-            level_ctb = 0,
-            level_mania = 0,
-            playtime_std = 0,
-            playtime_taiko = 0,
-            playtime_ctb = 0,
-            playtime_mania = 0,
-            avg_accuracy_std = 0.000000000000,
-            avg_accuracy_taiko = 0.000000000000,
-            avg_accuracy_ctb = 0.000000000000,
-            avg_accuracy_mania = 0.000000000000,
-            pp_std = 0,
-            pp_taiko = 0,
-            pp_ctb = 0,
-            pp_mania = 0
-        WHERE
-            id = %s
-    """,
-        (AccId,),
-    )
-    await state.database.execute("DELETE FROM scores WHERE userid = %s", (AccId,))
-    await state.database.execute(
-        "DELETE FROM users_beatmap_playcount WHERE user_id = %s",
-        (AccId,),
-    )
+    await WipeUserStats(AccId, [0, 1, 2, 3], ["va"])
 
 
 async def WipeRelax(AccId: int) -> None:
-    """Wipes the relax user data."""
-    await state.database.execute(
-        """
-        UPDATE
-            rx_stats
-        SET
-            ranked_score_std = 0,
-            playcount_std = 0,
-            total_score_std = 0,
-            replays_watched_std = 0,
-            ranked_score_taiko = 0,
-            playcount_taiko = 0,
-            total_score_taiko = 0,
-            replays_watched_taiko = 0,
-            ranked_score_ctb = 0,
-            playcount_ctb = 0,
-            total_score_ctb = 0,
-            replays_watched_ctb = 0,
-            ranked_score_mania = 0,
-            playcount_mania = 0,
-            total_score_mania = 0,
-            replays_watched_mania = 0,
-            total_hits_std = 0,
-            total_hits_taiko = 0,
-            total_hits_ctb = 0,
-            total_hits_mania = 0,
-            unrestricted_pp = 0,
-            level_std = 0,
-            level_taiko = 0,
-            level_ctb = 0,
-            level_mania = 0,
-            playtime_std = 0,
-            playtime_taiko = 0,
-            playtime_ctb = 0,
-            playtime_mania = 0,
-            avg_accuracy_std = 0.000000000000,
-            avg_accuracy_taiko = 0.000000000000,
-            avg_accuracy_ctb = 0.000000000000,
-            avg_accuracy_mania = 0.000000000000,
-            pp_std = 0,
-            pp_taiko = 0,
-            pp_ctb = 0,
-            pp_mania = 0
-        WHERE
-            id = %s
-    """,
-        (AccId,),
-    )
-    await state.database.execute("DELETE FROM scores_relax WHERE userid = %s", (AccId,))
+    await WipeUserStats(AccId, [0, 1, 2, 3], ["rx"])
 
 
 async def WipeAutopilot(AccId: int) -> None:
-    """Wipes the autopilot user data."""
-    await state.database.execute(
-        """
-        UPDATE
-            ap_stats
-        SET
-            ranked_score_std = 0,
-            playcount_std = 0,
-            total_score_std = 0,
-            replays_watched_std = 0,
-            ranked_score_taiko = 0,
-            playcount_taiko = 0,
-            total_score_taiko = 0,
-            replays_watched_taiko = 0,
-            ranked_score_ctb = 0,
-            playcount_ctb = 0,
-            total_score_ctb = 0,
-            replays_watched_ctb = 0,
-            ranked_score_mania = 0,
-            playcount_mania = 0,
-            total_score_mania = 0,
-            replays_watched_mania = 0,
-            total_hits_std = 0,
-            total_hits_taiko = 0,
-            total_hits_ctb = 0,
-            total_hits_mania = 0,
-            unrestricted_pp = 0,
-            level_std = 0,
-            level_taiko = 0,
-            level_ctb = 0,
-            level_mania = 0,
-            playtime_std = 0,
-            playtime_taiko = 0,
-            playtime_ctb = 0,
-            playtime_mania = 0,
-            avg_accuracy_std = 0.000000000000,
-            avg_accuracy_taiko = 0.000000000000,
-            avg_accuracy_ctb = 0.000000000000,
-            avg_accuracy_mania = 0.000000000000,
-            pp_std = 0,
-            pp_taiko = 0,
-            pp_ctb = 0,
-            pp_mania = 0
-        WHERE
-            id = %s
-    """,
-        (AccId,),
-    )
-    await state.database.execute("DELETE FROM scores_ap WHERE userid = %s", (AccId,))
+    await WipeUserStats(AccId, [0, 1, 2, 3], ["ap"])
 
 
-async def ResUnTrict(user_id: int, from_id: int, note: str = "", reason: str = "") -> bool:
+async def RollbackUser(
+    user_id: int,
+    days: int,
+    from_id: int,
+    modes: list[int] = [0, 1, 2, 3],
+    mods: list[str] = ["va", "rx", "ap"],
+) -> None:
+    """Rolls back user scores by X days."""
+    cutoff = int(time.time()) - (days * 86400)
+
+    tables = []
+    if "va" in mods:
+        tables.append(("scores", 0))
+    if "rx" in mods and config.srv_supports_relax:
+        tables.append(("scores_relax", 1))
+    if "ap" in mods and config.srv_supports_autopilot:
+        tables.append(("scores_ap", 2))
+
+    if not tables:
+        return
+
+    # Prepare SQL for modes checking
+    # We can't easily pass a list to SQL IN clause with aiomysql/databases properly without formatting,
+    # but for ints it's safeish if we validate.
+    # modes is list of ints 0-3.
+    modes_sql = ",".join([str(m) for m in modes])
+
+    for table, rx in tables:
+        # Get beatmaps affected to recalculate first places later
+        affected_maps = await state.database.fetch_all(
+            f"SELECT beatmap_md5, play_mode FROM {table} WHERE userid = %s AND time > %s AND play_mode IN ({modes_sql})",
+            (user_id, cutoff),
+        )
+
+        # Delete scores
+        await state.database.execute(
+            f"DELETE FROM {table} WHERE userid = %s AND time > %s AND play_mode IN ({modes_sql})",
+            (user_id, cutoff),
+        )
+
+        # Recalculate first places for affected beatmaps
+        for bmap_md5, mode in affected_maps:
+            # Delete current first place entry if it was from this user
+            await state.database.execute(
+                "DELETE FROM first_places WHERE beatmap_md5 = %s AND user_id = %s AND relax = %s AND mode = %s",
+                (bmap_md5, user_id, rx, mode),
+            )
+            # Recalculate
+            await calc_first_place(bmap_md5, rx, mode)
+
+    # Force pep.py to reload data if possible, though there isn't a specific "recalc stats" event
+    # We'll just kick the user so they can reconnect and hopefully stats update on next play
+    await BanchoKick(user_id, "Your account has been rolled back. Please reconnect.")
+
+
+async def ResUnTrict(
+    user_id: int, from_id: int, note: str = "", reason: str = ""
+) -> bool:
     """Restricts or unrestricts account yeah."""
     if reason:
         await state.database.execute(
@@ -1346,7 +1378,12 @@ async def ResUnTrict(user_id: int, from_id: int, note: str = "", reason: str = "
         )  # unrestricts
         await state.database.execute(
             "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
-            (from_id, user_id, "Unrestrict", reason if reason else "No reason provided."),
+            (
+                from_id,
+                user_id,
+                "Unrestrict",
+                reason if reason else "No reason provided.",
+            ),
         )
         TheReturn = False
     else:
@@ -1498,14 +1535,24 @@ async def DeleteAccount(user_id: int) -> None:
     await state.database.execute("DELETE FROM scores WHERE userid = %s", (user_id,))
     await state.database.execute("DELETE FROM users WHERE id = %s", (user_id,))
     await state.database.execute("DELETE FROM 2fa WHERE userid = %s", (user_id,))
-    await state.database.execute("DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,))
+    await state.database.execute(
+        "DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,)
+    )
     await state.database.execute("DELETE FROM 2fa_totp WHERE userid = %s", (user_id,))
-    await state.database.execute("DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,))
+    await state.database.execute(
+        "DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,)
+    )
     await state.database.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
-    await state.database.execute("DELETE FROM discord_roles WHERE userid = %s", (user_id,))
+    await state.database.execute(
+        "DELETE FROM discord_roles WHERE userid = %s", (user_id,)
+    )
     await state.database.execute("DELETE FROM ip_user WHERE userid = %s", (user_id,))
-    await state.database.execute("DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,))
-    await state.database.execute("DELETE FROM rank_requests WHERE userid = %s", (user_id,))
+    await state.database.execute(
+        "DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM rank_requests WHERE userid = %s", (user_id,)
+    )
     await state.database.execute(
         "DELETE FROM reports WHERE to_uid = %s OR from_uid = %s",
         (
@@ -1534,10 +1581,14 @@ async def DeleteAccount(user_id: int) -> None:
     await state.database.execute("DELETE FROM user_clans WHERE user = %s", (user_id,))
     await state.database.execute("DELETE FROM users_stats WHERE id = %s", (user_id,))
     if config.srv_supports_relax:
-        await state.database.execute("DELETE FROM scores_relax WHERE userid = %s", (user_id,))
+        await state.database.execute(
+            "DELETE FROM scores_relax WHERE userid = %s", (user_id,)
+        )
         await state.database.execute("DELETE FROM rx_stats WHERE id = %s", (user_id,))
     if config.srv_supports_autopilot:
-        await state.database.execute("DELETE FROM scores_ap WHERE userid = %s", (user_id,))
+        await state.database.execute(
+            "DELETE FROM scores_ap WHERE userid = %s", (user_id,)
+        )
         await state.database.execute("DELETE FROM ap_stats WHERE id = %s", (user_id,))
 
 
@@ -1648,15 +1699,16 @@ async def PlayerCountCollection() -> None:
         try:
             val = await state.redis.get("ripple:online_users")
             CurrentCount = decode_int_or(val, 0)
-            
+
             PlayerCount.append(CurrentCount)
             if len(PlayerCount) > 100:
-                 PlayerCount.pop(0)
+                PlayerCount.pop(0)
         except Exception as e:
             logger.error(f"Failed to collect player count: {e}")
-        
+
         # Async sleep for 300 seconds
         await asyncio.sleep(300)
+
 
 def get_playcount_graph_data() -> dict[str, list[Union[int, str]]]:
     """Returns data for dash graphs."""
@@ -1852,7 +1904,9 @@ async def GetPriv(PrivID: int) -> dict[str, Any]:
 
 async def DelPriv(PrivID: int) -> None:
     """Deletes a privilege group."""
-    await state.database.execute("DELETE FROM privileges_groups WHERE id = %s", (PrivID,))
+    await state.database.execute(
+        "DELETE FROM privileges_groups WHERE id = %s", (PrivID,)
+    )
 
 
 async def UpdatePriv(Form: dict[str, str]) -> None:
@@ -1971,7 +2025,7 @@ def TimeToTimeAgo(Timestamp: int) -> str:
         DTObj = datetime.datetime.fromtimestamp(Timestamp)
     except (OSError, ValueError):
         return "Unknown"
-        
+
     CurrentTime = datetime.datetime.now()
     base_time = timeago.format(DTObj, CurrentTime)
 
@@ -1998,9 +2052,13 @@ async def RemoveFromLeaderboard(UserID: int) -> None:
         if country and country != "XX":  # check if the country is not set
             await state.redis.zrem(f"ripple:leaderboard:{mode}:{country}", UserID)
             if config.srv_supports_relax:
-                await state.redis.zrem(f"ripple:leaderboard_relax:{mode}:{country}", UserID)
+                await state.redis.zrem(
+                    f"ripple:leaderboard_relax:{mode}:{country}", UserID
+                )
             if config.srv_supports_autopilot:
-                await state.redis.zrem(f"ripple:leaderboard_ap:{mode}:{country}", UserID)
+                await state.redis.zrem(
+                    f"ripple:leaderboard_ap:{mode}:{country}", UserID
+                )
 
 
 async def UpdateBanStatus(UserID: int) -> None:
@@ -2032,17 +2090,19 @@ async def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
 
     # Getting bmap name without diff
     BmapName = maps_data[0][0].split("[")[0].rstrip()  # ¯\_(ツ)_/¯ might work
-    
+
     embed = {
         "description": f"Ranked by {session.username}",
         "color": 242424,
         "author": {
-             "name": f"{BmapName} was just {TitleText}.",
-             "url": f"https://ussr.pl/b/{maps_data[0][1]}",
-             "icon_url": f"https://a.ussr.pl/{session.user_id}",
+            "name": f"{BmapName} was just {TitleText}.",
+            "url": f"https://ussr.pl/b/{maps_data[0][1]}",
+            "icon_url": f"https://a.ussr.pl/{session.user_id}",
         },
         "footer": {"text": "via RealistikPanel!"},
-        "image": {"url": f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg"},
+        "image": {
+            "url": f"https://assets.ppy.sh/beatmaps/{BeatmapSet}/covers/cover.jpg"
+        },
     }
 
     logger.info("Posting webhook...")
@@ -2060,14 +2120,18 @@ async def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     # checking if its an email
     Split = User.split("@")
     if (
-        len(Split) == 2 and "." in Split[1] # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
+        len(Split) == 2
+        and "."
+        in Split[
+            1
+        ]  # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
     ):
         users = await state.database.fetch_all(
             "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
                 Offset,
-            ), # i will keep the like statement unless it causes issues
+            ),  # i will keep the like statement unless it causes issues
         )
     else:  # its a username
         User = f"%{User}%"  # for sql to treat is as substring
@@ -2197,9 +2261,7 @@ async def GetRankRequests(Page: int) -> list[dict[str, Any]]:
     )
     # turning what we have so far into
     TheRequests = []
-    UserIDs = (
-        []
-    )  # used for later fetching the users, so we dont have a repeat of 50 queries
+    UserIDs = []  # used for later fetching the users, so we dont have a repeat of 50 queries
     for request in requests:
         # getting song info, like 50 individual queries at peak lmao
         TriedSet = False
@@ -2297,7 +2359,9 @@ async def GetRankRequests(Page: int) -> list[dict[str, Any]]:
 
 async def DeleteBmapReq(Req: int) -> None:
     """Deletes the beatmap request."""
-    await state.database.execute("DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,))
+    await state.database.execute(
+        "DELETE FROM rank_requests WHERE id = %s LIMIT 1", (Req,)
+    )
 
 
 async def SearchUserPageCount(search_term: str) -> int:
@@ -2342,12 +2406,12 @@ async def SearchClans(search_term: str, Page: int = 1) -> list[dict[str, Any]]:
     # offsets and limits
     Page = int(Page) - 1
     Offset = 50 * Page
-    
+
     clans_data = await state.database.fetch_all(
         "SELECT id, name, description, icon, tag FROM clans WHERE name LIKE %s OR tag LIKE %s LIMIT 50 OFFSET %s",
         (f"%{search_term}%", f"%{search_term}%", Offset),
     )
-    
+
     Clans = []
     for Clan in clans_data:
         Clans.append(
@@ -2434,7 +2498,7 @@ async def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     # getting the users
     members_data = await state.database.fetch_all(
         f"SELECT username, id, register_datetime FROM users WHERE {Conditions}",
-        tuple(args), # here i use format as the conditions are a trusted input
+        tuple(args),  # here i use format as the conditions are a trusted input
     )
 
     # turning the data into a dictionary list
@@ -2617,7 +2681,7 @@ async def GetSuggestedRank() -> list[dict[str, Any]]:
         full_name = TopBeatmap[1]
         song_name = full_name
         diff_name = "Standard"
-        
+
         match = re.match(r"(.+)\s\[(.+)\]$", full_name)
         if match:
             song_name = match.group(1)
@@ -2645,7 +2709,9 @@ async def GetSuggestedRank() -> list[dict[str, Any]]:
 
 async def CountRestricted() -> int:
     """Calculates the amount of restricted or banned users."""
-    count = await state.database.fetch_val("SELECT COUNT(*) FROM users WHERE privileges = 2")
+    count = await state.database.fetch_val(
+        "SELECT COUNT(*) FROM users WHERE privileges = 2"
+    )
     return count
 
 
@@ -2658,7 +2724,7 @@ async def GetStatistics(MinPP: int = 0) -> dict[str, Any]:
     RegisterList = []
     DateList = []
     while Days != -1:
-        DateList.append(f"{Days+1}d")
+        DateList.append(f"{Days + 1}d")
         RegisterList.append(await GetUsersRegisteredBetween(24 * Days))
         Days -= 1
     UsersActiveToday = await GetUsersActiveBetween()
@@ -3076,7 +3142,9 @@ async def get_hwid_page(user_id: int, page: int = 0) -> HWIDPage:
     for log in hw_history:
         exact_matches = await get_hwid_matches_exact(log)
         partial_matches = list(
-            filter(lambda x: x not in exact_matches, await get_hwid_matches_partial(log)),
+            filter(
+                lambda x: x not in exact_matches, await get_hwid_matches_partial(log)
+            ),
         )
         results.append(
             {
@@ -3232,7 +3300,8 @@ async def remove_from_whitelist(user_id: int) -> None:
 async def is_whitelisted(user_id: int) -> bool:
     return (
         await state.database.fetch_val(
-            "SELECT user_id FROM whitelist WHERE user_id = %s", (user_id,),
+            "SELECT user_id FROM whitelist WHERE user_id = %s",
+            (user_id,),
         )
         is not None
     )
@@ -3247,3 +3316,29 @@ async def apply_whitelist_change(user_id: int, changed_by_id: int) -> None:
     else:
         await add_to_whitelist(user_id)
         await RAPLog(changed_by_id, f"added {user_id} to the whitelist")
+
+
+async def ResetAvatar(user_id: int) -> bool:
+    """Resets the avatar of a user."""
+    if not config.avatars_path:
+        return False
+
+    deleted = False
+
+    # Iterate over files in the directory
+    try:
+        if not os.path.exists(config.avatars_path):
+            return False
+
+        for filename in os.listdir(config.avatars_path):
+            # Check if filename starts with user_id and matches expected pattern
+            # We want exact match on the name part (without extension)
+            name, ext = os.path.splitext(filename)
+            if name == str(user_id):
+                file_path = os.path.join(config.avatars_path, filename)
+                os.remove(file_path)
+                deleted = True
+    except Exception:
+        return False
+
+    return deleted

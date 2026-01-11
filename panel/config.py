@@ -32,6 +32,7 @@ class Config:
     api_ussr_url: str = "https://osu.ussr.pl/web"
     api_performance_url: str = "https://performance.ussr.pl"
     api_avatar_url: str = "https://a.ussr.pl"
+    avatars_path: str = ""
     api_bancho_url: str = "https://c.ussr.pl"
     webhook_ranked: str = ""
     webhook_admin_log: str = ""

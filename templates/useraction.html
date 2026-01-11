@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center gap-3">
+        <a href="/user/edit/{{ UserData['Id'] }}"
+            class="h-10 w-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-600 transition-all">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="text-3xl font-display font-bold tracking-tight text-white">Configure Action</h2>
+            <p class="text-slate-400 mt-1 font-medium text-sm">
+                Executing <span class="text-white font-bold">{{ Title }}</span> on <span class="text-white">{{
+                    UserData['Username'] }}</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div
+    class="rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl max-w-2xl mx-auto overflow-hidden">
+    <div class="border-b border-slate-700/50 px-8 py-5 bg-gradient-to-r from-red-500/10 to-transparent">
+        <h3 class="font-display font-bold text-lg text-red-400 flex items-center gap-2">
+            <i class="fas fa-triangle-exclamation"></i> {{ ConfigurationTitle }}
+        </h3>
+    </div>
+
+    <form action="/actions/{{ Action }}/{{ UserData['Id'] }}" method="POST" class="p-8 space-y-8">
+        <!-- Rollback Days Input -->
+        {% if IsRollback %}
+        <div class="space-y-3">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Rollback Duration</label>
+            <div class="relative">
+                <input type="number" name="days" value="1" min="1" required
+                    class="flex h-11 w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all hover:bg-slate-900" />
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">Days</span>
+            </div>
+            <p class="text-xs text-slate-500 ml-1">The account will be restored to its state this many days ago.</p>
+        </div>
+        {% endif %}
+
+        <!-- Game Modes -->
+        <div class="space-y-3">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Game Modes</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="modes" value="0" class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex flex-col items-center justify-center transition-all hover:bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400">
+                        <i class="fas fa-circle-1 text-lg mb-1 block"></i>
+                        <span class="text-sm font-bold">osu!std</span>
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="modes" value="1" class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex flex-col items-center justify-center transition-all hover:bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400">
+                        <i class="fas fa-drum text-lg mb-1 block"></i>
+                        <span class="text-sm font-bold">osu!taiko</span>
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="modes" value="2" class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex flex-col items-center justify-center transition-all hover:bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400">
+                        <i class="fas fa-apple-whole text-lg mb-1 block"></i>
+                        <span class="text-sm font-bold">osu!catch</span>
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="modes" value="3" class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex flex-col items-center justify-center transition-all hover:bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400">
+                        <i class="fas fa-keyboard text-lg mb-1 block"></i>
+                        <span class="text-sm font-bold">osu!mania</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Mods -->
+        <div class="space-y-3">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Mod Types</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="mods" value="va" {% if 'va' in DefaultMods %}checked{% endif %}
+                        class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex items-center justify-center gap-3 transition-all hover:bg-slate-800 peer-checked:border-green-500 peer-checked:bg-green-500/10 peer-checked:text-green-400">
+                        <div class="h-8 w-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-sm font-bold">Vanilla</span>
+                    </div>
+                </label>
+
+                {% if srv_supports_relax %}
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="mods" value="rx" {% if 'rx' in DefaultMods %}checked{% endif %}
+                        class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex items-center justify-center gap-3 transition-all hover:bg-slate-800 peer-checked:border-pink-500 peer-checked:bg-pink-500/10 peer-checked:text-pink-400">
+                        <div class="h-8 w-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                            <i class="fas fa-coffee"></i>
+                        </div>
+                        <span class="text-sm font-bold">Relax</span>
+                    </div>
+                </label>
+                {% endif %}
+
+                {% if srv_supports_autopilot %}
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="mods" value="ap" {% if 'ap' in DefaultMods %}checked{% endif %}
+                        class="peer sr-only" />
+                    <div
+                        class="h-full rounded-xl border border-slate-600 bg-slate-900/30 p-3 flex items-center justify-center gap-3 transition-all hover:bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400">
+                        <div class="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span class="text-sm font-bold">Autopilot</span>
+                    </div>
+                </label>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-700/50 flex gap-4">
+            <a href="/user/edit/{{ UserData['Id'] }}"
+                class="flex-1 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 hover:border-slate-600 h-11 px-4">
+                Cancel
+            </a>
+            <button type="submit"
+                class="flex-[2] inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-red-600 hover:bg-red-500 text-white h-11 px-8 shadow-lg shadow-red-500/20 hover:-translate-y-0.5">
+                <i class="fas fa-check-circle mr-2"></i> Confirm Action
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -85,7 +85,7 @@ def configure_routes(app: Quart) -> None:
             session.privileges = data.privileges  # type: ignore
             session.user_id = data.user_id  # type: ignore
             session.username = data.username  # type: ignore
-            session.privilege_name = data.privilege_name # type: ignore
+            session.privilege_name = data.privilege_name  # type: ignore
             web.sessions.set(session)
 
             redir = IP_REDIRS.get(request.headers.get("X-Real-IP"))
@@ -195,10 +195,10 @@ def configure_routes(app: Quart) -> None:
 
         search_term = request.args.get("user")
         if not search_term and request.method == "POST":
-             form = await request.form
-             search_term = form.get("user")
-             if search_term:
-                 return redirect(f"/users/1?user={search_term}")
+            form = await request.form
+            search_term = form.get("user")
+            if search_term:
+                return redirect(f"/users/1?user={search_term}")
 
         if search_term:
             user_data = await FindUserByUsername(
@@ -217,7 +217,7 @@ def configure_routes(app: Quart) -> None:
             UserData=user_data,
             page=page,
             pages=pages,
-            search_term=search_term
+            search_term=search_term,
         )
 
     @app.route("/index.php")
@@ -307,7 +307,9 @@ def configure_routes(app: Quart) -> None:
             Privs=await GetPrivileges(),
             UserBadges=await GetUserBadges(user_id),
             badges=await GetBadges(),
-            ShowIPs=await has_privilege_value(session.user_id, Privileges.PANEL_VIEW_IPS),
+            ShowIPs=await has_privilege_value(
+                session.user_id, Privileges.PANEL_VIEW_IPS
+            ),
             ban_logs=await fetch_user_banlogs(user_id),
             hwid_count=await get_hwid_count(user_id),
             countries=get_countries(),
@@ -315,6 +317,17 @@ def configure_routes(app: Quart) -> None:
             error=error,
             success=success,
         )
+
+    @app.route("/user/reset_avatar/<int:user_id>")
+    @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
+    async def panel_reset_avatar(user_id: int):
+        session = web.sessions.get()
+
+        if await ResetAvatar(user_id):
+            await RAPLog(session.user_id, f"reset avatar for user {user_id}")
+            return redirect(f"/user/edit/{user_id}")
+        else:
+            return redirect(f"/user/edit/{user_id}")
 
     @app.route("/logs/<int:page>")
     @requires_privilege(Privileges.ADMIN_VIEW_RAP_LOGS)
@@ -570,7 +583,7 @@ def configure_routes(app: Quart) -> None:
             return redirect("/clans/1")
 
         search_term = request.args.get("search")
-        
+
         if search_term:
             clans = await SearchClans(search_term, Page)
             pages = await GetSearchClanPages(search_term)
@@ -698,7 +711,9 @@ def configure_routes(app: Quart) -> None:
     async def panel_api_status_api():
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(config.srv_url + "api/v1/ping", timeout=1) as resp:
+                async with session.get(
+                    config.srv_url + "api/v1/ping", timeout=1
+                ) as resp:
                     return jsonify(await resp.json())
         except Exception:
             tb = traceback.format_exc()
@@ -711,7 +726,7 @@ def configure_routes(app: Quart) -> None:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(config.api_ussr_url) as resp:
-                     return jsonify({"server_status": int(resp.status == 404)})
+                    return jsonify({"server_status": int(resp.status == 404)})
         except Exception:
             tb = traceback.format_exc()
             logger.error(f"Error while getting Score Service status, error: " + tb)
@@ -721,8 +736,10 @@ def configure_routes(app: Quart) -> None:
     @app.route("/js/status/bancho")
     async def panel_bancho_status_api():
         try:
-             async with aiohttp.ClientSession() as session:
-                async with session.get(config.api_bancho_url + "/api/v1/serverStatus", timeout=1) as resp:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    config.api_bancho_url + "/api/v1/serverStatus", timeout=1
+                ) as resp:
                     return jsonify(await resp.json(content_type="text/html"))
         except Exception:
             tb = traceback.format_exc()
@@ -761,61 +778,178 @@ def configure_routes(app: Quart) -> None:
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipe/<int:AccountID>")
+    @app.route("/actions/configure/<action>/<int:user_id>")
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
+    async def panel_action_configure(action: str, user_id: int):
+        """Configures an action before execution."""
+        session = web.sessions.get()
+
+        # Get user data for the header
+        user_data = await GetUser(user_id)
+
+        # Defaults
+        title = "Unknown Action"
+        mods = ["va"]
+        is_rollback = False
+
+        if action == "rollback":
+            title = "Rollback Account"
+            is_rollback = True
+            mods = []
+            config_title = "Rollback Configuration"
+        elif action == "wipe":
+            title = "Wipe Account"
+            mods = []
+            config_title = "Wipe Configuration"
+        elif action == "wipeva":
+            title = "Wipe Vanilla Stats"
+            mods = ["va"]
+            config_title = "Wipe Configuration"
+        elif action == "wiperx":
+            title = "Wipe Relax Stats"
+            mods = ["rx"]
+            config_title = "Wipe Configuration"
+        elif action == "wipeap":
+            title = "Wipe Autopilot Stats"
+            mods = ["ap"]
+            config_title = "Wipe Configuration"
+
+        return await load_panel_template(
+            "useraction.html",
+            title=title,
+            route="/users",
+            UserData=user_data,
+            Action=action,
+            Title=title,
+            DefaultMods=mods,
+            IsRollback=is_rollback,
+            srv_supports_relax=config.srv_supports_relax,
+            srv_supports_autopilot=config.srv_supports_autopilot,
+            ConfigurationTitle=config_title,
+        )
+
+    @app.route("/actions/wipe/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     async def panel_wipe_user_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
+        modes = [0, 1, 2, 3]
+        mods = ["va", "rx", "ap"]
+
+        if request.method == "POST":
+            form = await request.form
+            modes = [int(x) for x in form.getlist("modes")]
+            mods = form.getlist("mods")
+
         Account = await GetUser(AccountID)
-        await WipeAccount(AccountID)
+        await WipeUserStats(AccountID, modes, mods)
+
+        action_desc = "wiped"
+        if mods != ["va", "rx", "ap"] or modes != [0, 1, 2, 3]:
+            # partial wipe
+            action_desc = f"partially wiped (modes: {modes}, mods: {mods})"
+
         await RAPLog(
             session.user_id,
-            f"has wiped the account {Account['Username']} ({AccountID})",
+            f"has {action_desc} the account {Account['Username']} ({AccountID})",
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipeap/<int:AccountID>")
+    @app.route("/actions/wipeap/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     async def panel_wipe_user_ap_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
+        modes = [0, 1, 2, 3]
+        mods = ["ap"]
+
+        if request.method == "POST":
+            form = await request.form
+            modes = [int(x) for x in form.getlist("modes")]
+            mods = form.getlist("mods")
+
         Account = await GetUser(AccountID)
-        await WipeAutopilot(AccountID)
+        await WipeUserStats(AccountID, modes, mods)
         await RAPLog(
             session.user_id,
             f"has wiped the autopilot statistics for the account {Account['Username']} ({AccountID})",
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wiperx/<int:AccountID>")
+    @app.route("/actions/wiperx/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     async def panel_wipe_user_rx_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
+        modes = [0, 1, 2, 3]
+        mods = ["rx"]
+
+        if request.method == "POST":
+            form = await request.form
+            modes = [int(x) for x in form.getlist("modes")]
+            mods = form.getlist("mods")
+
         Account = await GetUser(AccountID)
-        await WipeRelax(AccountID)
+        await WipeUserStats(AccountID, modes, mods)
         await RAPLog(
             session.user_id,
             f"has wiped the relax statistics for the account {Account['Username']} ({AccountID})",
         )
         return redirect(f"/user/edit/{AccountID}")
 
-    @app.route("/actions/wipeva/<int:AccountID>")
+    @app.route("/actions/wipeva/<int:AccountID>", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_WIPE_USERS)
     async def panel_wipe_user_va_action(AccountID: int):
         """The wipe action."""
         session = web.sessions.get()
 
+        modes = [0, 1, 2, 3]
+        mods = ["va"]
+
+        if request.method == "POST":
+            form = await request.form
+            modes = [int(x) for x in form.getlist("modes")]
+            mods = form.getlist("mods")
+
         Account = await GetUser(AccountID)
-        await WipeVanilla(AccountID)
+        await WipeUserStats(AccountID, modes, mods)
         await RAPLog(
             session.user_id,
             f"has wiped the vanilla statistics for the account {Account['Username']} ({AccountID})",
         )
         return redirect(f"/user/edit/{AccountID}")
+
+    @app.route("/actions/rollback/<int:user_id>", methods=["GET", "POST"])
+    @requires_privilege(Privileges.ADMIN_WIPE_USERS)
+    async def panel_rollback_user_action(user_id: int):
+        """Rollback user scores."""
+        session = web.sessions.get()
+
+        days = 0
+        modes = [0, 1, 2, 3]
+        mods = ["va", "rx", "ap"]
+
+        if request.method == "POST":
+            form = await request.form
+            days = int(form.get("days", 0))
+            modes = [int(x) for x in form.getlist("modes")]
+            mods = form.getlist("mods")
+        else:
+            days = int(request.args.get("days", 0))
+
+        if days <= 0:
+            return redirect(f"/user/edit/{user_id}")
+
+        Account = await GetUser(user_id)
+        await RollbackUser(user_id, days, session.user_id, modes, mods)
+        await RAPLog(
+            session.user_id,
+            f"has rolled back the account {Account['Username']} ({user_id}) by {days} days",
+        )
+        return redirect(f"/user/edit/{user_id}")
 
     @app.route("/actions/restrict/<int:user_id>")
     @requires_privilege(Privileges.ADMIN_MANAGE_USERS)
@@ -1069,6 +1203,7 @@ def configure_error_handlers(app: Quart) -> None:
     async def pre_request():
         web.sessions.ensure()
 
+
 async def init_db():
     state.database = MySQLPool(
         host=config.sql_host,
@@ -1101,6 +1236,7 @@ async def init_db():
     )
     await fix_bad_user_count()
 
+
 async def close_db():
     if state.database:
         await state.database.close()
@@ -1109,21 +1245,21 @@ async def close_db():
     if state.redis:
         await state.redis.close()
 
+
 def init_app() -> Quart:
     app = Quart(
         __name__,
         static_folder="../static",
         template_folder="../templates",
     )
-    
+
     app.before_serving(init_db)
     app.after_serving(close_db)
-    
-    # Initialize background task for player count
+
     @app.before_serving
     async def start_player_count():
-         app.add_background_task(PlayerCountCollection)
-         
+        app.add_background_task(PlayerCountCollection)
+
     configure_routes(app)
     configure_error_handlers(app)
     web.sessions.encrypt(app)
