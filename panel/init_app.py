@@ -1,4 +1,5 @@
 # This file is responsible for running the web server and (mostly nothing else)
+from panel.functions import InsufficientPrivilegesError
 from __future__ import annotations
 
 import traceback
@@ -141,7 +142,7 @@ def configure_routes(app: Quart) -> None:
         )
 
     @app.route("/rank/<int:beatmap_id>", methods=["GET", "POST"])
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_rank_beatmap(beatmap_id: int):
         session = web.sessions.get()
 
@@ -157,6 +158,8 @@ def configure_routes(app: Quart) -> None:
                     session,
                 )
                 success = f"Successfully ranked a beatmap with the ID of {beatmap_id}"
+            except InsufficientPrivilegesError:
+                error = "You do not have the required privileges to rank this beatmap."
             except Exception:
                 error = f"Failed to rank beatmap {beatmap_id}!"
                 tb = traceback.format_exc()
@@ -174,7 +177,7 @@ def configure_routes(app: Quart) -> None:
         )
 
     @app.route("/rank", methods=["GET", "POST"])
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_rank_beatmap_search():
         if request.method == "POST":
             form = await request.form
@@ -562,18 +565,45 @@ def configure_routes(app: Quart) -> None:
         return redirect(f"/user/edit/{AccountID}")
 
     @app.route("/rankreq/<int:Page>")
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_view_rank_requests(Page: int):
         if Page < 1:
             return redirect("/rankreq/1")
+
+        session = web.sessions.get()
+        allowed_modes = None
+
+        if not await has_privilege_value(
+            session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
+        ):
+            allowed_modes = []
+            if await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_STD_BEATMAPS
+            ):
+                allowed_modes.append(0)
+            if await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS
+            ):
+                allowed_modes.append(1)
+            if await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_CATCH_BEATMAPS
+            ):
+                allowed_modes.append(2)
+            if await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_MANIA_BEATMAPS
+            ):
+                allowed_modes.append(3)
+
+            if not allowed_modes:
+                return await render_template("errors/403.html")
 
         return await load_panel_template(
             "rankreq.html",
             title="Ranking Requests",
             route="/rankreq",
-            RankRequests=await GetRankRequests(Page),
+            RankRequests=await GetRankRequests(Page, allowed_modes),
             page=Page,
-            pages=await request_pages(),
+            pages=await request_pages(allowed_modes),
         )
 
     @app.route("/clans/<int:Page>")
@@ -1092,7 +1122,7 @@ def configure_routes(app: Quart) -> None:
         return redirect(url_for("panel_view_privileges"))
 
     @app.route("/action/rankset/<int:BeatmapSet>")
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_rank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
@@ -1101,7 +1131,7 @@ def configure_routes(app: Quart) -> None:
         return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/loveset/<BeatmapSet>")
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_love_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
@@ -1110,7 +1140,7 @@ def configure_routes(app: Quart) -> None:
         return redirect(f"/rank/{BeatmapSet}")
 
     @app.route("/action/unrankset/<int:BeatmapSet>")
-    @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)
+    @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_unrank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 

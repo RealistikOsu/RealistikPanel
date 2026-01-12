@@ -463,6 +463,11 @@ async def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
 
     return user_privileges & privilege == privilege
 
+class InsufficientPrivilegesError(Exception):
+    """Exception raised when a user does not have the required privileges."""
+    def __init__(self, message: str) -> None:
+        self.message = message
+
 
 async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None:
     """Ranks a beatmap"""
@@ -477,6 +482,38 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
     else:
         logger.debug("Malformed action name input.")
         return
+
+    mode = await state.database.fetch_val(
+        "SELECT mode FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
+        (BeatmapId,),
+    )
+    if mode is None:
+        raise Exception("Beatmap not found.")
+
+    has_admin = await has_privilege_value(
+        session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
+    )
+    if not has_admin:
+        allowed = False
+        if mode == 0 and await has_privilege_value(
+            session.user_id, Privileges.ADMIN_MANAGE_STD_BEATMAPS
+        ):
+            allowed = True
+        elif mode == 1 and await has_privilege_value(
+            session.user_id, Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS
+        ):
+            allowed = True
+        elif mode == 2 and await has_privilege_value(
+            session.user_id, Privileges.ADMIN_MANAGE_CATCH_BEATMAPS
+        ):
+            allowed = True
+        elif mode == 3 and await has_privilege_value(
+            session.user_id, Privileges.ADMIN_MANAGE_MANIA_BEATMAPS
+        ):
+            allowed = True
+
+        if not allowed:
+            raise InsufficientPrivilegesError("Insufficient privileges to rank this beatmap mode.")
 
     await state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
@@ -2068,6 +2105,42 @@ async def UpdateBanStatus(UserID: int) -> None:
 
 async def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
     """Sets status for all beatmaps in beatmapset."""
+
+    modes = await state.database.fetch_all(
+        "SELECT DISTINCT mode FROM beatmaps WHERE beatmapset_id = %s",
+        (BeatmapSet,),
+    )
+
+    if not modes:
+        return
+
+    has_admin = await has_privilege_value(
+        session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
+    )
+    if not has_admin:
+        for mode_row in modes:
+            mode = mode_row[0]
+            allowed = False
+            if mode == 0 and await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_STD_BEATMAPS
+            ):
+                allowed = True
+            elif mode == 1 and await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS
+            ):
+                allowed = True
+            elif mode == 2 and await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_CATCH_BEATMAPS
+            ):
+                allowed = True
+            elif mode == 3 and await has_privilege_value(
+                session.user_id, Privileges.ADMIN_MANAGE_MANIA_BEATMAPS
+            ):
+                allowed = True
+
+            if not allowed:
+                raise Exception(f"Insufficient privileges to rank mode {mode}.")
+
     await state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
         (
@@ -2251,14 +2324,37 @@ def convert_mode_to_str(mode: int) -> str:
     }.get(mode, "osu!std")
 
 
-async def GetRankRequests(Page: int) -> list[dict[str, Any]]:
+async def GetRankRequests(
+    Page: int, allowed_modes: list[int] | None = None
+) -> list[dict[str, Any]]:
     """Gets all the rank requests. This may require some optimisation."""
     Page -= 1
     Offset = 50 * Page  # for the page system to work
-    requests = await state.database.fetch_all(
-        "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 LIMIT 50 OFFSET %s",
-        (Offset,),
-    )
+
+    if allowed_modes is not None:
+        modes_sql = ",".join(map(str, allowed_modes))
+        requests = await state.database.fetch_all(
+            f"""
+            SELECT rr.id, rr.userid, rr.bid, rr.type, rr.time, rr.blacklisted
+            FROM rank_requests rr
+            LEFT JOIN beatmaps b ON (
+                (rr.type = 's' AND rr.bid = b.beatmapset_id)
+                OR (rr.type = 'b' AND rr.bid = b.beatmap_id)
+            )
+            WHERE rr.blacklisted = 0
+            AND b.mode IN ({modes_sql})
+            GROUP BY rr.id
+            ORDER BY rr.id DESC
+            LIMIT 50 OFFSET %s
+            """,
+            (Offset,),
+        )
+    else:
+        requests = await state.database.fetch_all(
+            "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 ORDER BY id DESC LIMIT 50 OFFSET %s",
+            (Offset,),
+        )
+
     # turning what we have so far into
     TheRequests = []
     UserIDs = []  # used for later fetching the users, so we dont have a repeat of 50 queries
@@ -2909,19 +3005,33 @@ async def ban_pages() -> int:
     return math.ceil(await ban_count() / PAGE_SIZE)
 
 
-async def request_count() -> int:
+async def request_count(allowed_modes: list[int] | None = None) -> int:
     """Returns the total number of requests."""
 
-    count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0",
-    )
+    if allowed_modes is not None:
+        modes_sql = ",".join(map(str, allowed_modes))
+        count = await state.database.fetch_val(
+            f"""
+            SELECT COUNT(DISTINCT rr.id)
+            FROM rank_requests rr
+            INNER JOIN beatmaps b ON (
+                (rr.type = 's' AND rr.bid = b.beatmapset_id)
+                OR (rr.type = 'b' AND rr.bid = b.beatmap_id)
+            )
+            WHERE rr.blacklisted = 0 AND b.mode IN ({modes_sql})
+            """
+        )
+    else:
+        count = await state.database.fetch_val(
+            "SELECT COUNT(*) FROM rank_requests WHERE blacklisted = 0",
+        )
     return count
 
 
-async def request_pages() -> int:
+async def request_pages(allowed_modes: list[int] | None = None) -> int:
     """Returns the number of pages in the request."""
 
-    return math.ceil(await request_count() / PAGE_SIZE)
+    return math.ceil(await request_count(allowed_modes) / PAGE_SIZE)
 
 
 async def fetch_user_banlogs(user_id: int) -> list[BanLog]:
