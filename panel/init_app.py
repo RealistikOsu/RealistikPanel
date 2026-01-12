@@ -1,4 +1,5 @@
 # This file is responsible for running the web server and (mostly nothing else)
+from panel.web.responses import no_permission_response
 from panel.functions import InsufficientPrivilegesError
 from __future__ import annotations
 
@@ -1126,27 +1127,36 @@ def configure_routes(app: Quart) -> None:
     async def panel_rank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        await SetBMAPSetStatus(BeatmapSet, 2, session)
-        await RAPLog(session.user_id, f"ranked the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
+        try:
+            await SetBMAPSetStatus(BeatmapSet, 2, session)
+            await RAPLog(session.user_id, f"ranked the beatmap set {BeatmapSet}")
+            return redirect(f"/rank/{BeatmapSet}")
+        except InsufficientPrivilegesError:
+            return no_permission_response(session)
 
-    @app.route("/action/loveset/<BeatmapSet>")
+    @app.route("/action/loveset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_love_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        await SetBMAPSetStatus(BeatmapSet, 5, session)
-        await RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
+        try:
+            await SetBMAPSetStatus(BeatmapSet, 5, session)
+            await RAPLog(session.user_id, f"loved the beatmap set {BeatmapSet}")
+            return redirect(f"/rank/{BeatmapSet}")
+        except InsufficientPrivilegesError:
+            return no_permission_response(session)
 
     @app.route("/action/unrankset/<int:BeatmapSet>")
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
     async def panel_unrank_set_action(BeatmapSet: int):
         session = web.sessions.get()
 
-        await SetBMAPSetStatus(BeatmapSet, 0, session)
-        await RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
-        return redirect(f"/rank/{BeatmapSet}")
+        try:
+            await SetBMAPSetStatus(BeatmapSet, 0, session)
+            await RAPLog(session.user_id, f"unranked the beatmap set {BeatmapSet}")
+            return redirect(f"/rank/{BeatmapSet}")
+        except InsufficientPrivilegesError:
+            return no_permission_response(session)
 
     @app.route("/action/deleterankreq/<int:ReqID>")
     @requires_privilege(Privileges.ADMIN_MANAGE_BEATMAPS)

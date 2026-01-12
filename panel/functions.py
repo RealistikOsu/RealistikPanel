@@ -2139,7 +2139,7 @@ async def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
                 allowed = True
 
             if not allowed:
-                raise Exception(f"Insufficient privileges to rank mode {mode}.")
+                raise InsufficientPrivilegesError(f"Insufficient privileges to rank mode {mode}.")
 
     await state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
