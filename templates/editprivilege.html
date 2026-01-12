@@ -1,103 +1,109 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="mb-8">
-      <h2 class="text-3xl font-bold tracking-tight text-white">Edit Privilege: {{ privileges['Name'] }}</h2>
-      <p class="text-muted-foreground mt-2">
+<div class="mb-8">
+    <h2 class="text-3xl font-bold tracking-tight text-white">Edit Privilege: {{ privileges['Name'] }}</h2>
+    <p class="text-muted-foreground mt-2">
         Modify the privilege name, colour, and bitwise value.
-      </p>
-  </div>
+    </p>
+</div>
 
-  <div class="grid gap-8 lg:grid-cols-2">
-      <!-- Edit Form -->
-      <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
-          <form action="/privilege/edit/{{ privileges['Id'] }}" method="post" class="space-y-6">
-              <input type="hidden" name="id" value="{{ privileges['Id'] }}">
-              
-              <div class="space-y-4">
-                  <div class="space-y-2">
-                      <label class="text-sm font-medium text-white">Group Name</label>
-                      <input type="text" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="name" value="{{ privileges['Name'] }}">
-                  </div>
+<div class="grid gap-8 lg:grid-cols-2">
+    <!-- Edit Form -->
+    <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
+        <form action="/privilege/edit/{{ privileges['Id'] }}" method="post" class="space-y-6">
+            <input type="hidden" name="id" value="{{ privileges['Id'] }}">
 
-                  <div class="space-y-2">
-                      <label class="text-sm font-medium text-white">Privilege Value (Bitwise)</label>
-                      <input type="number" id="privilege-input" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" name="privilege" value="{{ privileges['Privileges'] }}" oninput="updateCheckboxes()">
-                      <p class="text-xs text-muted-foreground">Calculate using the tool on the right.</p>
-                  </div>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-white">Group Name</label>
+                    <input type="text"
+                        class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        name="name" value="{{ privileges['Name'] }}">
+                </div>
 
-                  <div class="space-y-2">
-                      <label class="text-sm font-medium text-white">Colour Style</label>
-                      <select name="colour" class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 [&>option]:bg-[#1e1e2e] [&>option]:text-white">
-                          <option value="danger" {% if privileges['Colour'] == 'danger' %}selected{% endif %}>Red (Danger)</option>
-                          <option value="warning" {% if privileges['Colour'] == 'warning' %}selected{% endif %}>Yellow (Warning)</option>
-                          <option value="success" {% if privileges['Colour'] == 'success' %}selected{% endif %}>Green (Success)</option>
-                          <option value="info" {% if privileges['Colour'] == 'info' %}selected{% endif %}>Blue (Info)</option>
-                          <option value="primary" {% if privileges['Colour'] == 'primary' %}selected{% endif %}>Purple (Primary)</option>
-                      </select>
-                  </div>
-              </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-white">Privilege Value (Bitwise)</label>
+                    <input type="number" id="privilege-input"
+                        class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        name="privilege" value="{{ privileges['Privileges'] }}" oninput="updateCheckboxes()">
+                    <p class="text-xs text-muted-foreground">Calculate using the tool on the right.</p>
+                </div>
 
-              <div class="pt-4 flex items-center justify-between">
-                  <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8 py-2 shadow-lg shadow-primary/20">
-                      Save Changes
-                  </button>
-                  <a href="/privileges" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:text-white text-muted-foreground">
-                      Cancel
-                  </a>
-              </div>
-          </form>
-      </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-white">Colour Style</label>
+                    <select name="colour"
+                        class="flex h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 [&>option]:bg-[#1e1e2e] [&>option]:text-white">
+                        <option value="danger" {% if privileges['Colour']=='danger' %}selected{% endif %}>Red (Danger)
+                        </option>
+                        <option value="warning" {% if privileges['Colour']=='warning' %}selected{% endif %}>Yellow
+                            (Warning)</option>
+                        <option value="success" {% if privileges['Colour']=='success' %}selected{% endif %}>Green
+                            (Success)</option>
+                        <option value="info" {% if privileges['Colour']=='info' %}selected{% endif %}>Blue (Info)
+                        </option>
+                        <option value="primary" {% if privileges['Colour']=='primary' %}selected{% endif %}>Purple
+                            (Primary)</option>
+                    </select>
+                </div>
+            </div>
 
-      <!-- Calculator -->
-      <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
-          <h3 class="text-lg font-semibold text-white mb-4">Privilege Calculator</h3>
-          <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2" id="privilege-list">
-              <!-- Checkboxes generated by JS -->
-          </div>
-      </div>
-  </div>
+            <div class="pt-4 flex items-center justify-between">
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8 py-2 shadow-lg shadow-primary/20">
+                    Save Changes
+                </button>
+                <a href="/privileges"
+                    class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:text-white text-muted-foreground">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 
-  <script>
-      // Standard Ripple/Stack Privileges
-      const privilegesList = [
-          { name: "Normal", value: 1 << 0 },
-          { name: "Verified", value: 1 << 1 },
-          { name: "Supporter", value: 1 << 2 },
-          { name: "Nominator", value: 1 << 3 },
-          { name: "Admin", value: 1 << 4 },
-          { name: "Developer", value: 1 << 5 },
-          { name: "Owner", value: 1 << 6 },
-          { name: "RAP Access", value: 1 << 7 },
-          { name: "Manage Users", value: 1 << 8 },
-          { name: "Ban Users", value: 1 << 9 },
-          { name: "Silence Users", value: 1 << 10 },
-          { name: "Wipe Users", value: 1 << 11 },
-          { name: "Manage Beatmaps", value: 1 << 12 },
-          { name: "Manage Servers", value: 1 << 13 },
-          { name: "Manage Settings", value: 1 << 14 },
-          { name: "Manage Beta Keys", value: 1 << 15 },
-          { name: "Manage Reports", value: 1 << 16 },
-          { name: "Manage Docs", value: 1 << 17 },
-          { name: "Manage Badges", value: 1 << 18 },
-          { name: "View RAP Logs", value: 1 << 19 },
-          { name: "Manage Privileges", value: 1 << 20 },
-          { name: "Send Alerts", value: 1 << 21 },
-          { name: "Chat Mod", value: 1 << 22 },
-          { name: "Kick Users", value: 1 << 23 },
-          { name: "Pending Verification", value: 1 << 24 },
-          { name: "Tournament Staff", value: 1 << 25 },
-          { name: "Caker", value: 1 << 26 },
-          { name: "View Top Scores", value: 1 << 27 },
-          { name: "Super Admin", value: 1 << 30 }
-      ];
+    <!-- Calculator -->
+    <div class="rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm shadow-xl p-6">
+        <h3 class="text-lg font-semibold text-white mb-4">Privilege Calculator</h3>
+        <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2" id="privilege-list">
+            <!-- Checkboxes generated by JS -->
+        </div>
+    </div>
+</div>
 
-      const privInput = document.getElementById('privilege-input');
-      const listContainer = document.getElementById('privilege-list');
+<script>
+    const privilegesList = [
+        { name: "Public", value: 1 },
+        { name: "Normal", value: 2 << 0 },
+        { name: "Supporter", value: 2 << 1 },
+        { name: "Access Admin Panel", value: 2 << 2 },
+        { name: "Manage Users", value: 2 << 3 },
+        { name: "Ban Users", value: 2 << 4 },
+        { name: "Silence Users", value: 2 << 5 },
+        { name: "Wipe Users", value: 2 << 6 },
+        { name: "Manage Beatmaps", value: 2 << 7 },
+        { name: "Manage Servers", value: 2 << 8 },
+        { name: "Manage Settings", value: 2 << 9 },
+        { name: "Manage Beta Keys", value: 2 << 10 },
+        { name: "Manage Reports", value: 2 << 11 },
+        { name: "Manage Docs", value: 2 << 12 },
+        { name: "Manage Badges", value: 2 << 13 },
+        { name: "View RAP Logs", value: 2 << 14 },
+        { name: "Manage Privileges", value: 2 << 15 },
+        { name: "Send Alerts", value: 2 << 16 },
+        { name: "Chat Mod", value: 2 << 17 },
+        { name: "Kick Users", value: 2 << 18 },
+        { name: "Pending Verification", value: 2 << 19 },
+        { name: "Tournament Staff", value: 2 << 20 },
+        { name: "Caker", value: 20 << 21 },
+        { name: "Bot", value: 1 << 30 },
+    ];
 
-      function renderCheckboxes() {
-          let html = '';
-          privilegesList.forEach(priv => {
-              html += `
+    const privInput = document.getElementById('privilege-input');
+    const listContainer = document.getElementById('privilege-list');
+
+    function renderCheckboxes() {
+        let html = '';
+        privilegesList.forEach(priv => {
+            html += `
                   <label class="flex items-center space-x-3 p-2 rounded hover:bg-white/5 cursor-pointer">
                       <input type="checkbox" 
                              class="form-checkbox h-4 w-4 text-primary rounded border-white/10 bg-black/40 focus:ring-primary/50" 
@@ -107,29 +113,29 @@
                       <span class="ml-auto text-xs text-muted-foreground font-mono">(${priv.value})</span>
                   </label>
               `;
-          });
-          listContainer.innerHTML = html;
-          updateCheckboxes();
-      }
+        });
+        listContainer.innerHTML = html;
+        updateCheckboxes();
+    }
 
-      function updateValue() {
-          let total = 0;
-          listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-              if (cb.checked) {
-                  total += parseInt(cb.value);
-              }
-          });
-          privInput.value = total;
-      }
+    function updateValue() {
+        let total = 0;
+        listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            if (cb.checked) {
+                total += parseInt(cb.value);
+            }
+        });
+        privInput.value = total;
+    }
 
-      function updateCheckboxes() {
-          const currentVal = parseInt(privInput.value) || 0;
-          listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-              const val = parseInt(cb.value);
-              cb.checked = (currentVal & val) === val;
-          });
-      }
+    function updateCheckboxes() {
+        const currentVal = parseInt(privInput.value) || 0;
+        listContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            const val = parseInt(cb.value);
+            cb.checked = (currentVal & val) === val;
+        });
+    }
 
-      renderCheckboxes();
-  </script>
+    renderCheckboxes();
+</script>
 {% endblock %}
