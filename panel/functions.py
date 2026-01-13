@@ -341,7 +341,9 @@ async def handle_bancho_settings_edit(
 import re
 
 
-async def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
+async def GetBmapInfo(
+    bmap_id: int, user_id: Optional[int] = None
+) -> list[dict[str, Any]]:
     """Gets beatmap info."""
     beatmapset_id = await state.database.fetch_val(
         "SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
@@ -374,6 +376,30 @@ async def GetBmapInfo(bmap_id: int) -> list[dict[str, Any]]:
             "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked, beatmap_md5, mode, max_combo FROM beatmaps WHERE beatmapset_id = %s",
             (beatmapset_id,),
         )
+
+    if user_id:
+        has_admin = await has_privilege_value(user_id, Privileges.ADMIN_MANAGE_BEATMAPS)
+        mode_privs = {
+            0: Privileges.ADMIN_MANAGE_BEATMAPS_STD,
+            1: Privileges.ADMIN_MANAGE_BEATMAPS_MANIA,
+            2: Privileges.ADMIN_MANAGE_BEATMAPS_TAIKO,
+            3: Privileges.ADMIN_MANAGE_BEATMAPS_CTB,
+        }
+
+        if not has_admin:
+            rankable_modes = []
+            for mode in mode_privs:
+                if await has_privilege_value(user_id, mode_privs[mode]):
+                    rankable_modes.append(mode)
+
+            if not rankable_modes:
+                raise InsufficientPrivilegesError(
+                    "You do not have permission to rank this beatmap."
+                )
+
+            beatmaps_data = [
+                beatmap for beatmap in beatmaps_data if beatmap[7] in rankable_modes
+            ]
 
     # Prepare payload for star rating calculation
     payload = []
@@ -463,8 +489,10 @@ async def has_privilege_value(user_id: int, privilege: Privileges) -> bool:
 
     return user_privileges & privilege == privilege
 
+
 class InsufficientPrivilegesError(Exception):
     """Exception raised when a user does not have the required privileges."""
+
     def __init__(self, message: str) -> None:
         self.message = message
 
@@ -487,6 +515,14 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
         "SELECT mode FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
         (BeatmapId,),
     )
+
+    mode_privs = {
+        0: Privileges.ADMIN_MANAGE_STD_BEATMAPS,
+        1: Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS,
+        2: Privileges.ADMIN_MANAGE_CATCH_BEATMAPS,
+        3: Privileges.ADMIN_MANAGE_MANIA_BEATMAPS,
+    }
+
     if mode is None:
         raise Exception("Beatmap not found.")
 
@@ -494,26 +530,10 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
         session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
     )
     if not has_admin:
-        allowed = False
-        if mode == 0 and await has_privilege_value(
-            session.user_id, Privileges.ADMIN_MANAGE_STD_BEATMAPS
-        ):
-            allowed = True
-        elif mode == 1 and await has_privilege_value(
-            session.user_id, Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS
-        ):
-            allowed = True
-        elif mode == 2 and await has_privilege_value(
-            session.user_id, Privileges.ADMIN_MANAGE_CATCH_BEATMAPS
-        ):
-            allowed = True
-        elif mode == 3 and await has_privilege_value(
-            session.user_id, Privileges.ADMIN_MANAGE_MANIA_BEATMAPS
-        ):
-            allowed = True
-
-        if not allowed:
-            raise InsufficientPrivilegesError("Insufficient privileges to rank this beatmap mode.")
+        if not await has_privilege_value(session.user_id, mode_privs[mode]):
+            raise InsufficientPrivilegesError(
+                f"Insufficient privileges to rank mode {mode}."
+            )
 
     await state.database.execute(
         "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
@@ -525,6 +545,7 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
     await Webhook(BeatmapId, ActionId, session)
 
     # USSR SUPPORT.
+    # this reminds me i should swap ussr to usa
     map_md5 = await state.database.fetch_val(
         "SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
         (BeatmapId,),
@@ -2103,58 +2124,54 @@ async def UpdateBanStatus(UserID: int) -> None:
     await state.redis.publish("peppy:ban", str(UserID))
 
 
-async def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
+async def SetBMAPSetStatus(BeatmapSet: int, Status: int, session: Session):
     """Sets status for all beatmaps in beatmapset."""
+    has_admin = await has_privilege_value(
+        session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
+    )
 
     modes = await state.database.fetch_all(
         "SELECT DISTINCT mode FROM beatmaps WHERE beatmapset_id = %s",
         (BeatmapSet,),
     )
 
-    if not modes:
-        return
+    mode_privs = {
+        0: Privileges.ADMIN_MANAGE_STD_BEATMAPS,
+        1: Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS,
+        2: Privileges.ADMIN_MANAGE_CATCH_BEATMAPS,
+        3: Privileges.ADMIN_MANAGE_MANIA_BEATMAPS,
+    }
 
-    has_admin = await has_privilege_value(
-        session.user_id, Privileges.ADMIN_MANAGE_BEATMAPS
-    )
+    mode_filter = ""
     if not has_admin:
+        rankable_modes = []
         for mode_row in modes:
             mode = mode_row[0]
-            allowed = False
-            if mode == 0 and await has_privilege_value(
-                session.user_id, Privileges.ADMIN_MANAGE_STD_BEATMAPS
-            ):
-                allowed = True
-            elif mode == 1 and await has_privilege_value(
-                session.user_id, Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS
-            ):
-                allowed = True
-            elif mode == 2 and await has_privilege_value(
-                session.user_id, Privileges.ADMIN_MANAGE_CATCH_BEATMAPS
-            ):
-                allowed = True
-            elif mode == 3 and await has_privilege_value(
-                session.user_id, Privileges.ADMIN_MANAGE_MANIA_BEATMAPS
-            ):
-                allowed = True
+            mode_priv = mode_privs[mode]
+            if await has_privilege_value(session.user_id, mode_priv):
+                rankable_modes.append(mode)
 
-            if not allowed:
-                raise InsufficientPrivilegesError(f"Insufficient privileges to rank mode {mode}.")
+        if not rankable_modes:
+            raise InsufficientPrivilegesError(
+                "Insufficient privileges to rank this beatmapset."
+            )
+
+        mode_filter = "AND mode IN (" + ",".join(map(str, rankable_modes)) + ")"
 
     await state.database.execute(
-        "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s",
+        f"UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s{mode_filter}",
         (
-            Staus,
+            Status,
             BeatmapSet,
         ),
     )
 
     # getting status text
-    TitleText = "unranked"
-    if Staus == 2:
-        TitleText = "ranked"
-    elif Staus == 5:
-        TitleText = "loved"
+    title_text = "unranked..."
+    if Status == 2:
+        title_text = "ranked!"
+    elif Status == 5:
+        title_text = "loved!"
 
     maps_data = await state.database.fetch_all(
         "SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s",
@@ -2162,13 +2179,14 @@ async def SetBMAPSetStatus(BeatmapSet: int, Staus: int, session: Session):
     )
 
     # Getting bmap name without diff
-    BmapName = maps_data[0][0].split("[")[0].rstrip()  # ¯\_(ツ)_/¯ might work
+    # "might work" this guy...
+    beatmap_name = maps_data[0][0].split("[")[0].rstrip()  # ¯\_(ツ)_/¯ might work
 
     embed = {
         "description": f"Ranked by {session.username}",
         "color": 242424,
         "author": {
-            "name": f"{BmapName} was just {TitleText}.",
+            "name": f"{beatmap_name} was just {title_text}",
             "url": f"https://ussr.pl/b/{maps_data[0][1]}",
             "icon_url": f"https://a.ussr.pl/{session.user_id}",
         },
@@ -2195,9 +2213,8 @@ async def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     if (
         len(Split) == 2
         and "."
-        in Split[
-            1
-        ]  # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
+        # if its an email, 2nd check makes sure its an email and not someone trying to be A E S T H E T I C
+        in Split[1]
     ):
         users = await state.database.fetch_all(
             "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",

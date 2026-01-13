@@ -167,15 +167,18 @@ def configure_routes(app: Quart) -> None:
                 logger.error(f"Failed to rank beatmap {beatmap_id} with error: " + tb)
                 await log_traceback(tb, session, TracebackType.DANGER)
 
-        return await load_panel_template(
-            "beatrank.html",
-            title="Rank Beatmap!",
-            route="/rank",
-            Id=beatmap_id,
-            beatdata=await GetBmapInfo(beatmap_id),
-            success=success,
-            error=error,
-        )
+        try:
+            return await load_panel_template(
+                "beatrank.html",
+                title="Rank Beatmap!",
+                route="/rank",
+                Id=beatmap_id,
+                beatdata=await GetBmapInfo(beatmap_id, session.user_id),
+                success=success,
+                error=error,
+            )
+        except InsufficientPrivilegesError:
+            return no_permission_response(session)
 
     @app.route("/rank", methods=["GET", "POST"])
     @requires_privilege(Privileges.ADMIN_ACCESS_RAP)
