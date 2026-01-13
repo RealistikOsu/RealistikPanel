@@ -1,6 +1,4 @@
 # This file is responsible for running the web server and (mostly nothing else)
-from panel.web.responses import no_permission_response
-from panel.functions import InsufficientPrivilegesError
 from __future__ import annotations
 
 import traceback
@@ -25,6 +23,7 @@ from panel.config import config
 from panel.constants.traceback import TracebackType
 from panel.functions import *
 from panel.web.responses import load_panel_template
+from panel.web.responses import no_permission_response
 from panel.web.sessions import requires_privilege
 
 
