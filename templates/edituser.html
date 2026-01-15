@@ -497,6 +497,10 @@
               class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400 border border-slate-700/50 hover:border-cyan-500/30 h-10 px-3">
               Freeze Account
             </a>
+            <a href="/actions/whitelist/{{ UserData['Id'] }}"
+              class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 border border-slate-700/50 hover:border-emerald-500/30 h-10 px-3">
+              {% if UserData["Whitelisted"] %}Unwhitelist User{% else %}Whitelist User{% endif %}
+            </a>
             <a href="/actions/hwid/{{ UserData['Id'] }}" id="hwid"
               class="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 hover:border-slate-600 h-10 px-3">
               Clear HWID
