@@ -380,10 +380,10 @@ async def GetBmapInfo(
     if user_id:
         has_admin = await has_privilege_value(user_id, Privileges.ADMIN_MANAGE_BEATMAPS)
         mode_privs = {
-            0: Privileges.ADMIN_MANAGE_BEATMAPS_STD,
-            1: Privileges.ADMIN_MANAGE_BEATMAPS_MANIA,
-            2: Privileges.ADMIN_MANAGE_BEATMAPS_TAIKO,
-            3: Privileges.ADMIN_MANAGE_BEATMAPS_CTB,
+            0: Privileges.ADMIN_MANAGE_STD_BEATMAPS,
+            1: Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS,
+            2: Privileges.ADMIN_MANAGE_CTB_BEATMAPS,
+            3: Privileges.ADMIN_MANAGE_MANIA_BEATMAPS,
         }
 
         if not has_admin:
