@@ -382,7 +382,7 @@ async def GetBmapInfo(
         mode_privs = {
             0: Privileges.ADMIN_MANAGE_STD_BEATMAPS,
             1: Privileges.ADMIN_MANAGE_TAIKO_BEATMAPS,
-            2: Privileges.ADMIN_MANAGE_CTB_BEATMAPS,
+            2: Privileges.ADMIN_MANAGE_CATCH_BEATMAPS,
             3: Privileges.ADMIN_MANAGE_MANIA_BEATMAPS,
         }
 
