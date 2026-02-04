@@ -28,7 +28,6 @@ class Privileges(IntFlag):
     ADMIN_KICK_USERS = 2 << 18
     USER_PENDING_VERIFICATION = 2 << 19
     USER_TOURNAMENT_STAFF = 2 << 20
-    ADMIN_CAKER = 20 << 21
     PANEL_VIEW_TOP_SCORES = 2 << 22
     ADMIN_MANAGE_STD_BEATMAPS = 2 << 23
     ADMIN_MANAGE_TAIKO_BEATMAPS = 2 << 24
@@ -40,4 +39,4 @@ class Privileges(IntFlag):
     PANEL_ERROR_LOGS = 2 << 26
     PANEL_MANAGE_CLANS = 2 << 27
     PANEL_VIEW_IPS = 2 << 28
-    BOT_USER = 1 << 30
+    BOT_USER = 20 << 21
