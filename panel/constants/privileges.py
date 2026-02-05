@@ -36,10 +36,6 @@ class Privileges(IntFlag):
     # PANEL_NOMINATE = 2 << 23
     # PANEL_NOMINATE_ACCEPT = 2 << 24
     # PANEL_OVERWATCH = 2 << 25
-    PANEL_ERROR_LOGS = 2 << 27
-    PANEL_MANAGE_CLANS = 2 << 28
-    PANEL_VIEW_IPS = 2 << 29
-    BOT_USER = 1 << 30
     PANEL_ERROR_LOGS = 2 << 26
     PANEL_MANAGE_CLANS = 2 << 27
     PANEL_VIEW_IPS = 2 << 28
