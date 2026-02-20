@@ -1,19 +1,12 @@
 # RealistikPanel!
 The modern admin panel for osu! private servers!
 
-![Dashboard](https://i.imgur.com/GidGUqS.png)
+<img width="1512" height="863" alt="image" src="https://github.com/user-attachments/assets/ea954058-b036-43ec-9771-10721386b5b7" />
 
-It uses libraries such as Flask for web and is designed to interface with the Ripple stack (mainly with SQL and Redis).
+
+It uses Quart for web and is designed to interface with the RealistikOsu Ripple fork. It is complete and finalised replacement for the Ripple Admin Panel.
 
 # About
-
-You may notice that some of this code (especially the early one) is not too great. This is because this is a learning trip for me.
-I am using a lot of libraries and concepts that are new to me and it's the first time I'm doing them.
-This may be reflected in the quality of the code. I will try to fix up or replace some of the old code when I'm satisfied with the feature set.
-
-**I am planning on rewriting this at some point in the future due to me looking back and realising how bad it is...**
-
-This project is now ready to be deployed as a full replacement to RAP.
 
 # Feature set
 Everyday tons of new features
@@ -39,24 +32,10 @@ To get help, report bugs or suggest features, feel free to either create a GitHu
 RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu database.
 
 # Screenshots
-Dashboard
-![Dashboard](https://i.imgur.com/GidGUqS.png)
-User List
-![Beatmap Ranking](https://i.imgur.com/lWcGDpi.png)
-User Edit
-![User Edit](https://i.imgur.com/j1VnY7p.png)
-Beatmap Ranking
-![Beatmap Ranking](https://i.imgur.com/wtwHn6E.png)
-Bancho Settings
-![Bancho Settings](https://i.imgur.com/kxmhkRr.png)
-System Settings
-![System Settings](https://i.imgur.com/dGrQq8Q.png)
-Admin Logs
-![Admin Logs](https://i.imgur.com/zArbrB7.png)
-Privilege Groups
-![Admin Logs](https://i.imgur.com/P310vDI.png)
-Clan Management
-![Clan Management](https://i.imgur.com/0VomZxS.png)
+<img width="1512" height="864" alt="image" src="https://github.com/user-attachments/assets/3ff649cd-4bf1-49be-bbb5-99e1899b4ec8" />
+<img width="1512" height="863" alt="image" src="https://github.com/user-attachments/assets/5a089eac-5c74-4dff-8c7e-4499e79830e5" />
+<img width="1512" height="863" alt="image" src="https://github.com/user-attachments/assets/4ba6c462-e8f5-4819-a399-fbb105312ade" />
+<img width="1512" height="864" alt="image" src="https://github.com/user-attachments/assets/ba16bc17-5679-400d-b214-a422f251e6de" />
 
 # Friendly Reminder!
 Remember kids, always finish your day by going to [this link](https://c.ussr.pl)!
