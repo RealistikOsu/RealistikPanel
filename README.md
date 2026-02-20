@@ -27,9 +27,7 @@ Everyday tons of new features
 Almost everything RAP has to offer and more!
 
 # Support
-To get help, report bugs or suggest features, feel free to either create a GitHub issue or contact **RealistikDash#0077** on Discord and I will happily help you.
-
-RealistikPanel has been tested on a VPS running Ubuntu, Python 3.6.9 and Ainu database.
+Feel free to create an issue, or join the [RealistikOsu Discord](https://discord.gg/8ySdzhyMtt)!
 
 # Screenshots
 <img width="1512" height="864" alt="image" src="https://github.com/user-attachments/assets/3ff649cd-4bf1-49be-bbb5-99e1899b4ec8" />
