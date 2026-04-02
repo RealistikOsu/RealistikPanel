@@ -3,7 +3,7 @@ ddtrace
 quart==0.20.0
 aiomysql==0.3.2
 aiosqlite==0.22.1
-aiohttp==3.13.3
+aiohttp==3.13.4
 pycountry==22.3.5
 python-json-logger==2.0.7
 redis>=4.2.0
