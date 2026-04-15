@@ -119,9 +119,9 @@ def configure_routes(app: Quart) -> None:
             form = await request.form
             try:
                 await handle_bancho_settings_edit(
-                    form["banchoman"],
-                    form["mainmemuicon"],
-                    form["loginnotif"],
+                    form.get("banchoman", "Off"),
+                    form.get("mainmemuicon", ""),
+                    form.get("loginnotif", ""),
                     session.user_id,
                 )
                 success = "Bancho settings were successfully edited!"
@@ -254,11 +254,11 @@ def configure_routes(app: Quart) -> None:
             try:
                 await ApplySystemSettings(
                     [
-                        form["webman"],
-                        form["gameman"],
-                        form["register"],
-                        form["globalalert"],
-                        form["homealert"],
+                        form.get("webman", "Off"),
+                        form.get("gameman", "Off"),
+                        form.get("register", "Off"),
+                        form.get("globalalert", ""),
+                        form.get("homealert", ""),
                     ],
                     session.user_id,
                 )

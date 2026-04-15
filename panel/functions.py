@@ -2156,7 +2156,7 @@ async def SetBMAPSetStatus(BeatmapSet: int, Status: int, session: Session):
                 "Insufficient privileges to rank this beatmapset."
             )
 
-        mode_filter = "AND mode IN (" + ",".join(map(str, rankable_modes)) + ")"
+        mode_filter = " AND `mode` IN (" + ",".join(map(str, rankable_modes)) + ")"
 
     await state.database.execute(
         f"UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s{mode_filter}",
