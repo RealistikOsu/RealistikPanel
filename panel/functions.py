@@ -787,7 +787,7 @@ async def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
     # This is going to need a lot of patching up i can feel it
     Offset = 50 * page  # for the page system to work
     users = await state.database.fetch_all(
-        "SELECT id, username, privileges, allowed, country FROM users LIMIT 50 OFFSET %s",
+        "SELECT id, username, privileges, public, country FROM users LIMIT 50 OFFSET %s",
         (Offset,),
     )
 
@@ -831,10 +831,8 @@ async def FetchUsers(page: int = 0) -> list[dict[str, Any]]:
             "Privilege": PrivilegeDict[str(user[2])],
             "Country": user[4],
         }
-        if user[2] == 0 or user[2] == 2:
-            Dict["Allowed"] = False
-        else:
-            Dict["Allowed"] = True
+        # `public` (index 3) is the clean-schema ban/restrict flag.
+        Dict["Allowed"] = bool(user[3])
         Users.append(Dict)
 
     return Users
@@ -908,7 +906,7 @@ async def UserData(UserID: int) -> dict[str, Any]:
 
     # Fetches the IP
     ip_val = await state.database.fetch_val(
-        "SELECT ip FROM ip_user WHERE userid = %s ORDER BY ip DESC LIMIT 1",
+        "SELECT INET6_NTOA(ip) FROM user_logins WHERE user_id = %s ORDER BY id DESC LIMIT 1",
         (UserID,),
     )
     if not ip_val:
@@ -1211,11 +1209,11 @@ def ModToText(mod: int) -> str:
 
 
 async def DeleteProfileComments(AccId: int) -> None:
-    await state.database.execute("DELETE FROM user_comments WHERE prof = %s", (AccId,))
+    await state.database.execute("DELETE FROM user_comments WHERE profile_id = %s", (AccId,))
 
 
 async def DeleteUserComments(AccId: int) -> None:
-    await state.database.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
+    await state.database.execute("DELETE FROM user_comments WHERE author_id = %s", (AccId,))
 
 
 def combined_mode(mode: int, relax: int) -> Optional[int]:
@@ -1527,7 +1525,7 @@ async def BanUser(user_id: int, from_id: int, reason: str = "") -> bool:
 
 async def ClearHWID(user_id: int) -> None:
     """Clears the HWID matches for provided acc."""
-    await state.database.execute("DELETE FROM hw_user WHERE userid = %s", (user_id,))
+    await state.database.execute("DELETE FROM user_hardware WHERE user_id = %s", (user_id,))
 
 
 async def DeleteAccount(user_id: int) -> None:
@@ -1541,65 +1539,68 @@ async def DeleteAccount(user_id: int) -> None:
             },
         ),
     )
-    # NUKE. BIG NUKE.
-    await state.database.execute("DELETE FROM scores WHERE userid = %s", (user_id,))
-    await state.database.execute("DELETE FROM users WHERE id = %s", (user_id,))
-    await state.database.execute("DELETE FROM 2fa WHERE userid = %s", (user_id,))
+    # NUKE. BIG NUKE. (clean schema: single scores/user_stats tables, and
+    # several `users`-referencing tables cascade on the final delete.)
+    await state.database.execute("DELETE FROM scores WHERE user_id = %s", (user_id,))
     await state.database.execute(
-        "DELETE FROM 2fa_telegram WHERE userid = %s", (user_id,)
+        "DELETE FROM two_factor_totp WHERE user_id = %s", (user_id,)
     )
-    await state.database.execute("DELETE FROM 2fa_totp WHERE userid = %s", (user_id,))
     await state.database.execute(
         "DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,)
     )
     await state.database.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
     await state.database.execute(
-        "DELETE FROM discord_roles WHERE userid = %s", (user_id,)
-    )
-    await state.database.execute("DELETE FROM ip_user WHERE userid = %s", (user_id,))
-    await state.database.execute(
-        "DELETE FROM profile_backgrounds WHERE uid = %s", (user_id,)
+        "DELETE FROM discord_roles WHERE user_id = %s", (user_id,)
     )
     await state.database.execute(
-        "DELETE FROM rank_requests WHERE userid = %s", (user_id,)
+        "DELETE FROM user_logins WHERE user_id = %s", (user_id,)
     )
     await state.database.execute(
-        "DELETE FROM reports WHERE to_uid = %s OR from_uid = %s",
+        "DELETE FROM user_hardware WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM profile_backgrounds WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM rank_requests WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM reports WHERE to_id = %s OR from_id = %s",
         (
             user_id,
             user_id,
         ),
     )
-    await state.database.execute("DELETE FROM tokens WHERE user = %s", (user_id,))
-    await state.database.execute("DELETE FROM remember WHERE userid = %s", (user_id,))
+    await state.database.execute("DELETE FROM tokens WHERE user_id = %s", (user_id,))
     await state.database.execute(
-        "DELETE FROM users_achievements WHERE user_id = %s",
+        "DELETE FROM user_achievements WHERE user_id = %s",
         (user_id,),
     )
     await state.database.execute(
-        "DELETE FROM users_beatmap_playcount WHERE user_id = %s",
+        "DELETE FROM user_beatmap_playcount WHERE user_id = %s",
         (user_id,),
     )
     await state.database.execute(
-        "DELETE FROM users_relationships WHERE user1 = %s OR user2 = %s",
+        "DELETE FROM users_relationships WHERE user_id = %s OR target_id = %s",
         (
             user_id,
             user_id,
         ),
     )
-    await state.database.execute("DELETE FROM user_badges WHERE user = %s", (user_id,))
-    await state.database.execute("DELETE FROM user_clans WHERE user = %s", (user_id,))
-    await state.database.execute("DELETE FROM users_stats WHERE id = %s", (user_id,))
-    if config.srv_supports_relax:
-        await state.database.execute(
-            "DELETE FROM scores_relax WHERE userid = %s", (user_id,)
-        )
-        await state.database.execute("DELETE FROM rx_stats WHERE id = %s", (user_id,))
-    if config.srv_supports_autopilot:
-        await state.database.execute(
-            "DELETE FROM scores_ap WHERE userid = %s", (user_id,)
-        )
-        await state.database.execute("DELETE FROM ap_stats WHERE id = %s", (user_id,))
+    await state.database.execute(
+        "DELETE FROM user_badges WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM user_name_history WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM first_places WHERE user_id = %s", (user_id,)
+    )
+    await state.database.execute(
+        "DELETE FROM user_stats WHERE user_id = %s", (user_id,)
+    )
+    # Finally, delete the user (cascades user_settings and any remaining FK rows).
+    await state.database.execute("DELETE FROM users WHERE id = %s", (user_id,))
 
 
 async def BanchoKick(id: int, reason: str) -> None:
@@ -1612,9 +1613,10 @@ async def BanchoKick(id: int, reason: str) -> None:
 
 async def FindWithIp(Ip: str) -> list[dict[str, Any]]:
     """Gets array of users."""
-    # fetching user id of person with given ip
+    # fetching user id of person with given ip (append-only login history)
     occurences = await state.database.fetch_all(
-        "SELECT userid, ip, occurencies FROM ip_user WHERE ip = %s",
+        "SELECT user_id, INET6_NTOA(ip), COUNT(*) FROM user_logins "
+        "WHERE ip = INET6_ATON(%s) GROUP BY user_id, ip",
         (Ip,),
     )
 
@@ -1654,24 +1656,26 @@ async def find_priv(priv: int) -> dict[str, Any]:
 
 
 async def find_all_ips(user_id: int) -> list[dict[str, Any]]:
-    """Gets array of users."""
-    # fetching user id of person with given ip
+    """Gets array of users sharing an IP with the target user."""
+    # fetching the (binary) IPs the target has logged in from
     resp = await state.database.fetch_all(
-        "SELECT ip FROM ip_user WHERE userid = %s AND ip != ''",
+        "SELECT DISTINCT ip FROM user_logins WHERE user_id = %s",
         (user_id,),
     )
 
     if not resp:
         return []
 
-    ips = []
-    for ip in resp:
-        ips.append(ip[0])
+    ips = [ip[0] for ip in resp]
 
     condition = ", ".join(["%s"] * len(ips))
 
     occurences = await state.database.fetch_all(
-        f"SELECT ip_user.userid, ip_user.ip, ip_user.occurencies, users.username, users.privileges FROM ip_user JOIN users ON ip_user.userid = users.id WHERE ip IN ({condition}) ORDER BY ip DESC",
+        "SELECT ul.user_id, INET6_NTOA(ul.ip), COUNT(*), users.username, "
+        "users.privileges, users.public "
+        "FROM user_logins ul JOIN users ON ul.user_id = users.id "
+        f"WHERE ul.ip IN ({condition}) "
+        "GROUP BY ul.user_id, ul.ip ORDER BY ul.ip DESC",
         tuple(ips),
     )
 
@@ -1680,12 +1684,10 @@ async def find_all_ips(user_id: int) -> list[dict[str, Any]]:
 
     data = []
     for user in occurences:
-        priv_status = "Banned"
-        priv_colour = "danger"
-        if (user[4] & 3) >= 3:
+        if user[5]:
             priv_status = "OK"
             priv_colour = "success"
-        elif (user[4] & 2) == 2:
+        else:
             priv_status = "Restricted"
             priv_colour = "warning"
 
@@ -1693,7 +1695,7 @@ async def find_all_ips(user_id: int) -> list[dict[str, Any]]:
             {
                 "user_id": user[0],
                 "ip": user[1],
-                "occurencies": user[2],
+                "occurrences": user[2],
                 "username": user[3],
                 "privileges": await find_priv(user[4]),
                 "priv_status": {"text": priv_status, "colour": priv_colour},
@@ -1846,7 +1848,7 @@ async def GetBadges() -> list[dict[str, Any]]:
 async def DeleteBadge(BadgeId: int) -> None:
     """ "Delets the badge with the gived id."""
     await state.database.execute("DELETE FROM badges WHERE id = %s", (BadgeId,))
-    await state.database.execute("DELETE FROM user_badges WHERE badge = %s", (BadgeId,))
+    await state.database.execute("DELETE FROM user_badges WHERE badge_id = %s", (BadgeId,))
 
 
 async def GetBadge(BadgeID: int) -> dict[str, Any]:
@@ -1975,7 +1977,7 @@ def ListToDots(List: list) -> str:
 async def GetUserBadges(AccountID: int) -> list[int]:
     """Gets badges of a user and returns as list."""
     badges = await state.database.fetch_all(
-        "SELECT badge FROM user_badges WHERE user = %s",
+        "SELECT badge_id FROM user_badges WHERE user_id = %s",
         (AccountID,),
     )
 
@@ -2002,14 +2004,14 @@ async def SetUserBadges(AccountID: int, Badges: list[int]) -> None:
     """
     # This might not be the best and most efficient way but its all ive come up with in my application of user badges
     await state.database.execute(
-        "DELETE FROM user_badges WHERE user = %s",
+        "DELETE FROM user_badges WHERE user_id = %s",
         (AccountID,),
     )  # deletes all existing badges
 
     for Badge in Badges:
         if Badge != 0 and Badge != 1:  # so we dont add empty badges
             await state.database.execute(
-                "INSERT INTO user_badges (user, badge) VALUES (%s, %s)",
+                "INSERT INTO user_badges (user_id, badge_id) VALUES (%s, %s)",
                 (
                     AccountID,
                     Badge,
@@ -2169,7 +2171,7 @@ async def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
         in Split[1]
     ):
         users = await state.database.fetch_all(
-            "SELECT id, username, privileges, allowed FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",
+            "SELECT id, username, privileges, public FROM users WHERE email LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
                 Offset,
@@ -2178,7 +2180,7 @@ async def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     else:  # its a username
         User = f"%{User}%"  # for sql to treat is as substring
         users = await state.database.fetch_all(
-            "SELECT id, username, privileges, allowed FROM users WHERE username LIKE %s LIMIT 50 OFFSET %s",
+            "SELECT id, username, privileges, public FROM users WHERE username LIKE %s LIMIT 50 OFFSET %s",
             (
                 User,
                 Offset,
@@ -2257,7 +2259,7 @@ async def ChangePassword(AccountID: int, NewPassword: str) -> None:
     """Changes the password of a user with given AccID"""
     BCrypted = CreateBcrypt(NewPassword)
     await state.database.execute(
-        "UPDATE users SET password_md5 = %s WHERE id = %s",
+        "UPDATE users SET password_bcrypt = %s WHERE id = %s",
         (
             BCrypted,
             AccountID,
@@ -2473,7 +2475,7 @@ async def SearchClans(search_term: str, Page: int = 1) -> list[dict[str, Any]]:
     Offset = 50 * Page
 
     clans_data = await state.database.fetch_all(
-        "SELECT id, name, description, icon, tag FROM clans WHERE name LIKE %s OR tag LIKE %s LIMIT 50 OFFSET %s",
+        "SELECT id, name, description, tag FROM clans WHERE name LIKE %s OR tag LIKE %s LIMIT 50 OFFSET %s",
         (f"%{search_term}%", f"%{search_term}%", Offset),
     )
 
@@ -2484,8 +2486,8 @@ async def SearchClans(search_term: str, Page: int = 1) -> list[dict[str, Any]]:
                 "ID": Clan[0],
                 "Name": Clan[1],
                 "Description": Clan[2],
-                "Icon": Clan[3],
-                "Tag": Clan[4],
+                "Icon": "",
+                "Tag": Clan[3],
             },
         )
 
@@ -2508,7 +2510,7 @@ async def GetClans(Page: int = 1) -> list[dict[str, Any]]:
     Offset = 50 * Page
     # the sql part
     clans_data = await state.database.fetch_all(
-        "SELECT id, name, description, icon, tag FROM clans LIMIT 50 OFFSET %s",
+        "SELECT id, name, description, tag FROM clans LIMIT 50 OFFSET %s",
         (Offset,),
     )
     # making cool, easy to work with dicts and arrays!
@@ -2519,8 +2521,8 @@ async def GetClans(Page: int = 1) -> list[dict[str, Any]]:
                 "ID": Clan[0],
                 "Name": Clan[1],
                 "Description": Clan[2],
-                "Icon": Clan[3],
-                "Tag": Clan[4],
+                "Icon": "",
+                "Tag": Clan[3],
             },
         )
 
@@ -2544,27 +2546,13 @@ async def GetClanPages() -> int:
 
 async def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
     """Returns a list of clan members."""
-    # ok so we assume the list isnt going to be too long
-    clan_members = await state.database.fetch_all(
-        "SELECT user FROM user_clans WHERE clan = %s",
+    # Clan membership now lives on `users.clan_id`.
+    members_data = await state.database.fetch_all(
+        "SELECT username, id, UNIX_TIMESTAMP(register_time) FROM users WHERE clan_id = %s",
         (ClanID,),
     )
-    if not clan_members:
+    if not members_data:
         return []
-
-    Conditions = ""
-    args = []
-    # this is so we can use one long query rather than a bunch of small ones
-    for ClanUser in clan_members:
-        Conditions += f"id = %s OR "
-        args.append(ClanUser[0])
-    Conditions = Conditions[:-4]  # remove the OR
-
-    # getting the users
-    members_data = await state.database.fetch_all(
-        f"SELECT username, id, register_datetime FROM users WHERE {Conditions}",
-        tuple(args),  # here i use format as the conditions are a trusted input
-    )
 
     # turning the data into a dictionary list
     ReturnList = []
@@ -2584,7 +2572,7 @@ async def GetClanMembers(ClanID: int) -> list[dict[str, Any]]:
 async def GetClan(ClanID: int) -> dict[str, Any]:
     """Gets information for a specified clan."""
     clan_data = await state.database.fetch_one(
-        "SELECT id, name, description, icon, tag, mlimit FROM clans WHERE id = %s LIMIT 1",
+        "SELECT id, name, description, tag, member_limit FROM clans WHERE id = %s LIMIT 1",
         (ClanID,),
     )
     if not clan_data:
@@ -2600,16 +2588,16 @@ async def GetClan(ClanID: int) -> dict[str, Any]:
 
     # getting current member count
     member_count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM user_clans WHERE clan = %s",
+        "SELECT COUNT(*) FROM users WHERE clan_id = %s",
         (ClanID,),
     )
     return {
         "ID": clan_data[0],
         "Name": clan_data[1],
         "Description": clan_data[2],
-        "Icon": clan_data[3],
-        "Tag": clan_data[4],
-        "MemberLimit": clan_data[5],
+        "Icon": "",
+        "Tag": clan_data[3],
+        "MemberLimit": clan_data[4],
         "MemberCount": member_count,
     }
 
@@ -2618,7 +2606,7 @@ async def GetClanOwner(ClanID: int) -> dict[str, Any]:
     """Gets user info for the owner of a clan."""
     # wouldve been done quicker but i decided to play jawbreaker and only got up to 81%
     owner_id = await state.database.fetch_val(
-        "SELECT user FROM user_clans WHERE clan = %s and perms = 8",
+        "SELECT id FROM users WHERE clan_id = %s AND clan_perms = 8 LIMIT 1",
         (ClanID,),
     )
     if not owner_id:
@@ -2647,16 +2635,15 @@ async def ApplyClanEdit(Form: dict[str, str], session: Session) -> None:
     ClanName = Form["name"]
     ClanDesc = Form["desc"]
     ClanTag = Form["tag"]
-    ClanIcon = Form["icon"]
     MemberLimit = Form["limit"]
     await state.database.execute(
-        "UPDATE clans SET name = %s, description = %s, tag = %s, mlimit = %s, icon = %s WHERE id = %s LIMIT 1",
-        (ClanName, ClanDesc, ClanTag, MemberLimit, ClanIcon, ClanID),
+        "UPDATE clans SET name = %s, description = %s, tag = %s, member_limit = %s WHERE id = %s LIMIT 1",
+        (ClanName, ClanDesc, ClanTag, MemberLimit, ClanID),
     )
 
     # Make all tags refresh.
     members = await state.database.fetch_all(
-        "SELECT user FROM user_clans WHERE clan = %s",
+        "SELECT id FROM users WHERE clan_id = %s",
         (ClanID,),
     )
 
@@ -2674,12 +2661,15 @@ async def NukeClan(ClanID: int, session: Session) -> None:
 
     # Make all tags refresh.
     members = await state.database.fetch_all(
-        "SELECT user FROM user_clans WHERE clan = %s",
+        "SELECT id FROM users WHERE clan_id = %s",
         (ClanID,),
     )
 
     await state.database.execute("DELETE FROM clans WHERE id = %s LIMIT 1", (ClanID,))
-    await state.database.execute("DELETE FROM user_clans WHERE clan = %s", (ClanID,))
+    await state.database.execute(
+        "UPDATE users SET clan_id = NULL, clan_perms = 0 WHERE clan_id = %s",
+        (ClanID,),
+    )
     # run this after
 
     for user_id in members:
@@ -2690,7 +2680,10 @@ async def NukeClan(ClanID: int, session: Session) -> None:
 
 async def KickFromClan(AccountID: int) -> None:
     """Kicks user from all clans (supposed to be only one)."""
-    await state.database.execute("DELETE FROM user_clans WHERE user = %s", (AccountID,))
+    await state.database.execute(
+        "UPDATE users SET clan_id = NULL, clan_perms = 0 WHERE id = %s",
+        (AccountID,),
+    )
     await cache_clan(AccountID)
 
 
@@ -2706,7 +2699,8 @@ async def GetUsersRegisteredBetween(Offset: int = 0, Ahead: int = 24) -> int:
     AheadTime = OffsetTime - Ahead
 
     count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM users WHERE register_datetime > %s AND register_datetime < %s",
+        "SELECT COUNT(*) FROM users WHERE UNIX_TIMESTAMP(register_time) > %s "
+        "AND UNIX_TIMESTAMP(register_time) < %s",
         (AheadTime, OffsetTime),
     )
     return count
@@ -2725,7 +2719,8 @@ async def GetUsersActiveBetween(Offset: int = 0, Ahead: int = 24) -> int:
     AheadTime = OffsetTime - Ahead
 
     count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM users WHERE latest_activity > %s AND latest_activity < %s",
+        "SELECT COUNT(*) FROM users WHERE UNIX_TIMESTAMP(latest_activity) > %s "
+        "AND UNIX_TIMESTAMP(latest_activity) < %s",
         (AheadTime, OffsetTime),
     )
     return count
@@ -3085,7 +3080,7 @@ class HWIDLog(TypedDict):
 
 async def get_hwid_history(user_id: int) -> list[HWIDLog]:
     hwid_history = await state.database.fetch_all(
-        "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user WHERE userid = %s",
+        "SELECT id, user_id, mac_md5, unique_md5, disk_md5, occurrences FROM user_hardware WHERE user_id = %s",
         (user_id,),
     )
 
@@ -3104,8 +3099,8 @@ async def get_hwid_history(user_id: int) -> list[HWIDLog]:
 
 async def get_hwid_history_paginated(user_id: int, page: int = 0) -> list[HWIDLog]:
     occurences = await state.database.fetch_all(
-        "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
-        f"WHERE userid = %s ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
+        "SELECT id, user_id, mac_md5, unique_md5, disk_md5, occurrences FROM user_hardware "
+        f"WHERE user_id = %s ORDER BY id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
         (user_id,),
     )
 
@@ -3135,9 +3130,9 @@ async def get_hwid_matches_exact(log: HWIDLog) -> list[HWIDLog]:
     """
 
     occurences = await state.database.fetch_all(
-        "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
-        "WHERE userid != %s AND mac = %s AND unique_id = %s AND "
-        "disk_id = %s",
+        "SELECT id, user_id, mac_md5, unique_md5, disk_md5, occurrences FROM user_hardware "
+        "WHERE user_id != %s AND mac_md5 = %s AND unique_md5 = %s AND "
+        "disk_md5 = %s",
         (log["user_id"], log["mac"], log["unique_id"], log["disk_id"]),
     )
 
@@ -3166,9 +3161,9 @@ async def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
     """
 
     occurences = await state.database.fetch_all(
-        "SELECT id, userid, mac, unique_id, disk_id, occurencies FROM hw_user "
-        "WHERE userid != %s AND (mac = %s OR unique_id = %s OR "
-        "disk_id = %s) AND mac != 'b4ec3c4334a0249dae95c284ec5983df'",
+        "SELECT id, user_id, mac_md5, unique_md5, disk_md5, occurrences FROM user_hardware "
+        "WHERE user_id != %s AND (mac_md5 = %s OR unique_md5 = %s OR "
+        "disk_md5 = %s) AND mac_md5 != 'b4ec3c4334a0249dae95c284ec5983df'",
         (log["user_id"], log["mac"], log["unique_id"], log["disk_id"]),
     )
 
@@ -3187,7 +3182,7 @@ async def get_hwid_matches_partial(log: HWIDLog) -> list[HWIDLog]:
 
 async def get_hwid_count(user_id: int) -> int:
     count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM hw_user WHERE userid = %s",
+        "SELECT COUNT(*) FROM user_hardware WHERE user_id = %s",
         (user_id,),
     )
     return count
@@ -3282,7 +3277,7 @@ async def change_username(
     # Store the old username
     if not bypass_name_history:
         await state.database.execute(
-            "INSERT INTO user_name_history VALUES (NULL, %s, %s, UNIX_TIMESTAMP())",
+            "INSERT INTO user_name_history (user_id, username) VALUES (%s, %s)",
             (
                 user_id,
                 old_data["Username"],
