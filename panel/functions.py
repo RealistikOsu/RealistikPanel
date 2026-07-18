@@ -205,13 +205,15 @@ async def LoginHandler(
 
 BASE_RECENT_QUERY = """
 SELECT
-    u.username, s.userid, s.time, s.score, s.pp,
-    s.play_mode, s.mods, s.accuracy, b.song_name, s.play_mode
-FROM {} s
-INNER JOIN users u ON u.id = s.userid
-INNER JOIN beatmaps b ON b.beatmap_md5 = s.beatmap_md5
+    u.username, s.user_id, UNIX_TIMESTAMP(s.submitted_at), s.score, s.pp,
+    s.mode, s.mods, s.accuracy,
+    CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), s.mode
+FROM scores s
+INNER JOIN users u ON u.id = s.user_id
+INNER JOIN beatmaps b ON b.md5 = s.beatmap_md5
+INNER JOIN beatmapsets bs ON bs.id = b.set_id
 WHERE
-    u.privileges & 1 AND s.pp >= %s
+    u.public AND s.pp >= %s
 ORDER BY s.id DESC
 LIMIT %s
 """
@@ -221,46 +223,15 @@ async def get_recent_plays(
     total_plays: int = 20,
     minimum_pp: int = 0,
 ) -> list[dict[str, Any]]:
-    """Returns recent plays."""
-    divisor = 1
-    if config.srv_supports_relax:
-        divisor += 1
-    if config.srv_supports_autopilot:
-        divisor += 1
-    plays_per_gamemode = total_plays // divisor
-
-    dash_plays = []
-
-    plays = await state.database.fetch_all(
-        BASE_RECENT_QUERY.format("scores"),
+    """Returns recent plays. Vanilla/relax/autopilot now share one `scores`
+    table (distinguished by the combined `mode` column)."""
+    dash_plays = await state.database.fetch_all(
+        BASE_RECENT_QUERY,
         (
             minimum_pp,
-            plays_per_gamemode,
+            total_plays,
         ),
     )
-    dash_plays.extend(plays)
-
-    if config.srv_supports_relax:
-        # adding relax plays
-        plays_rx = await state.database.fetch_all(
-            BASE_RECENT_QUERY.format("scores_relax"),
-            (
-                minimum_pp,
-                plays_per_gamemode,
-            ),
-        )
-        dash_plays.extend(plays_rx)
-
-    if config.srv_supports_autopilot:
-        # adding autopilot plays
-        plays_ap = await state.database.fetch_all(
-            BASE_RECENT_QUERY.format("scores_ap"),
-            (
-                minimum_pp,
-                plays_per_gamemode,
-            ),
-        )
-        dash_plays.extend(plays_ap)
 
     # converting the data into something readable
     ReadableArray = []
@@ -351,14 +322,18 @@ async def GetBmapInfo(
 ) -> list[dict[str, Any]]:
     """Gets beatmap info."""
     beatmapset_id = await state.database.fetch_val(
-        "SELECT beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
+        "SELECT set_id FROM beatmaps WHERE id = %s",
         (bmap_id,),
     )
 
     if not beatmapset_id:
         # it might be a beatmap set then
         beatmaps_data = await state.database.fetch_all(
-            "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked, beatmap_md5, mode, max_combo FROM beatmaps WHERE beatmapset_id = %s",
+            "SELECT CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), b.ar, "
+            "COALESCE(bd.stars, 0), b.set_id, b.id, b.status, b.md5, b.mode, b.max_combo "
+            "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id "
+            "LEFT JOIN beatmap_difficulty bd ON bd.beatmap_id = b.id AND bd.mode = b.mode "
+            "WHERE b.set_id = %s",
             (bmap_id,),
         )
 
@@ -378,7 +353,11 @@ async def GetBmapInfo(
             ]
     else:
         beatmaps_data = await state.database.fetch_all(
-            "SELECT song_name, ar, difficulty_std, beatmapset_id, beatmap_id, ranked, beatmap_md5, mode, max_combo FROM beatmaps WHERE beatmapset_id = %s",
+            "SELECT CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), b.ar, "
+            "COALESCE(bd.stars, 0), b.set_id, b.id, b.status, b.md5, b.mode, b.max_combo "
+            "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id "
+            "LEFT JOIN beatmap_difficulty bd ON bd.beatmap_id = b.id AND bd.mode = b.mode "
+            "WHERE b.set_id = %s",
             (beatmapset_id,),
         )
 
@@ -517,7 +496,7 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
         return
 
     mode = await state.database.fetch_val(
-        "SELECT mode FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
+        "SELECT mode FROM beatmaps WHERE id = %s LIMIT 1",
         (BeatmapId,),
     )
 
@@ -541,7 +520,7 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
             )
 
     await state.database.execute(
-        "UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmap_id = %s LIMIT 1",
+        "UPDATE beatmaps SET status = %s, status_frozen = 1 WHERE id = %s LIMIT 1",
         (
             ActionId,
             BeatmapId,
@@ -552,7 +531,7 @@ async def RankBeatmap(BeatmapId: int, ActionName: str, session: Session) -> None
     # USSR SUPPORT.
     # this reminds me i should swap ussr to usa
     map_md5 = await state.database.fetch_val(
-        "SELECT beatmap_md5 FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
+        "SELECT md5 FROM beatmaps WHERE id = %s LIMIT 1",
         (BeatmapId,),
     )
 
@@ -588,7 +567,7 @@ async def Webhook(BeatmapId: int, ActionId: int, session: Session) -> None:
         return
 
     map_data = await state.database.fetch_one(
-        "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s",
+        "SELECT CONCAT(bs.artist, ' - ', bs.title), b.set_id FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id WHERE b.id = %s",
         (BeatmapId,),
     )
     if not map_data:
@@ -1332,45 +1311,49 @@ async def RollbackUser(
     """Rolls back user scores by X days."""
     cutoff = int(time.time()) - (days * 86400)
 
-    tables = []
+    relax_codes = []
     if "va" in mods:
-        tables.append(("scores", 0))
+        relax_codes.append(0)
     if "rx" in mods and config.srv_supports_relax:
-        tables.append(("scores_relax", 1))
+        relax_codes.append(1)
     if "ap" in mods and config.srv_supports_autopilot:
-        tables.append(("scores_ap", 2))
+        relax_codes.append(2)
 
-    if not tables:
+    # Combined mode (0-7) values to roll back (single `scores` table).
+    target_modes = [
+        cmode
+        for relax in relax_codes
+        for mode in modes
+        if (cmode := combined_mode(mode, relax)) is not None
+    ]
+    if not target_modes:
         return
 
-    # Prepare SQL for modes checking
-    # We can't easily pass a list to SQL IN clause with aiomysql/databases properly without formatting,
-    # but for ints it's safeish if we validate.
-    # modes is list of ints 0-3.
-    modes_sql = ",".join([str(m) for m in modes])
+    modes_sql = ",".join(str(m) for m in target_modes)
 
-    for table, rx in tables:
-        # Get beatmaps affected to recalculate first places later
-        affected_maps = await state.database.fetch_all(
-            f"SELECT beatmap_md5, play_mode FROM {table} WHERE userid = %s AND time > %s AND play_mode IN ({modes_sql})",
-            (user_id, cutoff),
-        )
+    # Get beatmaps affected to recalculate first places later
+    affected_maps = await state.database.fetch_all(
+        f"SELECT DISTINCT beatmap_md5, mode FROM scores WHERE user_id = %s "
+        f"AND UNIX_TIMESTAMP(submitted_at) > %s AND mode IN ({modes_sql})",
+        (user_id, cutoff),
+    )
 
-        # Delete scores
+    # Delete scores
+    await state.database.execute(
+        f"DELETE FROM scores WHERE user_id = %s AND UNIX_TIMESTAMP(submitted_at) > %s "
+        f"AND mode IN ({modes_sql})",
+        (user_id, cutoff),
+    )
+
+    # Recalculate first places for affected beatmaps
+    for bmap_md5, cmode in affected_maps:
+        # Delete current first place entry if it was from this user
         await state.database.execute(
-            f"DELETE FROM {table} WHERE userid = %s AND time > %s AND play_mode IN ({modes_sql})",
-            (user_id, cutoff),
+            "DELETE FROM first_places WHERE beatmap_md5 = %s AND user_id = %s AND mode = %s",
+            (bmap_md5, user_id, cmode),
         )
-
-        # Recalculate first places for affected beatmaps
-        for bmap_md5, mode in affected_maps:
-            # Delete current first place entry if it was from this user
-            await state.database.execute(
-                "DELETE FROM first_places WHERE beatmap_md5 = %s AND user_id = %s AND relax = %s AND mode = %s",
-                (bmap_md5, user_id, rx, mode),
-            )
-            # Recalculate
-            await calc_first_place(bmap_md5, rx, mode)
+        # Recalculate
+        await calc_first_place(bmap_md5, cmode)
 
     # Force pep.py to reload data if possible, though there isn't a specific "recalc stats" event
     # We'll just kick the user so they can reconnect and hopefully stats update on next play
@@ -1423,8 +1406,8 @@ async def ResUnTrict(
             )
 
         # First places KILL.
-        recalc_md5s = await state.database.fetch_all(
-            "SELECT beatmap_md5 FROM first_places WHERE user_id = %s",
+        recalc_maps = await state.database.fetch_all(
+            "SELECT beatmap_md5, mode FROM first_places WHERE user_id = %s",
             (user_id,),
         )
 
@@ -1433,8 +1416,8 @@ async def ResUnTrict(
             "DELETE FROM first_places WHERE user_id = %s",
             (user_id,),
         )
-        for bmap_md5 in recalc_md5s:
-            await calc_first_place(bmap_md5[0])
+        for bmap_md5, cmode in recalc_maps:
+            await calc_first_place(bmap_md5, cmode)
 
     await UpdateBanStatus(user_id)
     return TheReturn
@@ -1945,7 +1928,9 @@ async def UpdatePriv(Form: dict[str, str]) -> None:
 async def GetMostPlayed() -> dict[str, Any]:
     """Gets the beatmap with the highest playcount."""
     beatmap = await state.database.fetch_one(
-        "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps ORDER BY playcount DESC LIMIT 1",
+        "SELECT b.id, CONCAT(bs.artist, ' - ', bs.title), b.set_id, b.playcount "
+        "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id "
+        "ORDER BY b.playcount DESC LIMIT 1",
     )
 
     if beatmap is None:
@@ -2085,7 +2070,7 @@ async def SetBMAPSetStatus(BeatmapSet: int, Status: int, session: Session):
     )
 
     modes = await state.database.fetch_all(
-        "SELECT DISTINCT mode FROM beatmaps WHERE beatmapset_id = %s",
+        "SELECT DISTINCT mode FROM beatmaps WHERE set_id = %s",
         (BeatmapSet,),
     )
 
@@ -2113,7 +2098,7 @@ async def SetBMAPSetStatus(BeatmapSet: int, Status: int, session: Session):
         mode_filter = " AND `mode` IN (" + ",".join(map(str, rankable_modes)) + ")"
 
     await state.database.execute(
-        f"UPDATE beatmaps SET ranked = %s, ranked_status_freezed = 1 WHERE beatmapset_id = %s{mode_filter}",
+        f"UPDATE beatmaps SET status = %s, status_frozen = 1 WHERE set_id = %s{mode_filter}",
         (
             Status,
             BeatmapSet,
@@ -2128,7 +2113,8 @@ async def SetBMAPSetStatus(BeatmapSet: int, Status: int, session: Session):
         title_text = "loved!"
 
     maps_data = await state.database.fetch_all(
-        "SELECT song_name, beatmap_id, beatmap_md5 FROM beatmaps WHERE beatmapset_id = %s",
+        "SELECT CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), b.id, b.md5 "
+        "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id WHERE b.set_id = %s",
         (BeatmapSet,),
     )
 
@@ -2306,12 +2292,10 @@ async def GetRankRequests(
         modes_sql = ",".join(map(str, allowed_modes))
         requests = await state.database.fetch_all(
             f"""
-            SELECT rr.id, rr.userid, rr.bid, rr.type, rr.time, rr.blacklisted
+            SELECT rr.id, rr.user_id, rr.beatmap_id, rr.type,
+                   UNIX_TIMESTAMP(rr.requested_at), rr.blacklisted
             FROM rank_requests rr
-            LEFT JOIN beatmaps b ON (
-                (rr.type = 's' AND rr.bid = b.beatmapset_id)
-                OR (rr.type = 'b' AND rr.bid = b.beatmap_id)
-            )
+            INNER JOIN beatmaps b ON b.id = rr.beatmap_id
             WHERE rr.blacklisted = 0
             AND b.mode IN ({modes_sql})
             GROUP BY rr.id
@@ -2322,7 +2306,8 @@ async def GetRankRequests(
         )
     else:
         requests = await state.database.fetch_all(
-            "SELECT id, userid, bid, type, time, blacklisted FROM rank_requests WHERE blacklisted = 0 ORDER BY id DESC LIMIT 50 OFFSET %s",
+            "SELECT id, user_id, beatmap_id, type, UNIX_TIMESTAMP(requested_at), blacklisted "
+            "FROM rank_requests WHERE blacklisted = 0 ORDER BY id DESC LIMIT 50 OFFSET %s",
             (Offset,),
         )
 
@@ -2330,33 +2315,13 @@ async def GetRankRequests(
     TheRequests = []
     UserIDs = []  # used for later fetching the users, so we dont have a repeat of 50 queries
     for request in requests:
-        # getting song info, like 50 individual queries at peak lmao
-        TriedSet = False
-        TriedBeatmap = False
-        if request[3] == "s":
-            request_data = await state.database.fetch_one(
-                "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1",
-                (request[2],),
-            )
-            TriedSet = True
-        else:
-            request_data = await state.database.fetch_one(
-                "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
-                (request[2],),
-            )
-            TriedBeatmap = True
-
-        # in case it was added incorrectly for some reason?
-        if not request_data and TriedBeatmap:
-            request_data = await state.database.fetch_one(
-                "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmapset_id = %s LIMIT 1",
-                (request[2],),
-            )
-        elif not request_data and TriedSet:
-            request_data = await state.database.fetch_one(
-                "SELECT song_name, beatmapset_id FROM beatmaps WHERE beatmap_id = %s LIMIT 1",
-                (request[2],),
-            )
+        # Clean schema tracks requests at the beatmap level (rr.beatmap_id).
+        request_data = await state.database.fetch_one(
+            "SELECT CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), b.set_id "
+            "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id "
+            "WHERE b.id = %s LIMIT 1",
+            (request[2],),
+        )
 
         # if the info is bad
         if not request_data:
@@ -2373,7 +2338,7 @@ async def GetRankRequests(
             Cover = f"https://assets.ppy.sh/beatmaps/{BeatmapSetID}/covers/cover.jpg"
 
         modes = await state.database.fetch_all(
-            "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
+            "SELECT mode FROM beatmaps WHERE set_id = %s",
             (BeatmapSetID,),
         )
         unique_modes = Unique([mode[0] for mode in modes])
@@ -2734,7 +2699,9 @@ def RippleSafeUsername(Username: str) -> str:
 async def GetSuggestedRank() -> list[dict[str, Any]]:
     """Gets suggested maps to rank (based on play count)."""
     beatmaps_data = await state.database.fetch_all(
-        "SELECT beatmap_id, song_name, beatmapset_id, playcount FROM beatmaps WHERE ranked = 0 ORDER BY playcount DESC LIMIT 8",
+        "SELECT b.id, CONCAT(bs.artist, ' - ', bs.title, ' [', b.version, ']'), b.set_id, b.playcount "
+        "FROM beatmaps b INNER JOIN beatmapsets bs ON bs.id = b.set_id "
+        "WHERE b.status = 0 ORDER BY b.playcount DESC LIMIT 8",
     )
     BeatmapList = []
     for TopBeatmap in beatmaps_data:
@@ -2748,7 +2715,7 @@ async def GetSuggestedRank() -> list[dict[str, Any]]:
             diff_name = match.group(2)
 
         modes = await state.database.fetch_all(
-            "SELECT mode FROM beatmaps WHERE beatmapset_id = %s",
+            "SELECT mode FROM beatmaps WHERE set_id = %s",
             (TopBeatmap[2],),
         )
         unique_modes = Unique([mode[0] for mode in modes])
@@ -2770,7 +2737,7 @@ async def GetSuggestedRank() -> list[dict[str, Any]]:
 async def CountRestricted() -> int:
     """Calculates the amount of restricted or banned users."""
     count = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM users WHERE privileges = 2"
+        "SELECT COUNT(*) FROM users WHERE public = 0"
     )
     return count
 
@@ -2814,27 +2781,21 @@ def CoolerInt(ToInt: Any) -> int:
     return int(ToInt)
 
 
-async def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None:
+async def calc_first_place(beatmap_md5: str, mode: int = 0) -> None:
     """Calculates the new first place for a beatmap and inserts it into the
-    datbaase.
+    database. (Clean schema: single `scores` table + slim `first_places`.)
 
     Args:
         beatmap_md5 (str): The MD5 of the beatmap to set the first place for.
-        rx (int): THe custom mode to recalc for (0=vn, 1=rx, 2=ap)
-        mode (int): The gamemode to recalc for.
+        mode (int): The combined gamemode (0-7) to recalc for.
     """
 
-    # We have to work out table.
-    table = {0: "scores", 1: "scores_relax", 2: "scores_ap"}.get(rx)
-
-    # WHY IS THE ROSU IMPLEMENTATION SO SCUFFED.
-    # FROM scores_ap LEFT JOIN users ON users.id = scores_ap.userid
+    # Best (status = 2) score on the map by a non-restricted user.
     first_place_data = await state.database.fetch_one(
-        "SELECT s.id, s.userid, s.score, s.max_combo, s.full_combo, s.mods, s.300_count,"
-        "s.100_count, s.50_count, s.misses_count, s.time, s.play_mode, s.completed,"
-        f"s.accuracy, s.pp, s.playtime, s.beatmap_md5 FROM {table} s RIGHT JOIN users a ON a.id = s.userid WHERE "
-        "s.beatmap_md5 = %s AND s.play_mode = %s AND completed = 3 AND a.privileges & 2 ORDER BY pp "
-        "DESC LIMIT 1",
+        "SELECT s.id, s.user_id, s.pp FROM scores s "
+        "INNER JOIN users a ON a.id = s.user_id "
+        "WHERE s.beatmap_md5 = %s AND s.mode = %s AND s.status = 2 AND a.public "
+        "ORDER BY s.pp DESC LIMIT 1",
         (beatmap_md5, mode),
     )
 
@@ -2842,33 +2803,13 @@ async def calc_first_place(beatmap_md5: str, rx: int = 0, mode: int = 0) -> None
     if not first_place_data:
         return
 
-    # INSERT BRRRR
+    score_id, user_id, pp = first_place_data
+
+    # REPLACE keeps the (beatmap_md5, mode) primary key unique.
     await state.database.execute(
-        """
-        INSERT INTO first_places
-         (
-            score_id,
-            user_id,
-            score,
-            max_combo,
-            full_combo,
-            mods,
-            300_count,
-            100_count,
-            50_count,
-            miss_count,
-            timestamp,
-            mode,
-            completed,
-            accuracy,
-            pp,
-            play_time,
-            beatmap_md5,
-            relax
-         ) VALUES
-         (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """,
-        (*first_place_data, rx),
+        "REPLACE INTO first_places (beatmap_md5, mode, score_id, user_id, pp) "
+        "VALUES (%s, %s, %s, %s, %s)",
+        (beatmap_md5, mode, score_id, user_id, pp),
     )
 
 
@@ -2987,10 +2928,7 @@ async def request_count(allowed_modes: list[int] | None = None) -> int:
             f"""
             SELECT COUNT(DISTINCT rr.id)
             FROM rank_requests rr
-            INNER JOIN beatmaps b ON (
-                (rr.type = 's' AND rr.bid = b.beatmapset_id)
-                OR (rr.type = 'b' AND rr.bid = b.beatmap_id)
-            )
+            INNER JOIN beatmaps b ON b.id = rr.beatmap_id
             WHERE rr.blacklisted = 0 AND b.mode IN ({modes_sql})
             """
         )
