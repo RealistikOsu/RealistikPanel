@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+import urllib.parse
 from typing import Any
 from typing import Optional
 
-import aiomysql
+from databases import Database
+from databases import DatabaseURL
+from databases.interfaces import Record
 
 from panel import logger
 
 
 class MySQLPool:
     """
-    Async MySQL connection pool wrapper using aiomysql.
+    Async MySQL connection pool backed by the `databases` library.
+
+    Uses named parameters (`:name`) with dict values. Returned rows are
+    `databases` `Record` objects, which support both positional (`row[0]`)
+    and mapping (`row["col"]`) access.
     """
 
     def __init__(
@@ -23,91 +30,65 @@ class MySQLPool:
         pool_name: str = "mypool",
         pool_size: int = 10,
     ) -> None:
-        self._host = host
-        self._port = port
-        self._user = user
-        self._password = password
-        self._database = database
-        self._pool_size = pool_size
-        self.pool: Optional[aiomysql.Pool] = None
+        database_url = DatabaseURL(
+            "mysql+aiomysql://{user}:{password}@{host}:{port}/{db}".format(
+                user=user,
+                password=urllib.parse.quote(password),
+                host=host,
+                port=port,
+                db=database,
+            ),
+        )
+        self._database = Database(
+            database_url,
+            min_size=1,
+            max_size=pool_size,
+        )
 
     async def connect(self) -> None:
         """Initializes the connection pool."""
-        self.pool = await aiomysql.create_pool(
-            host=self._host,
-            port=self._port,
-            user=self._user,
-            password=self._password,
-            db=self._database,
-            minsize=1,
-            maxsize=self._pool_size,
-            autocommit=True,
-        )
+        await self._database.connect()
 
     async def close(self) -> None:
         """Closes the connection pool."""
-        if self.pool:
-            self.pool.close()
-            await self.pool.wait_closed()
+        await self._database.disconnect()
 
-    async def execute(self, query: str, args: tuple = (), commit: bool = True) -> int:
+    async def execute(self, query: str, args: Optional[dict[str, Any]] = None) -> Any:
         """
-        Execute a sql statement.
+        Execute a sql statement, returning the last inserted row id.
         """
-        if not self.pool:
-            raise RuntimeError("Database pool not initialized. Call connect() first.")
+        row_id = await self._database.execute(query, args)
+        logger.debug(f"MySQL: {row_id!r}, {query!r}, {args!r}")
+        return row_id
 
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, args)
-                if commit:
-                    await conn.commit()
-                
-                row_id = cursor.lastrowid
-                logger.debug(f"MySQL: {row_id!r}, {query!r}, {args!r}")
-                return row_id
-
-    async def fetch_one(self, query: str, args: tuple = ()) -> Optional[tuple]:
+    async def fetch_one(
+        self,
+        query: str,
+        args: Optional[dict[str, Any]] = None,
+    ) -> Optional[Record]:
         """
         Fetch one row from database.
         """
-        if not self.pool:
-            raise RuntimeError("Database pool not initialized. Call connect() first.")
+        row = await self._database.fetch_one(query, args)
+        logger.debug(f"MySQL: {row!r}, {query!r}, {args!r}")
+        return row
 
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, args)
-                row = await cursor.fetchone()
-                logger.debug(f"MySQL: {row!r}, {query!r}, {args!r}")
-                return row
-
-    async def fetch_all(self, query: str, args: tuple = ()) -> list[tuple]:
+    async def fetch_all(
+        self,
+        query: str,
+        args: Optional[dict[str, Any]] = None,
+    ) -> list[Record]:
         """
         Fetch all rows from database.
         """
-        if not self.pool:
-            raise RuntimeError("Database pool not initialized. Call connect() first.")
+        rows = await self._database.fetch_all(query, args)
+        logger.debug(f"MySQL: {rows!r}, {query!r}, {args!r}")
+        return rows
 
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, args)
-                rows = await cursor.fetchall()
-                logger.debug(f"MySQL: {rows!r}, {query!r}, {args!r}")
-                return rows
-
-    async def fetch_val(self, query: str, args: tuple = ()) -> Any:
+    async def fetch_val(self, query: str, args: Optional[dict[str, Any]] = None) -> Any:
         """
         Fetch one value from database.
         """
-        if not self.pool:
-            raise RuntimeError("Database pool not initialized. Call connect() first.")
-
-        async with self.pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(query, args)
-                val = await cursor.fetchone()
-                logger.debug(f"MySQL: {val!r}, {query!r}, {args!r}")
-                
-                if val is None:
-                    return None
-                return val[0]
+        val = await self._database.fetch_val(query, args)
+        logger.debug(f"MySQL: {val!r}, {query!r}, {args!r}")
+        return val
