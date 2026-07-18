@@ -42,7 +42,7 @@ async def fix_bad_user_count() -> None:
     # fix potential crashes
     # have to do it this way as the crash issue is a connector module issue
     BadUserCount = await state.database.fetch_val(
-        "SELECT COUNT(*) FROM users_stats WHERE userpage_content = ''",
+        "SELECT COUNT(*) FROM user_settings WHERE userpage_content = ''",
     )
     if not BadUserCount or BadUserCount == 0:
         return
@@ -51,7 +51,7 @@ async def fix_bad_user_count() -> None:
         f"Found {BadUserCount} users with potentially problematic data!",
     )
     await state.database.execute(
-        "UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = ''",
+        "UPDATE user_settings SET userpage_content = NULL WHERE userpage_content = ''",
     )
     logger.info("Fixed problematic data!")
 
@@ -875,13 +875,13 @@ async def UserData(UserID: int) -> dict[str, Any]:
     """Gets data for user (specialised for user edit page)."""
     # fix badbad data
     await state.database.execute(
-        "UPDATE users_stats SET userpage_content = NULL WHERE userpage_content = '' AND id = %s",
+        "UPDATE user_settings SET userpage_content = NULL WHERE userpage_content = '' AND user_id = %s",
         (UserID,),
     )
 
     user_data = await GetUser(UserID)
     user_data2 = await state.database.fetch_one(
-        "SELECT userpage_content, user_color, username_aka FROM users_stats WHERE id = %s LIMIT 1",
+        "SELECT userpage_content, user_color, username_aka FROM user_settings WHERE user_id = %s LIMIT 1",
         (UserID,),
     )
 
@@ -1121,7 +1121,7 @@ async def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
         ),
     )
     await state.database.execute(
-        "UPDATE users_stats SET userpage_content = %s, username_aka = %s WHERE id = %s",
+        "UPDATE user_settings SET userpage_content = %s, username_aka = %s WHERE user_id = %s",
         (
             UserPage,
             Aka,
@@ -1218,6 +1218,44 @@ async def DeleteUserComments(AccId: int) -> None:
     await state.database.execute("DELETE FROM user_comments WHERE op = %s", (AccId,))
 
 
+def combined_mode(mode: int, relax: int) -> Optional[int]:
+    """Maps a (vanilla mode, relax code) pair to the clean-schema combined
+    `mode` value (0-7). `relax`: 0=vanilla, 1=relax, 2=autopilot.
+
+    Returns None for combinations that don't exist (relax mania, autopilot
+    outside of std).
+    """
+    if relax == 1:
+        if mode > 2:  # no relax mania
+            return None
+        return mode + 4  # relax std/taiko/ctb -> 4/5/6
+    if relax == 2:
+        if mode != 0:  # autopilot std only
+            return None
+        return 7
+    return mode  # vanilla std/taiko/ctb/mania -> 0-3
+
+
+# The tall `user_stats` columns reset on a wipe.
+_WIPE_STATS_COLUMNS = (
+    "ranked_score = 0",
+    "total_score = 0",
+    "pp = 0",
+    "accuracy = 0",
+    "playcount = 0",
+    "playtime = 0",
+    "total_hits = 0",
+    "max_combo = 0",
+    "replays_watched = 0",
+    "level = 1",
+    "count_ssh = 0",
+    "count_ss = 0",
+    "count_sh = 0",
+    "count_s = 0",
+    "count_a = 0",
+)
+
+
 async def WipeUserStats(user_id: int, modes: list[int], mods: list[str]) -> None:
     """
     Wipes user stats and scores for specific modes and mods.
@@ -1226,109 +1264,32 @@ async def WipeUserStats(user_id: int, modes: list[int], mods: list[str]) -> None
     mods: List of mod strings ("va", "rx", "ap")
     """
 
-    # Mapping of mode ID to suffix in database columns
-    mode_suffixes = {0: "_std", 1: "_taiko", 2: "_ctb", 3: "_mania"}
-
-    # 1. Wipe Vanilla
+    relax_codes = []
     if "va" in mods:
-        # construct update query
-        updates = []
-        for mode in modes:
-            suffix = mode_suffixes.get(mode)
-            if suffix:
-                updates.extend(
-                    [
-                        f"ranked_score{suffix} = 0",
-                        f"playcount{suffix} = 0",
-                        f"total_score{suffix} = 0",
-                        f"replays_watched{suffix} = 0",
-                        f"total_hits{suffix} = 0",
-                        f"level{suffix} = 0",
-                        f"playtime{suffix} = 0",
-                        f"avg_accuracy{suffix} = 0.000000000000",
-                        f"pp{suffix} = 0",
-                    ]
-                )
-                # special case for unrestricted_pp if std
-                if mode == 0:
-                    updates.append("unrestricted_pp = 0")
-
-        if updates:
-            query = f"UPDATE users_stats SET {', '.join(updates)} WHERE id = %s"
-            await state.database.execute(query, (user_id,))
-
-        # Delete scores
-        modes_sql = ",".join([str(m) for m in modes])
-        await state.database.execute(
-            f"DELETE FROM scores WHERE userid = %s AND play_mode IN ({modes_sql})",
-            (user_id,),
-        )
-        # User playcounts per map - we can't easily filter by mode here as the table doesn't have it?
-        # users_beatmap_playcount: user_id, beatmap_id, count. Beatmap has mode.
-        # It's a bit complex playcount wipe, maybe just leave it or do a complex join delete?
-        # For now, let's stick to stats and scores which is the main thing.
-
-    # 2. Wipe Relax
+        relax_codes.append(0)
     if "rx" in mods and config.srv_supports_relax:
-        updates = []
-        for mode in modes:
-            suffix = mode_suffixes.get(mode)
-            if suffix:
-                updates.extend(
-                    [
-                        f"ranked_score{suffix} = 0",
-                        f"playcount{suffix} = 0",
-                        f"total_score{suffix} = 0",
-                        f"replays_watched{suffix} = 0",
-                        f"total_hits{suffix} = 0",
-                        f"level{suffix} = 0",
-                        f"playtime{suffix} = 0",
-                        f"avg_accuracy{suffix} = 0.000000000000",
-                        f"pp{suffix} = 0",
-                    ]
-                )
-                if mode == 0:
-                    updates.append("unrestricted_pp = 0")
-
-        if updates:
-            query = f"UPDATE rx_stats SET {', '.join(updates)} WHERE id = %s"
-            await state.database.execute(query, (user_id,))
-
-        modes_sql = ",".join([str(m) for m in modes])
-        await state.database.execute(
-            f"DELETE FROM scores_relax WHERE userid = %s AND play_mode IN ({modes_sql})",
-            (user_id,),
-        )
-
-    # 3. Wipe Autopilot
+        relax_codes.append(1)
     if "ap" in mods and config.srv_supports_autopilot:
-        updates = []
-        for mode in modes:
-            suffix = mode_suffixes.get(mode)
-            if suffix:
-                updates.extend(
-                    [
-                        f"ranked_score{suffix} = 0",
-                        f"playcount{suffix} = 0",
-                        f"total_score{suffix} = 0",
-                        f"replays_watched{suffix} = 0",
-                        f"total_hits{suffix} = 0",
-                        f"level{suffix} = 0",
-                        f"playtime{suffix} = 0",
-                        f"avg_accuracy{suffix} = 0.000000000000",
-                        f"pp{suffix} = 0",
-                    ]
-                )
-                if mode == 0:
-                    updates.append("unrestricted_pp = 0")
+        relax_codes.append(2)
 
-        if updates:
-            query = f"UPDATE ap_stats SET {', '.join(updates)} WHERE id = %s"
-            await state.database.execute(query, (user_id,))
+    reset_sql = f"UPDATE user_stats SET {', '.join(_WIPE_STATS_COLUMNS)} WHERE user_id = %s AND mode = %s"
 
-        modes_sql = ",".join([str(m) for m in modes])
+    for relax in relax_codes:
+        target_modes = [
+            cmode
+            for mode in modes
+            if (cmode := combined_mode(mode, relax)) is not None
+        ]
+        if not target_modes:
+            continue
+
+        for cmode in target_modes:
+            await state.database.execute(reset_sql, (user_id, cmode))
+
+        # Delete scores for the affected combined modes.
+        modes_sql = ",".join(str(m) for m in target_modes)
         await state.database.execute(
-            f"DELETE FROM scores_ap WHERE userid = %s AND play_mode IN ({modes_sql})",
+            f"DELETE FROM scores WHERE user_id = %s AND mode IN ({modes_sql})",
             (user_id,),
         )
 
@@ -1791,16 +1752,16 @@ async def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
     if not privileges:
         return
 
-    if privileges & 4:
+    if privileges & int(Privileges.DONOR):
         # already has supporter, extending
         ends_on = await state.database.fetch_val(
-            "SELECT donor_expire FROM users WHERE id = %s",
+            "SELECT COALESCE(UNIX_TIMESTAMP(donor_end), 0) FROM users WHERE id = %s",
             (AccountID,),
         )
-        ends_on += 86400 * Duration
+        ends_on = (ends_on or round(time.time())) + 86400 * Duration
 
         await state.database.execute(
-            "UPDATE users SET donor_expire = %s WHERE id=%s",
+            "UPDATE users SET donor_end = FROM_UNIXTIME(%s) WHERE id=%s",
             (
                 ends_on,
                 AccountID,
@@ -1809,10 +1770,10 @@ async def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
 
     else:
         EndTimestamp = round(time.time()) + (86400 * Duration)
-        privileges += 4  # adding donor perms
+        privileges += int(Privileges.DONOR)  # adding donor perms
 
         await state.database.execute(
-            "UPDATE users SET privileges = %s, donor_expire = %s WHERE id = %s",
+            "UPDATE users SET privileges = %s, donor_end = FROM_UNIXTIME(%s) WHERE id = %s",
             (
                 privileges,
                 EndTimestamp,
@@ -1822,12 +1783,12 @@ async def GiveSupporter(AccountID: int, Duration: int = 30) -> None:
 
         # allowing them to set custom badges
         await state.database.execute(
-            "UPDATE users_stats SET can_custom_badge = 1 WHERE id = %s LIMIT 1",
+            "UPDATE user_settings SET can_custom_badge = 1 WHERE user_id = %s LIMIT 1",
             (AccountID,),
         )
         # now we give them the badge
         await state.database.execute(
-            "INSERT INTO user_badges (user, badge) VALUES (%s, %s)",
+            "INSERT INTO user_badges (user_id, badge_id) VALUES (%s, %s)",
             (AccountID, config.srv_donor_badge_id),
         )
 
@@ -1842,12 +1803,12 @@ async def RemoveSupporter(AccountID: int, session: Session) -> None:
         return
 
     # checking if they dont have it so privs arent messed up
-    if not privileges & 4:
+    if not privileges & int(Privileges.DONOR):
         return
 
-    privileges -= 4
+    privileges -= int(Privileges.DONOR)
     await state.database.execute(
-        "UPDATE users SET privileges = %s, donor_expire = 0 WHERE id = %s",
+        "UPDATE users SET privileges = %s, donor_end = NULL WHERE id = %s",
         (
             privileges,
             AccountID,
@@ -1855,12 +1816,12 @@ async def RemoveSupporter(AccountID: int, session: Session) -> None:
     )
     # remove custom badge perms and hide custom badge
     await state.database.execute(
-        "UPDATE users_stats SET can_custom_badge = 0, show_custom_badge = 0 WHERE id = %s LIMIT 1",
+        "UPDATE user_settings SET can_custom_badge = 0, show_custom_badge = 0 WHERE user_id = %s LIMIT 1",
         (AccountID,),
     )
     # removing el donor badge
     await state.database.execute(
-        "DELETE FROM user_badges WHERE user = %s AND badge = %s LIMIT 1",
+        "DELETE FROM user_badges WHERE user_id = %s AND badge_id = %s LIMIT 1",
         (AccountID, config.srv_donor_badge_id),
     )
 
@@ -2262,7 +2223,7 @@ async def FindUserByUsername(User: str, Page: int) -> list[dict[str, Any]]:
     for yuser in users:
         # country query
         country = await state.database.fetch_val(
-            "SELECT country FROM users_stats WHERE id = %s",
+            "SELECT country FROM users WHERE id = %s",
             (yuser[0],),
         )
 
@@ -3300,13 +3261,6 @@ async def is_username_taken(username: str, ignore_user_id: int = 0) -> Optional[
     return None
 
 
-_USERNAME_TABLES = (
-    "users_stats",
-    "rx_stats",
-    "ap_stats",
-)
-
-
 async def change_username(
     user_id: int,
     new_username: str,
@@ -3335,7 +3289,8 @@ async def change_username(
             ),
         )
 
-    # Update existing table entries (including data repetition...)
+    # Update existing table entries. Username lives only on `users` in the
+    # clean schema; the stats tables no longer denormalise it.
     await state.database.execute(
         "UPDATE users SET username = %s, username_safe = %s WHERE id = %s",
         (
@@ -3344,15 +3299,6 @@ async def change_username(
             user_id,
         ),
     )
-
-    for username_table in _USERNAME_TABLES:
-        await state.database.execute(
-            f"UPDATE {username_table} SET username = %s WHERE id = %s",
-            (
-                new_username,
-                user_id,
-            ),
-        )
 
     # If this username was previously in our name history, delete it.
     await state.database.execute(
