@@ -601,15 +601,14 @@
     document.querySelectorAll(`#${id}`).forEach(e => e.remove());
   }
 
-  if (!(AdminPerms & 128)) {
+  // Privileges v2: ban / restrict / wipe / kick / view-HWID all fold into
+  // MOD_MANAGE_USERS (bit 4). (Was the old Ripple bits 128/32/524288.)
+  const MOD_MANAGE_USERS = 4;
+  if (!(AdminPerms & MOD_MANAGE_USERS)) {
     removeIfExists("wipe");
     removeIfExists("hwid");
     removeIfExists("delete");
-  }
-  if (!(AdminPerms & 32)) {
     removeIfExists("ban");
-  }
-  if (!(AdminPerms & 524288)) {
     removeIfExists("kick");
   }
 </script>

@@ -1,22 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Danger Area!</h2>
-  <div class="card card-danger">
-    <div class="card-header">Are you sure you want to <b>{{ action }}</b></div>
-    <div class="card-body">
-      <b style="color: #eb4034;"
-        >THIS ACTION CAN BE REALLY DANGEROUS! PROCEED ONLY IF YOU KNOW WHAT
-        YOURE DOING!</b
-      ><br />
-      <div class="buttons">
-        <a href="{{ yeslink }}" class="btn btn-danger"
-          >I know what I'm doing.</a
-        >
-        <a href="{{ backlink }}" class="btn btn-success"
-          >Bring me back to safety!</a
-        >
-      </div>
+<div class="max-w-xl mx-auto mt-10">
+  <div class="rounded-2xl border border-red-900/50 bg-slate-900/60 shadow-lg shadow-red-950/20 overflow-hidden">
+    <div class="px-6 py-5 border-b border-red-900/40 flex items-center gap-3">
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+        <i class="fas fa-triangle-exclamation"></i>
+      </span>
+      <h2 class="text-lg font-bold text-white">Confirmation required</h2>
     </div>
-    <div class="card-footer">RealistikPanel</div>
+
+    <div class="px-6 py-6 space-y-3">
+      <p class="text-slate-300">
+        You're about to <b class="text-red-400">{{ action }}</b>.
+      </p>
+      <p class="text-sm text-slate-400">
+        This action can be dangerous — only proceed if you know what you're doing.
+        Deleting a user account <b>anonymises</b> it (renames it, removes the email
+        and Discord link, deactivates login) while keeping HWID and play records
+        for moderation history.
+      </p>
+    </div>
+
+    <div class="px-6 py-5 border-t border-slate-800 flex flex-col sm:flex-row gap-3">
+      <a href="{{ backlink }}"
+        class="flex-1 inline-flex items-center justify-center rounded-xl text-sm font-bold transition-colors bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 hover:border-slate-600 h-11 px-4">
+        <i class="fas fa-arrow-left mr-2"></i> Bring me back to safety
+      </a>
+      <a href="{{ yeslink }}"
+        class="flex-[2] inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 bg-red-600 hover:bg-red-500 text-white h-11 px-6 shadow-lg shadow-red-500/20 hover:-translate-y-0.5">
+        <i class="fas fa-check-circle mr-2"></i> I know what I'm doing
+      </a>
+    </div>
   </div>
+</div>
 {% endblock %}

@@ -1512,7 +1512,12 @@ async def ClearHWID(user_id: int) -> None:
 
 
 async def DeleteAccount(user_id: int) -> None:
-    """Deletes the account provided. Press F to pay respects."""
+    """Anonymises the account instead of hard-deleting it: strips identity
+    (username -> DeletedUser_<id>, email removed) and deactivates the account,
+    but KEEPS all records — scores, stats, badges, and especially HWID
+    (`user_hardware`) + login history, which we need to determine whether the
+    user was a legitimate account vs a multiaccount. The Discord link is
+    removed. Formerly a full nuke of every record."""
     await state.redis.publish(
         "peppy:disconnect",
         json.dumps(
@@ -1522,68 +1527,32 @@ async def DeleteAccount(user_id: int) -> None:
             },
         ),
     )
-    # NUKE. BIG NUKE. (clean schema: single scores/user_stats tables, and
-    # several `users`-referencing tables cascade on the final delete.)
-    await state.database.execute("DELETE FROM scores WHERE user_id = %s", (user_id,))
+    # Anonymise the identity + deactivate: blanked password can't be used to log
+    # in, privileges=0 (not activated), public=0 (hidden from leaderboards). email
+    # is NOT NULL + UNIQUE, so use a per-id sentinel rather than a blank.
     await state.database.execute(
-        "DELETE FROM two_factor_totp WHERE user_id = %s", (user_id,)
+        "UPDATE users SET username = %s, username_safe = %s, email = %s, "
+        "password_bcrypt = '', privileges = 0, public = 0 WHERE id = %s",
+        (
+            f"DeletedUser_{user_id}",
+            f"deleteduser_{user_id}",
+            f"deleted_{user_id}@deleted.invalid",
+            user_id,
+        ),
     )
+    # Strip identity-revealing profile settings, but keep the row.
     await state.database.execute(
-        "DELETE FROM beatmaps_rating WHERE user_id = %s", (user_id,)
+        "UPDATE user_settings SET username_aka = '', userpage_content = NULL "
+        "WHERE user_id = %s",
+        (user_id,),
     )
-    await state.database.execute("DELETE FROM comments WHERE user_id = %s", (user_id,))
+    # Remove the Discord link (identity), keep everything else.
+    await state.database.execute(
+        "DELETE FROM discord_oauth WHERE user_id = %s", (user_id,)
+    )
     await state.database.execute(
         "DELETE FROM discord_roles WHERE user_id = %s", (user_id,)
     )
-    await state.database.execute(
-        "DELETE FROM user_logins WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM user_hardware WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM profile_backgrounds WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM rank_requests WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM reports WHERE to_id = %s OR from_id = %s",
-        (
-            user_id,
-            user_id,
-        ),
-    )
-    await state.database.execute("DELETE FROM tokens WHERE user_id = %s", (user_id,))
-    await state.database.execute(
-        "DELETE FROM user_achievements WHERE user_id = %s",
-        (user_id,),
-    )
-    await state.database.execute(
-        "DELETE FROM user_beatmap_playcount WHERE user_id = %s",
-        (user_id,),
-    )
-    await state.database.execute(
-        "DELETE FROM users_relationships WHERE user_id = %s OR target_id = %s",
-        (
-            user_id,
-            user_id,
-        ),
-    )
-    await state.database.execute(
-        "DELETE FROM user_badges WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM user_name_history WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM first_places WHERE user_id = %s", (user_id,)
-    )
-    await state.database.execute(
-        "DELETE FROM user_stats WHERE user_id = %s", (user_id,)
-    )
-    # Finally, delete the user (cascades user_settings and any remaining FK rows).
-    await state.database.execute("DELETE FROM users WHERE id = %s", (user_id,))
 
 
 async def BanchoKick(id: int, reason: str) -> None:
