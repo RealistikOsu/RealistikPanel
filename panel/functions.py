@@ -159,7 +159,7 @@ async def LoginHandler(
 ) -> tuple[bool, Union[str, LoginUserData]]:
     """Checks the passwords and handles the sessions."""
     user = await state.database.fetch_one(
-        "SELECT username, password_md5, privileges, id FROM users WHERE username_safe = %s LIMIT 1",
+        "SELECT username, password_bcrypt, privileges, id, public FROM users WHERE username_safe = %s LIMIT 1",
         (RippleSafeUsername(username),),
     )
 
@@ -169,17 +169,22 @@ async def LoginHandler(
     else:
         (
             username,
-            password_md5,
+            password_bcrypt,
             privileges,
             user_id,
+            public,
         ) = user
 
         # dont  allow the bot account to log in (in case the server has a MASSIVE loophole)
         if user_id == 999:
             return False, USER_NOT_FOUND_ERROR
 
+        # reject banned/restricted staff accounts.
+        if not public:
+            return False, USER_BANNED_ERROR
+
         if await has_privilege_value(user_id, Privileges.ADMIN_ACCESS_RAP):
-            if compare_password(password, password_md5):
+            if compare_password(password, password_bcrypt):
                 # Get privilege name
                 priv_name = await state.database.fetch_val(
                     "SELECT name FROM privileges_groups WHERE privileges = %s",
