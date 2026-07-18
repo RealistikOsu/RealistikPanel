@@ -630,14 +630,12 @@ async def RAPLog(
     UserID: int = 999, Text: str = "forgot to assign a text value :/"
 ) -> None:
     """Logs to the RAP log."""
-    Timestamp = round(time.time())
     # now we putting that in oh yea
     await state.database.execute(
-        "INSERT INTO rap_logs (userid, text, datetime, through) VALUES (%s, %s, %s, 'RealistikPanel!')",
+        "INSERT INTO rap_logs (user_id, text, created_at, through) VALUES (%s, %s, NOW(), 'RealistikPanel!')",
         (
             UserID,
             Text,
-            Timestamp,
         ),
     )
 
@@ -891,7 +889,9 @@ async def UserData(UserID: int) -> dict[str, Any]:
         user_data2 = ["", "default", ""]
 
     user_data3 = await state.database.fetch_one(
-        "SELECT email, register_datetime, privileges, notes, donor_expire, silence_end, silence_reason, ban_datetime, bypass_hwid, ban_reason FROM users WHERE id = %s LIMIT 1",
+        "SELECT email, UNIX_TIMESTAMP(register_time), privileges, notes, "
+        "COALESCE(UNIX_TIMESTAMP(donor_end), 0), public, bypass_hwid "
+        "FROM users WHERE id = %s LIMIT 1",
         (UserID,),
     )
 
@@ -902,11 +902,8 @@ async def UserData(UserID: int) -> dict[str, Any]:
             0,
             "",
             0,
+            1,
             0,
-            "",
-            0,
-            0,
-            "",
         ]
 
     # Fetches the IP
@@ -926,15 +923,24 @@ async def UserData(UserID: int) -> dict[str, Any]:
     if not privilege_name:
         privilege_name = f"Unknown ({user_data3[2]})"
 
-    # adds new info to dict
-    # I dont use the discord features from RAP so i didnt include the discord settings but if you complain enough ill add them
-    try:
-        freeze_val = await state.database.fetch_val(
-            "SELECT freezedate FROM users WHERE id = %s LIMIT 1",
-            (UserID,),
-        )
-    except Exception:
-        freeze_val = None
+    # Reconstruct moderation state from active infractions (v2 clean schema).
+    # type: 0=restrict, 1=ban, 2=silence, 3=freeze.
+    active_infractions = await state.database.fetch_all(
+        "SELECT type, reason, UNIX_TIMESTAMP(expires_at), UNIX_TIMESTAMP(created_at) "
+        "FROM infractions WHERE user_id = %s AND active = 1",
+        (UserID,),
+    )
+    # Keep the most recent of each type.
+    by_type = {row[0]: row for row in active_infractions}
+    silence_inf = by_type.get(2)
+    ban_inf = by_type.get(1)
+    restrict_inf = by_type.get(0)
+    freeze_inf = by_type.get(3)
+
+    is_public = bool(user_data3[5])
+    silence_until_ts = int(silence_inf[2]) if silence_inf and silence_inf[2] else 0
+    punish_inf = ban_inf or restrict_inf
+    banned_since = int(punish_inf[3]) if punish_inf and punish_inf[3] else 0
 
     # removing "None" from user page and admin notes
     notes = ""
@@ -956,27 +962,28 @@ async def UserData(UserID: int) -> dict[str, Any]:
         "Privileges": user_data3[2],
         "Notes": notes,
         "DonorExpire": user_data3[4],
-        "SilenceEnd": user_data3[5],
-        "SilenceReason": user_data3[6],
+        "SilenceEnd": silence_until_ts,
+        "SilenceReason": silence_inf[1] if silence_inf else "",
         "Avatar": f"{config.api_avatar_url}/{UserID}",
         "Ip": ip_val,
         "CountryFull": GetCFullName(user_data["Country"]),
         "PrivName": privilege_name,
-        "BypassHWID": user_data3[8],
-        "BanReason": user_data3[9].strip(),
-        "HasSupporter": user_data3[2] & 4,
+        "BypassHWID": user_data3[6],
+        "BanReason": (punish_inf[1] if punish_inf else "") or "",
+        "HasSupporter": user_data3[2] & int(Privileges.DONOR),
         "DonorExpireStr": TimeToTimeAgo(user_data3[4]),
-        "IsBanned": CoolerInt(user_data3[7]) > 0,
-        "BanedAgo": TimeToTimeAgo(CoolerInt(user_data3[7])),
-        "IsSilenced": CoolerInt(user_data3[5]) > round(time.time()),
+        "IsBanned": (not is_public) or ban_inf is not None or restrict_inf is not None,
+        "BanedAgo": TimeToTimeAgo(banned_since),
+        "IsSilenced": silence_until_ts > round(time.time()),
         "IsOnline": await IsOnline(UserID),
-        "SilenceEndAgo": TimeToTimeAgo(CoolerInt(user_data3[5])),
+        "SilenceEndAgo": TimeToTimeAgo(silence_until_ts),
         "Whitelisted": whitelist,
     }
-    if freeze_val:
-        user_data["IsFrozen"] = int(freeze_val) > 0
-        user_data["FreezeDateNo"] = int(freeze_val)
-        user_data["FreezeDate"] = TimeToTimeAgo(user_data["FreezeDateNo"])
+    if freeze_inf:
+        freeze_date = int(freeze_inf[2]) if freeze_inf[2] else 0
+        user_data["IsFrozen"] = True
+        user_data["FreezeDateNo"] = freeze_date
+        user_data["FreezeDate"] = TimeToTimeAgo(freeze_date)
     else:
         user_data["IsFrozen"] = False
 
@@ -989,7 +996,8 @@ async def RAPFetch(page: int = 1) -> list[dict[str, Any]]:
     Offset = 50 * page
 
     panel_logs = await state.database.fetch_all(
-        "SELECT * FROM rap_logs ORDER BY id DESC LIMIT 50 OFFSET %s",
+        "SELECT id, user_id, text, UNIX_TIMESTAMP(created_at), through FROM rap_logs "
+        "ORDER BY id DESC LIMIT 50 OFFSET %s",
         (Offset,),
     )
 
@@ -1414,55 +1422,38 @@ async def ResUnTrict(
     user_id: int, from_id: int, note: str = "", reason: str = ""
 ) -> bool:
     """Restricts or unrestricts account yeah."""
-    if reason:
-        await state.database.execute(
-            "UPDATE users SET ban_reason = %s WHERE id = %s",
-            (
-                reason,
-                user_id,
-            ),
-        )
-
-    privileges = await state.database.fetch_val(
-        "SELECT privileges FROM users WHERE id = %s",
+    public = await state.database.fetch_val(
+        "SELECT public FROM users WHERE id = %s",
         (user_id,),
     )
-    if privileges is None:
+    if public is None:
         return False
 
-    if not privileges & 1:  # if restricted
-        new_privs = privileges | 1
+    if not public:  # if restricted -> unrestrict
         await state.database.execute(
-            "UPDATE users SET privileges = %s, ban_datetime = 0 WHERE id = %s LIMIT 1",
-            (
-                new_privs,
-                user_id,
-            ),
-        )  # unrestricts
-        await state.database.execute(
-            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
-            (
-                from_id,
-                user_id,
-                "Unrestrict",
-                reason if reason else "No reason provided.",
-            ),
+            "UPDATE infractions SET active = 0 WHERE user_id = %s AND active = 1 AND type IN (0, 1)",
+            (user_id,),
         )
+        await state.database.execute(
+            "UPDATE users SET public = 1 WHERE id = %s",
+            (user_id,),
+        )  # unrestricts
         TheReturn = False
     else:
-        TimeBan = round(time.time())
         await state.database.execute(
-            "UPDATE users SET privileges = 2, ban_datetime = %s WHERE id = %s",
+            "INSERT INTO infractions (user_id, moderator_id, type, reason, active, created_at) "
+            "VALUES (%s, %s, 0, %s, 1, NOW())",
             (
-                TimeBan,
                 user_id,
+                from_id,
+                reason if reason else "No reason provided.",
             ),
         )  # restrict em bois
-        await RemoveFromLeaderboard(user_id)
         await state.database.execute(
-            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
-            (from_id, user_id, "Restrict", reason if reason else "No reason provided."),
+            "UPDATE users SET public = 0 WHERE id = %s",
+            (user_id,),
         )
+        await RemoveFromLeaderboard(user_id)
         TheReturn = True
 
         # We append the note if it exists to the thingy init bruv
@@ -1491,28 +1482,28 @@ async def ResUnTrict(
 
 
 async def FreezeHandler(user_id: int) -> bool:
+    # An active freeze is an active infraction of type 3.
     freeze_status = await state.database.fetch_val(
-        "SELECT frozen FROM users WHERE id = %s",
+        "SELECT 1 FROM infractions WHERE user_id = %s AND active = 1 AND type = 3 LIMIT 1",
         (user_id,),
     )
-    if freeze_status is None:
-        return False
 
     if freeze_status:
         await state.database.execute(
-            "UPDATE users SET frozen = 0, freezedate = 0, firstloginafterfrozen = 1 WHERE id = %s",
+            "UPDATE infractions SET active = 0 WHERE user_id = %s AND active = 1 AND type = 3",
             (user_id,),
         )
         TheReturn = False
     else:
-        freezedate = datetime.datetime.now() + datetime.timedelta(days=5)
-        freezedateunix = (freezedate - datetime.datetime(1970, 1, 1)).total_seconds()
+        freeze_deadline = datetime.datetime.now() + datetime.timedelta(days=5)
+        freeze_deadline_unix = (freeze_deadline - datetime.datetime(1970, 1, 1)).total_seconds()
 
         await state.database.execute(
-            "UPDATE users SET frozen = 1, freezedate = %s WHERE id = %s",
+            "INSERT INTO infractions (user_id, type, active, created_at, expires_at) "
+            "VALUES (%s, 3, 1, NOW(), FROM_UNIXTIME(%s))",
             (
-                freezedateunix,
                 user_id,
+                freeze_deadline_unix,
             ),
         )
 
@@ -1523,40 +1514,39 @@ async def FreezeHandler(user_id: int) -> bool:
 
 async def BanUser(user_id: int, from_id: int, reason: str = "") -> bool:
     """User go bye bye!"""
-    if reason:
-        await state.database.execute(
-            "UPDATE users SET ban_reason = %s WHERE id = %s",
-            (
-                reason,
-                user_id,
-            ),
-        )
-
-    privileges = await state.database.fetch_val(
-        "SELECT privileges FROM users WHERE id = %s",
+    # An active ban is an active infraction of type 1.
+    active_ban = await state.database.fetch_val(
+        "SELECT 1 FROM infractions WHERE user_id = %s AND active = 1 AND type = 1 LIMIT 1",
         (user_id,),
     )
-    if privileges is None:
+
+    # Guard against acting on a non-existent user.
+    exists = await state.database.fetch_val(
+        "SELECT 1 FROM users WHERE id = %s",
+        (user_id,),
+    )
+    if not exists:
         return False
 
-    Timestamp = round(time.time())
-    if privileges == 0:  # if already banned
+    if active_ban:  # if already banned -> unban
         await state.database.execute(
-            "UPDATE users SET privileges = 3, ban_datetime = '0' WHERE id = %s",
+            "UPDATE infractions SET active = 0 WHERE user_id = %s AND active = 1 AND type IN (0, 1)",
             (user_id,),
         )
         await state.database.execute(
-            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
-            (from_id, user_id, "Unban", reason if reason else "No reason provided."),
+            "UPDATE users SET public = 1 WHERE id = %s",
+            (user_id,),
         )
         TheReturn = False
     else:
         await state.database.execute(
-            "UPDATE users SET privileges = 0, ban_datetime = %s WHERE id = %s",
-            (
-                Timestamp,
-                user_id,
-            ),
+            "INSERT INTO infractions (user_id, moderator_id, type, reason, active, created_at) "
+            "VALUES (%s, %s, 1, %s, 1, NOW())",
+            (user_id, from_id, reason if reason else "No reason provided."),
+        )
+        await state.database.execute(
+            "UPDATE users SET public = 0 WHERE id = %s",
+            (user_id,),
         )
         await RemoveFromLeaderboard(user_id)
         await state.redis.publish(
@@ -1567,10 +1557,6 @@ async def BanUser(user_id: int, from_id: int, reason: str = "") -> bool:
                     "reason": f"You have been banned from {config.srv_name}. You will not be missed.",
                 },
             ),
-        )
-        await state.database.execute(
-            "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (%s, %s, %s, %s)",
-            (from_id, user_id, "Ban", reason if reason else "No reason provided."),
         )
         TheReturn = True
 
@@ -2982,42 +2968,51 @@ class BanLog(TypedDict):
     detail: str
 
 
+# Moderation history is now reconstructed from the `infractions` table.
+# type: 0=restrict, 1=ban, 2=silence, 3=freeze.
+_INFRACTION_SUMMARIES = {0: "Restrict", 1: "Ban", 2: "Silence", 3: "Freeze"}
+
 BAN_LOG_BASE = (
-    "SELECT from_id, f.username, to_id, t.username, UNIX_TIMESTAMP(ts), summary, detail "
-    "FROM ban_logs b "
-    "INNER JOIN users f ON f.id = from_id "
-    "INNER JOIN users t ON t.id = to_id "
+    "SELECT b.moderator_id, COALESCE(f.username, 'System'), b.user_id, t.username, "
+    "UNIX_TIMESTAMP(b.created_at), b.type, b.reason, b.active "
+    "FROM infractions b "
+    "LEFT JOIN users f ON f.id = b.moderator_id "
+    "INNER JOIN users t ON t.id = b.user_id "
 )
+
+
+def _banlog_row_to_dict(row: tuple) -> BanLog:
+    summary = _INFRACTION_SUMMARIES.get(row[5], "Unknown")
+    if not row[7]:
+        summary = f"{summary} (lifted)"
+    return {
+        "from_id": row[0],
+        "from_name": row[1],
+        "to_id": row[2],
+        "to_name": row[3],
+        "ts": row[4],
+        "summary": summary,
+        "detail": row[6],
+        "expity_timeago": TimeToTimeAgo(row[4]),
+    }
 
 
 async def fetch_banlogs(page: int = 0) -> list[BanLog]:
     """Fetches a page of ban logs."""
 
-    ban_logs = await state.database.fetch_all(
+    infraction_rows = await state.database.fetch_all(
         BAN_LOG_BASE
         + f"ORDER BY b.id DESC LIMIT {PAGE_SIZE} OFFSET {PAGE_SIZE * page}",
     )
 
     # Convert into dicts.
-    return [
-        {
-            "from_id": row[0],
-            "from_name": row[1],
-            "to_id": row[2],
-            "to_name": row[3],
-            "ts": row[4],
-            "summary": row[5],
-            "detail": row[6],
-            "expity_timeago": TimeToTimeAgo(row[4]),
-        }
-        for row in ban_logs
-    ]
+    return [_banlog_row_to_dict(row) for row in infraction_rows]
 
 
 async def ban_count() -> int:
     """Returns the total number of bans."""
 
-    count = await state.database.fetch_val("SELECT COUNT(*) FROM ban_logs")
+    count = await state.database.fetch_val("SELECT COUNT(*) FROM infractions")
     return count
 
 
@@ -3065,24 +3060,12 @@ async def fetch_user_banlogs(user_id: int) -> list[BanLog]:
     Returns:
         list[BanLog]: A list of all banlogs for the user.
     """
-    ban_logs = await state.database.fetch_all(
-        BAN_LOG_BASE + "WHERE to_id = %s ORDER BY b.id DESC",
+    infraction_rows = await state.database.fetch_all(
+        BAN_LOG_BASE + "WHERE b.user_id = %s ORDER BY b.id DESC",
         (user_id,),
     )
 
-    return [
-        {
-            "from_id": row[0],
-            "from_name": row[1],
-            "to_id": row[2],
-            "to_name": row[3],
-            "ts": row[4],
-            "summary": row[5],
-            "detail": row[6],
-            "expity_timeago": TimeToTimeAgo(row[4]),
-        }
-        for row in ban_logs
-    ]
+    return [_banlog_row_to_dict(row) for row in infraction_rows]
 
 
 RANDOM_CHARSET = string.ascii_letters + string.digits
