@@ -1070,17 +1070,31 @@ async def ApplyUserEdit(form: dict[str, str], from_id: int) -> Union[None, str]:
     if UserPage == "":
         UserPage = None
 
+    caller_privileges = await state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s",
+        (from_id,),
+    )
+    if caller_privileges is None:
+        return
+
+    current_privileges = await state.database.fetch_val(
+        "SELECT privileges FROM users WHERE id = %s",
+        (UserId,),
+    )
+    if current_privileges is None:
+        return
+
+    if int(Privilege) != current_privileges:
+        if not (int(caller_privileges) & Privileges.ADMIN_MANAGE_PRIVILEGES):
+            return "You do not have permission to manage privileges."
+
+        if int(Privilege) & ~int(caller_privileges):
+            return "You cannot grant privileges you do not have."
+
     # stop people ascending themselves
     # OriginalPriv = int(session["Privilege"])
     if int(UserId) == from_id:
-        privileges = await state.database.fetch_val(
-            "SELECT privileges FROM users WHERE id = %s",
-            (from_id,),
-        )
-        if privileges is None:
-            return
-
-        if int(Privilege) > privileges:
+        if int(Privilege) > caller_privileges:
             return "You cannot ascend yourself."
 
     # Badges

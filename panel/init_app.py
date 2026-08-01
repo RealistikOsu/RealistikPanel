@@ -1294,6 +1294,7 @@ def init_app() -> Quart:
         static_folder="../static",
         template_folder="../templates",
     )
+    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 
     app.before_serving(init_db)
     app.after_serving(close_db)
