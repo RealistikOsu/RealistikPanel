@@ -449,14 +449,14 @@
         var UserPriv = "{{ session.privileges.value }}";
         var AccessRAP = 2 << 2;
         var ManageUsers = 2 << 3;
-        var ManageBeatmaps = 2 << 7 | 2 << 23 | 2 << 24 | 2 << 25 | 2 << 21;
+        var ManageBeatmaps = 2 << 7 | 2 << 23 | 2 << 24 | 2 << 25 | 2 << 26;
         var ManageServers = 2 << 8;
         var ManageSettings = 2 << 9;
         var ManageBadges = 2 << 13;
         var ViewRAPLogs = 2 << 14;
         var ManagePrivileges = 2 << 15;
-        var RPErrorLogs = 2 << 26;
-        var RPManageClans = 2 << 27;
+        var RPErrorLogs = 2 << 27;
+        var RPManageClans = 2 << 28;
 
         function checkPerms(perm, className) {
             if (!(UserPriv & perm)) {
