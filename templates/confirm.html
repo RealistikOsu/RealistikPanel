@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2 class="section-title">Danger Area!</h2>
-  <div class="card card-danger">
-    <div class="card-header">Are you sure you want to <b>{{ action }}</b></div>
-    <div class="card-body">
-      <b style="color: #eb4034;"
-        >THIS ACTION CAN BE REALLY DANGEROUS! PROCEED ONLY IF YOU KNOW WHAT
-        YOURE DOING!</b
-      ><br />
-      <div class="buttons">
-        <a href="{{ yeslink }}" class="btn btn-danger"
-          >I know what I'm doing.</a
-        >
-        <a href="{{ backlink }}" class="btn btn-success"
-          >Bring me back to safety!</a
-        >
+  <div class="mb-8">
+      <h2 class="text-3xl font-bold tracking-tight text-white">Danger Area!</h2>
+  </div>
+
+  <div class="rounded-2xl border border-red-500/20 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-white/10 text-white">
+        Are you sure you want to <b>{{ action }}</b>
       </div>
-    </div>
-    <div class="card-footer">RealistikPanel</div>
+      <div class="p-6">
+        <b class="text-red-500">THIS ACTION CAN BE REALLY DANGEROUS! PROCEED ONLY IF YOU KNOW WHAT YOURE DOING!</b>
+        <div class="flex items-center gap-3 mt-6">
+          <a href="{{ yeslink }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-10 px-4">
+            I know what I'm doing.
+          </a>
+          <a href="{{ backlink }}" class="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:pointer-events-none bg-green-600 text-white hover:bg-green-700 h-10 px-4 shadow-lg shadow-green-900/20">
+            Bring me back to safety!
+          </a>
+        </div>
+      </div>
+      <div class="px-6 py-3 border-t border-white/10 text-xs text-muted-foreground">RealistikPanel</div>
   </div>
 {% endblock %}
