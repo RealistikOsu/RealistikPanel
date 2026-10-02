@@ -2,6 +2,7 @@
 
 > [!IMPORTANT]
 > RealistikPanel is no longer maintained. It has been superseded by [Soumetsu](https://github.com/RealistikOsu/Soumetsu), which includes the admin panel at `/admin`.
+
 The modern admin panel for osu! private servers!
 
 <img width="1512" height="863" alt="image" src="https://github.com/user-attachments/assets/ea954058-b036-43ec-9771-10721386b5b7" />
